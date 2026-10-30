@@ -1,0 +1,14 @@
+:root { --bg: #06050d; --ink: #f4f1ff; --dim: rgba(244,241,255,.72); --line: rgba(244,241,255,.12); }
+html { background: var(--bg); }
+body { margin: 0; color: var(--ink); font: 500 16px/1.7 Manrope, "Segoe UI", system-ui, sans-serif;
+  background: radial-gradient(50% 40% at 15% 0%, rgba(255,79,216,.18), transparent 70%), radial-gradient(40% 30% at 90% 10%, rgba(79,240,255,.12), transparent 70%) fixed; }
+.doc { width: min(780px, calc(100% - 32px)); margin: 0 auto; padding: 40px 0 80px; }
+.back { display: inline-block; margin-bottom: 24px; color: var(--dim); text-decoration: none; font-weight: 800; letter-spacing: .14em; }
+h1 { font: 900 clamp(30px, 5vw, 46px)/1.1 "Segoe UI Black", system-ui, sans-serif; margin: 0 0 6px; }
+h2 { font-size: 20px; margin: 34px 0 10px; }
+.upd { color: var(--dim); margin: 0 0 24px; }
+p, li { color: var(--dim); }
+li { margin-bottom: 8px; }
+b { color: var(--ink); }
+a { color: #4ff0ff; }
+code { background: rgba(255,255,255,.08); padding: 2px 6px; border-radius: 6px; }

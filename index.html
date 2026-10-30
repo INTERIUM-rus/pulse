@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pulse — музыка, которая горит</title>
+<meta name="description" content="Pulse — музыкальный визуализатор для Windows: живые фоны под бит, горящий текст песен, медиатека, плейлисты и друзья.">
+<link rel="icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800;900&family=Manrope:wght@500;700;800&display=swap">
+<style>
+:root { --bg: #06050d; --ink: #f4f1ff; --dim: rgba(244,241,255,.66); --faint: rgba(244,241,255,.4); --line: rgba(244,241,255,.12); --a: #ff4fd8; --b: #4ff0ff; --c: #8a5bff; --fire: #ff8a2a; }
+* { box-sizing: border-box; }
+html { background: var(--bg); scroll-behavior: smooth; }
+body { margin: 0; color: var(--ink); font: 500 16px/1.6 Manrope, "Segoe UI", system-ui, sans-serif; overflow-x: hidden; }
+a { color: var(--b); }
+.wrap { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
+/* фон: переливающееся сияние и кольца */
+.sky { position: fixed; inset: -20%; z-index: -2; background:
+  radial-gradient(35% 30% at 20% 20%, rgba(255,79,216,.28), transparent 70%),
+  radial-gradient(30% 28% at 85% 25%, rgba(79,240,255,.2), transparent 70%),
+  radial-gradient(40% 35% at 55% 95%, rgba(138,91,255,.25), transparent 70%); animation: sky 24s ease-in-out infinite alternate; }
+@keyframes sky { to { transform: translate(3%, -3%) rotate(6deg) scale(1.08); } }
+.grain { position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .06; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E"); }
+nav { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+.logo { font: 900 22px Unbounded, sans-serif; letter-spacing: .24em; background: linear-gradient(90deg, var(--a), #ffb36b, var(--b), var(--c), var(--a)); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: sheen 7s linear infinite; text-decoration: none; }
+@keyframes sheen { to { background-position: 300% 0; } }
+nav .links { display: flex; gap: 22px; }
+nav .links a { color: var(--dim); text-decoration: none; font-weight: 700; font-size: 14px; }
+nav .links a:hover { color: var(--ink); }
+/* главный экран */
+.hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 40px; align-items: center; padding: 60px 0 90px; }
+.hero h1 { margin: 0; font: 900 clamp(42px, 6.4vw, 84px)/1 Unbounded, sans-serif; letter-spacing: -.03em; }
+.hero h1 .burn { background: linear-gradient(180deg, #fff6c8, var(--fire) 55%, #ff3d3d); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 22px rgba(255,138,42,.55)); animation: flick 1.6s ease-in-out infinite alternate; }
+@keyframes flick { 50% { filter: drop-shadow(0 0 34px rgba(255,138,42,.85)); } }
+.hero p { color: var(--dim); font-size: 19px; max-width: 46ch; margin: 22px 0 32px; }
+.cta { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.btn { display: inline-flex; align-items: center; gap: 10px; padding: 16px 26px; border-radius: 16px; font: 800 16px Manrope, sans-serif; text-decoration: none; color: #fff; border: 1px solid var(--line); background: rgba(255,255,255,.05); transition: transform .2s, box-shadow .2s; }
+.btn:hover { transform: translateY(-2px); }
+.btn.main { background: linear-gradient(135deg, var(--a), var(--c) 55%, var(--b)); border-color: transparent; box-shadow: 0 14px 40px rgba(255,79,216,.4); }
+.btn.main:hover { box-shadow: 0 18px 50px rgba(255,79,216,.6); }
+.note { color: var(--faint); font-size: 13px; margin-top: 14px; }
+/* визуал: кольца и горящая строка */
+.vis { position: relative; aspect-ratio: 1; display: grid; place-items: center; }
+.ring { position: absolute; border-radius: 50%; border: 6px solid transparent; border-top-color: var(--c1); border-right-color: var(--c1); filter: drop-shadow(0 0 10px var(--c1)); animation: spin var(--t) linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.core { width: 22%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, #fff, var(--a) 40%, transparent 70%); animation: beat .47s ease-in-out infinite alternate; }
+@keyframes beat { to { transform: scale(1.25); } }
+.line { position: absolute; bottom: 8%; left: 50%; transform: translateX(-50%) rotate(-3deg); font: 800 clamp(18px, 2.2vw, 26px) Manrope, sans-serif; white-space: nowrap;
+  background: linear-gradient(90deg, #fff 0 40%, #ffd27a 48%, var(--fire) 54%, transparent 62%); background-size: 260% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: burnline 3.2s linear infinite; }
+@keyframes burnline { 0% { background-position: 0 0; } 100% { background-position: -160% 0; } }
+/* возможности */
+section h2 { font: 900 clamp(28px, 3.6vw, 44px)/1.1 Unbounded, sans-serif; margin: 0 0 30px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+.card { padding: 24px; border-radius: 22px; background: linear-gradient(150deg, hsla(var(--h),90%,55%,.18), rgba(255,255,255,.03)); border: 1px solid hsla(var(--h),90%,70%,.2); transition: transform .3s cubic-bezier(.2,1.4,.4,1); }
+.card:hover { transform: translateY(-6px); }
+.card i { font-style: normal; font-size: 32px; }
+.card b { display: block; font: 800 18px Unbounded, sans-serif; margin: 12px 0 6px; }
+.card span { color: var(--dim); font-size: 15px; }
+.req { margin: 90px 0; padding: 34px; border-radius: 28px; background: rgba(255,255,255,.04); border: 1px solid var(--line); display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+.req b { display: block; font: 800 15px Unbounded, sans-serif; margin-bottom: 4px; }
+.req span { color: var(--dim); font-size: 14px; }
+footer { padding: 40px 0 60px; color: var(--faint); font-size: 14px; display: flex; gap: 20px; flex-wrap: wrap; justify-content: space-between; border-top: 1px solid var(--line); }
+footer a { color: var(--dim); }
+@media (max-width: 860px) { .hero { grid-template-columns: 1fr; } .vis { max-width: 380px; margin: 0 auto; } nav .links { display: none; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="sky"></div><div class="grain"></div>
+<div class="wrap">
+  <nav><a class="logo" href="./">PULSE</a><div class="links"><a href="#features">Возможности</a><a href="#download">Скачать</a><a href="privacy.html">Конфиденциальность</a></div></nav>
+
+  <header class="hero">
+    <div>
+      <h1>Музыка,<br>которая <span class="burn">горит</span></h1>
+      <p>Pulse превращает любую музыку на компьютере в шоу: живые фоны под бит, кольца-эквалайзер, а текст песни идёт в такт и сгорает строка за строкой.</p>
+      <div class="cta" id="download">
+        <a class="btn main" href="Pulse.exe" download>⬇ Скачать для Windows</a>
+        <a class="btn" href="#features">Что умеет</a>
+      </div>
+      <div class="note">Бесплатно · Windows 10 и 11 · 76 МБ · ничего доустанавливать не нужно</div>
+    </div>
+    <div class="vis" aria-hidden="true">
+      <div class="ring" style="width:96%;height:96%;--c1:#8a5bff;--t:9s"></div>
+      <div class="ring" style="width:78%;height:78%;--c1:#4ff0ff;--t:6s;animation-direction:reverse"></div>
+      <div class="ring" style="width:60%;height:60%;--c1:#ff4fd8;--t:4s"></div>
+      <div class="ring" style="width:42%;height:42%;--c1:#ffb36b;--t:3s;animation-direction:reverse"></div>
+      <div class="core"></div>
+      <div class="line">и слова сгорают в огне</div>
+    </div>
+  </header>
+
+  <section id="features">
+    <h2>Что умеет Pulse</h2>
+    <div class="grid">
+      <div class="card" style="--h:20"><i>🔥</i><b>Горящий текст</b><span>Текст песни сам находится и идёт точно в такт, а спетые строки сгорают с искрами и дымом.</span></div>
+      <div class="card" style="--h:290"><i>🌌</i><b>Визуал под бит</b><span>20+ живых фонов, 3D-воронка, чёрная дыра, дропы и безумный режим. Бит ловится точно.</span></div>
+      <div class="card" style="--h:190"><i>🎧</i><b>Медиатека</b><span>Поиск и прослушивание треков целиком, «Моя волна», очередь и плейлисты.</span></div>
+      <div class="card" style="--h:150"><i>🎵</i><b>Любой плеер</b><span>Играет Яндекс Музыка, Spotify или браузер — Pulse подхватит звук, трек и обложку сам.</span></div>
+      <div class="card" style="--h:330"><i>👥</i><b>Друзья</b><span>Профиль с аватаркой и баннером, друзья и то, что они слушают прямо сейчас.</span></div>
+      <div class="card" style="--h:250"><i>🖼</i><b>Живые обои</b><span>Pulse встаёт на рабочий стол под значки. Есть мини-плеер поверх окон и караоке-режим.</span></div>
+      <div class="card" style="--h:40"><i>⏺</i><b>Клипы и итоги</b><span>Запись видео с визуалом и текстом под сторис и красивая статистика прослушиваний.</span></div>
+      <div class="card" style="--h:220"><i>📁</i><b>Свои файлы</b><span>Папки с mp3, flac и m4a превращаются в библиотеку с обложками — без интернета.</span></div>
+    </div>
+  </section>
+
+  <div class="req">
+    <div><b>Система</b><span>Windows 10 или 11, 64 бита</span></div>
+    <div><b>Установка</b><span>Не нужна: скачай Pulse.exe и запусти. Если Windows предупредит о неизвестном издателе — «Подробнее» → «Выполнить в любом случае».</span></div>
+    <div><b>Аккаунт</b><span>Необязателен. С ним избранное, плейлисты и друзья сохраняются в облаке.</span></div>
+  </div>
+
+  <footer>
+    <span>© 2026 Pulse</span>
+    <span><a href="privacy.html">Политика конфиденциальности</a> · <a href="terms.html">Условия использования</a> · <a href="mailto:dz904951@gmail.com">dz904951@gmail.com</a></span>
+  </footer>
+</div>
+</body>
+</html>
