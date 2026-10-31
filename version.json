@@ -1,6 +1,6 @@
 {
-    "version":  "1.5.2",
+    "version":  "1.5.3",
     "url":  "https://interium-rus.github.io/pulse/Pulse.exe",
-    "sha256":  "04CEF991B4F04015AF1B6D6FE914B8D09ACECD6533E33F98779DFD8A3DE0F7DC",
-    "notes":  "Больше музыки в поиске: hearthis.at (полные треки) и отрывки iTunes, умная сортировка результатов, свой ключ YouTube. Исправлено: первый трек мог не играть при включённом эквалайзере."
+    "sha256":  "BFB3607D9DB5FA3ECF31068F6E965DE3FF7F9497E33EBE20E2BC9C8BDD5FD183",
+    "notes":  "Jamendo в поиске: 600 тысяч полных треков со свободной лицензией, их можно и скачать."
 }
