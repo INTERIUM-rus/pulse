@@ -193,6 +193,11 @@ body.zen .upnext { opacity: .4; transition: opacity .8s; }
   border: 1px solid hsla(var(--pc, 300),90%,70%,.3); box-shadow: 0 20px 60px rgba(0,0,0,.55), 0 0 calc(10px + var(--beat, 0) * 36px) hsla(300,100%,60%,calc(.2 + var(--beat, 0) * .35));
   transition: width .35s cubic-bezier(.2,1,.3,1); animation: upIn .45s cubic-bezier(.2,1.2,.4,1); }
 .ytwin.big { width: min(640px, calc(100vw - 32px)); }
+/* самый маленький размер, который разрешает YouTube: плеер 200×200, полоса с кнопками — над ним, а не поверх видео */
+.ytwin.small { width: 200px; }
+.ytwin.small .ytbox { aspect-ratio: 1 / 1; min-height: 200px; }
+.ytwin.small .ytbar { padding-left: 10px; }
+.ytwin.small .ytbar > span:first-child { font-size: 9px; letter-spacing: .1em; }
 .ytbar { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px 6px 14px; background: rgba(14,12,30,.92); font: 700 11px var(--body); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
 .ytbar button { width: 28px; height: 28px; padding: 0; border-radius: 8px; font-size: 14px; background: rgba(255,255,255,.07); }
 .ytbox { position: relative; aspect-ratio: 16 / 9; min-height: 200px; }
@@ -355,6 +360,7 @@ body.lib-open .player { z-index: 7; opacity: 1 !important; }
   .panel { top: calc(60px + var(--sat)); left: 8px; right: 8px; width: auto; max-height: calc(100% - 80px - var(--sat)); }
   .ctl { grid-template-columns: 1fr 1.2fr 42px; }
   .ytwin { left: 8px; right: 8px; width: auto !important; bottom: calc(160px + var(--sab)); }
+  .ytwin.small { left: auto; width: 200px !important; }
   .ytbox { min-height: 0; }
   .lib-side { padding: calc(10px + var(--sat)) 10px 10px; gap: 6px; align-items: center; }
   .lib-acc .acc-login { padding: 9px 12px; white-space: nowrap; }
@@ -689,6 +695,23 @@ body.mini .pmini-lyr { display: block; font-style: normal; font: 700 12px var(--
 .lib-np span { display: block; font-size: 12px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 980px) { .search-top { grid-template-columns: 1fr; } .disc { display: none; } .hero2 { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .disc, .lib-np .vin, .lib-search::before, .lib-search::after { animation: none; } }
+/* боковая панель: свой поиск, кнопки мини-плеера и «Дальше» */
+.side-search { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; padding: 0 12px; border-radius: 12px; background: rgba(255,255,255,.06); border: 1px solid var(--line); }
+.side-search:focus-within { border-color: hsl(var(--lh),100%,70%); }
+.side-search i { font-style: normal; color: var(--dim); }
+.side-search input { flex: 1; min-width: 0; padding: 10px 0; font: 600 13px var(--body); color: var(--ink); background: transparent; border: 0; outline: none; }
+.side-search input::placeholder { color: var(--faint); }
+.np-btns { grid-column: 1 / -1; display: flex; justify-content: center; gap: 6px; }
+.np-btns button { width: 34px; height: 34px; padding: 0; border-radius: 50%; display: grid; place-items: center; font-size: 12px; background: rgba(255,255,255,.07); }
+.lib-next { margin-top: 10px; padding: 0 4px; }
+.lib-next small { display: block; margin: 0 6px 6px; font: 800 9.5px var(--body); letter-spacing: .14em; text-transform: uppercase; color: var(--faint); }
+.lib-next ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+.lib-next li button { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 8px; align-items: center; width: 100%; padding: 5px 6px; text-align: left; border: 0; border-radius: 10px; background: transparent; backdrop-filter: none; }
+.lib-next li button:hover { background: rgba(255,255,255,.06); }
+.lib-next img, .lib-next .ph { width: 34px; height: 34px; border-radius: 8px; object-fit: cover; background: hsla(var(--lh),60%,30%,.5); }
+.lib-next b { display: block; font: 700 12px var(--body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lib-next span { display: block; font-size: 11px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 820px) { .side-search, .lib-next { display: none !important; } }
 .toast {
   position: fixed; left: 50%; bottom: 120px; transform: translateX(-50%); z-index: 7;
   background: var(--glass); border: 1px solid var(--line); border-radius: 999px; padding: 10px 16px; font-size: 13px;
@@ -755,6 +778,7 @@ body.mini .pmini-lyr { display: block; font-style: normal; font: 700 12px var(--
   <nav class="lib-side">
     <div class="lib-logo"><span>PULSE</span><small>МУЗЫКА БЕЗ ПОДПИСКИ</small></div>
     <div class="lib-acc" id="libAcc"></div>
+    <label class="side-search"><i>⌕</i><input id="sideQ" type="search" placeholder="Найти музыку" autocomplete="off" spellcheck="false"></label>
     <button class="lib-nav on" data-tab="home" type="button"><i>✦</i>Главная</button>
     <button class="lib-nav" data-tab="search" type="button"><i>⌕</i>Поиск</button>
     <button class="lib-wave" id="libWave" type="button"><i>🌊</i><span><b>Моя волна</b><small>бесконечный поток под тебя</small></span></button>
@@ -766,7 +790,10 @@ body.mini .pmini-lyr { display: block; font-style: normal; font: 700 12px var(--
     <button class="lib-nav" data-tab="history" type="button"><i>↺</i>История</button>
     <button class="lib-nav" data-tab="stats" type="button"><i>📊</i>Статистика</button>
     <button class="lib-nav" data-tab="settings" type="button"><i>⚙</i>Настройки</button>
-    <div class="lib-np" id="libNp" hidden><div class="vin"><img id="libNpImg" alt=""></div><div><small>Сейчас играет</small><b id="libNpT"></b><span id="libNpA"></span></div></div>
+    <div class="lib-np" id="libNp" hidden><div class="vin"><img id="libNpImg" alt=""></div><div><small>Сейчас играет</small><b id="libNpT"></b><span id="libNpA"></span></div>
+      <div class="np-btns"><button id="npPrev" type="button" aria-label="Предыдущий трек">⏮</button><button id="npPlay" type="button" aria-label="Пауза или продолжить">⏯</button><button id="npNext" type="button" aria-label="Следующий трек">⏭</button></div>
+    </div>
+    <div class="lib-next" id="libNext" hidden><small>Дальше</small><ul id="libNextList"></ul></div>
   </nav>
   <div class="lib-main">
     <div class="lib-top">
@@ -3532,6 +3559,18 @@ registerProcessor('pulse-feed', Feed);`;
       if (it.cover) $('libNpImg').src = it.cover; else $('libNpImg').removeAttribute('src');
       np.classList.toggle('paused', eng().paused);
     }
+    // «Дальше»: три следующих трека очереди, по клику — сразу на него
+    const next = it ? local.queue.slice(local.idx + 1, local.idx + 4) : [], ul = $('libNextList');
+    $('libNext').hidden = !next.length;
+    ul.innerHTML = '';
+    next.forEach((t, k) => {
+      const li = el('li'), b = el('button'); b.type = 'button'; b.title = 'Включить сейчас';
+      const pic = t.cover ? Object.assign(el('img'), { src: t.cover, alt: '', loading: 'lazy' }) : el('div', 'ph');
+      const tx = el('div'); tx.append(el('b', '', t.title), el('span', '', t.artist || ''));
+      b.append(pic, tx);
+      b.addEventListener('click', () => { local.idx += k + 1; startLocal(); });
+      li.appendChild(b); ul.appendChild(li);
+    });
   }
 
   // настроения: плитка запускает поиск (результаты запоминаются, лимит не тратится повторно)
@@ -3690,7 +3729,11 @@ registerProcessor('pulse-feed', Feed);`;
   }
   document.querySelectorAll('.lib-nav').forEach(b => b.addEventListener('click', () => { lib.tab = b.dataset.tab; renderLib(); }));
   $('libClose').addEventListener('click', () => openLib(false));
-  $('ytBig').addEventListener('click', () => $('ytwin').classList.toggle('big'));
+  // размер окна YouTube: маленький (200×200, по умолчанию) → средний → большой, выбор запоминается
+  const YT_SIZES = ['small', 'mid', 'big'];
+  const setYtSize = s => { $('ytwin').classList.toggle('small', s === 'small'); $('ytwin').classList.toggle('big', s === 'big'); store.set('pulse-ytsize', s); };
+  setYtSize(store.get('pulse-ytsize', 'small'));
+  $('ytBig').addEventListener('click', () => setYtSize(YT_SIZES[(YT_SIZES.indexOf(store.get('pulse-ytsize', 'small')) + 1) % 3]));
   // YouTube разрешает играть ролик только с видимым плеером, поэтому закрыть окно = остановить трек
   $('ytClose').addEventListener('click', () => { stopLocal(); toast('Видео закрыто'); });
   $('dLib').addEventListener('click', () => openLib());
@@ -3699,6 +3742,16 @@ registerProcessor('pulse-feed', Feed);`;
     lib.q = e.target.value; clearTimeout(libT);
     libT = setTimeout(() => { if (lib.tab !== 'files') lib.tab = lib.q.trim() ? 'search' : 'home'; renderLib(); }, ytKey() ? 1100 : 450);
   });
+  // поиск в боковой панели: тот же поиск, что сверху
+  $('sideQ').addEventListener('keydown', e => {
+    e.stopPropagation();
+    if (e.key !== 'Enter') return;
+    lib.q = e.target.value; $('libQ').value = lib.q;
+    lib.tab = lib.q.trim() ? 'search' : 'home'; renderLib();
+  });
+  $('npPrev').addEventListener('click', () => localPrev());
+  $('npNext').addEventListener('click', () => localNext());
+  $('npPlay').addEventListener('click', () => { if (!local.active) return; eng().paused ? eng().play() : eng().pause(); setTimeout(markPlaying, 200); });
   $('libQ').addEventListener('keydown', e => {
     if (e.key === 'Enter') { clearTimeout(libT); lib.q = e.target.value; if (lib.tab !== 'files') lib.tab = lib.q.trim() ? 'search' : 'home'; renderLib(); }
     if (e.key === 'Escape') { e.stopPropagation(); openLib(false); }
@@ -3765,6 +3818,7 @@ registerProcessor('pulse-feed', Feed);`;
   function queueChanged() {
     if (local.active && local.item && !local.item.live) fillList($('upSimilar'), local.queue.slice(local.idx + 1, local.idx + 6), local.wave ? 'Дальше включится Моя волна' : 'Это последний трек в очереди');
     if (!$('lib').hidden && lib.tab === 'queue') renderLib();
+    markPlaying();
   }
   // трек доиграл: повтор, следующий, по кругу, волна — или тишина
   function localEnded() {

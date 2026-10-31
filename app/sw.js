@@ -1,6 +1,6 @@
 // Pulse: оболочка приложения работает без сети. Свои файлы — сначала из сети (чтобы обновления приходили сразу),
 // при отсутствии сети — из кэша. Чужие запросы (YouTube, Supabase, тексты песен) не трогаем.
-const CACHE = 'pulse-v4';
+const CACHE = 'pulse-v5';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png',
   'fonts/unbounded-cyrillic.woff2', 'fonts/unbounded-latin.woff2', 'fonts/manrope-cyrillic.woff2', 'fonts/manrope-latin.woff2',
   'fonts/montserrat-cyrillic.woff2', 'fonts/montserrat-latin.woff2'];
