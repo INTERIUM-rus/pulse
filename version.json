@@ -1,6 +1,6 @@
 {
-    "version":  "1.5.3",
+    "version":  "1.5.4",
     "url":  "https://interium-rus.github.io/pulse/Pulse.exe",
-    "sha256":  "BFB3607D9DB5FA3ECF31068F6E965DE3FF7F9497E33EBE20E2BC9C8BDD5FD183",
-    "notes":  "Jamendo в поиске: 600 тысяч полных треков со свободной лицензией, их можно и скачать."
+    "sha256":  "CAE4D3ABEB4B80189BD52DA0916A5D41311B46E9BF9DED62E23911E2AAE96B9E",
+    "notes":  "Общий кэш поиска YouTube: популярные песни находятся даже когда суточный лимит кончился. На главной — чарт YouTube по России на 50 треков и полка «Русские хиты»."
 }
