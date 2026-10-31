@@ -5885,6 +5885,14 @@ registerProcessor('pulse-feed', Feed);`;
   document.addEventListener('visibilitychange', () => { if (document.hidden) saveResume(true); else checkResume(); });
   addEventListener('focus', () => checkResume());
   setTimeout(checkResume, 6000);
+  // ссылки на Pulse с готовым поиском или роликом: …/app/#q=запрос, …/app/#v=ID ролика YouTube
+  setTimeout(() => {
+    const m = /^#(q|v)=(.+)$/.exec(location.hash);
+    if (!m) return;
+    const v = decodeURIComponent(m[2]).slice(0, 120);
+    lib.q = m[1] === 'v' ? 'https://youtu.be/' + v : v;
+    $('libQ').value = lib.q; lib.tab = 'search'; openLib(true);
+  }, 800);
 
   // ===================== переписка с друзьями =====================
   // сообщения лежат в таблице messages; пока чат открыт, новые подтягиваются раз в 3 секунды, непрочитанные — раз в 30
