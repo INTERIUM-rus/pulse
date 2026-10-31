@@ -39,6 +39,9 @@ canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
 #vig, #fxo { position: fixed; inset: 0; pointer-events: none; }
 #vig { background: radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(0,0,0,.6) 100%); }
 #fxo { opacity: 0; mix-blend-mode: screen; }
+/* грустная музыка: холодная синяя дымка поверх сцены (прозрачность ставит скрипт по настроению) */
+#moodTint { position: fixed; inset: 0; pointer-events: none; opacity: 0; background: hsl(222, 55%, 32%); mix-blend-mode: color; transition: opacity 2s; }
+.lite #moodTint { display: none; }
 #grain { position: fixed; inset: -50%; pointer-events: none; opacity: .07; mix-blend-mode: overlay; animation: grain .5s steps(4) infinite; }
 @keyframes grain { 0% { transform: translate(0,0); } 25% { transform: translate(-3%,2%); } 50% { transform: translate(2%,-3%); } 75% { transform: translate(-2%,-1%); } }
 
@@ -702,6 +705,7 @@ body.mini .pmini-lyr { display: block; font-style: normal; font: 700 12px var(--
 <canvas id="lcv" aria-hidden="true"></canvas>
 <div id="vig" aria-hidden="true"></div>
 <div id="fxo" aria-hidden="true"></div>
+<div id="moodTint" aria-hidden="true"></div>
 <div id="grain" aria-hidden="true"></div>
 
 <div class="brand">
@@ -796,11 +800,19 @@ body.mini .pmini-lyr { display: block; font-style: normal; font: 700 12px var(--
     <button id="dRec" type="button"><i>⏺</i><b>Записать клип</b><small>видео с текстом и звуком · R</small></button>
     <button id="dMini" type="button"><i>▣</i><b>Мини-плеер</b><small>поверх всех окон · P</small></button>
   </div>
+  <label class="ctl"><span>Сила эффектов</span>
+    <select id="fxLevel"><option value="calm">Спокойно</option><option value="normal">Обычно</option><option value="max">Максимум</option></select><output></output></label>
+  <label class="ctl"><span>Под настроение песни</span>
+    <select id="fxMood"><option value="on">Подстраиваться</option><option value="off">Всегда ярко</option></select><output></output></label>
+  <p class="hint2">«Спокойно» — без вспышек, молний и дропов. «Под настроение»: на медленной и тихой музыке краски блекнут и уходят в холодные тона, движение замедляется.</p>
   <h3 class="set-h">Пресеты</h3>
   <div class="fxgrid" id="presetGrid"></div>
   <h3 class="set-h">Приложение</h3>
   <label class="ctl" id="autoRow"><span>Запуск с Windows</span>
     <select id="autoMode"><option value="off">Не запускать</option><option value="window">Открывать окно</option><option value="tray">Тихо в трее</option><option value="wallpaper">Сразу как обои</option></select><output></output></label>
+  <label class="ctl" id="dpiRow"><span>Ускорить YouTube без VPN</span>
+    <select id="dpiMode"><option value="off">Выключено</option><option value="on">Включено</option></select><output id="dpiState"></output></label>
+  <p class="hint2" id="dpiHint">Если YouTube не открывается без VPN. Работает только для адресов YouTube через открытый zapret, Windows попросит права администратора. С включённым VPN не нужно.</p>
   <p class="hint2"><a href="https://interium-rus.github.io/pulse/" target="_blank">Сайт Pulse</a> · <a href="https://interium-rus.github.io/pulse/privacy.html" target="_blank">Конфиденциальность</a> · <a href="https://interium-rus.github.io/pulse/terms.html" target="_blank">Условия</a></p>
   <h3 class="set-h">Звук и текст</h3>
   <div class="mstatus" id="srcState"></div>
@@ -1053,6 +1065,7 @@ registerProcessor('pulse-feed', Feed);`;
         else if (m.type === 'selftest') libSelfTest();
         else if (m.type === 'oauth') onOAuth(m);
         else if (m.type === 'autostart') $('autoMode').value = m.mode || 'off';
+        else if (m.type === 'dpi') onDpi(m);
         else if (m.type === 'selftest-yt') ytSelfTest();
         else if (m.type === 'wallpaper') { wallOn = !!m.on; $('dWall').classList.toggle('on', wallOn); document.body.classList.toggle('wall', wallOn); if (m.error) toast('Не получилось встать под значки рабочего стола'); }
         else if (m.type === 'nodevice') srcState('Не нашёл устройство вывода звука. Подключи колонки или наушники.', true);
@@ -1206,34 +1219,57 @@ registerProcessor('pulse-feed', Feed);`;
     zoom: 1, morph: 0, morphN: 6, morphRot: 0, invert: 0, dropT: 0, flash: 0, shake: 0, slow: 1 };
   const HS = h => ((h + sim.hueShift) % 360 + 360) % 360;
 
+  // сила эффектов: настройка («спокойно / обычно / максимум») × настроение песни.
+  // Настроение 0 — медленная, тихая, «тёмная» музыка, 1 — быстрая и плотная; считается по звуку и плавно меняется
+  const FX_BASE = { calm: 0.15, normal: 0.6, max: 1 };
+  const fx = { level: store.get('pulse-fx', 'normal'), moodOn: store.get('pulse-mood', true) };
+  const mood = { v: 0.6 };
+  function fxI() {
+    if (chaos.on) return 1;
+    return (FX_BASE[fx.level] ?? 0.6) * (fx.moodOn ? 0.35 + 0.65 * mood.v : 1);
+  }
+  function moodUpdate(dt) {
+    if (!music.on || music.kind === 'auto' || !fx.moodOn) { mood.v += (0.6 - mood.v) * Math.min(1, dt / 3); return; }
+    if (music.level < 0.03) return; // в паузах настроение не меняем
+    const tempo = music.bpm ? clamp((music.bpm - 80) / 60, 0, 1) : 0.4;
+    const punch = clamp(((music.bt && music.bt.power) || 0.5) - 0.45, 0, 0.55) / 0.55;
+    const bright = clamp(music.high / (music.bass + music.mid + 0.05) * 2.2, 0, 1);
+    let target = 0.4 * tempo + 0.35 * punch + 0.25 * bright;
+    if (!music.locked) target -= 0.12; // ровного бита нет — скорее баллада
+    mood.v += (clamp(target, 0, 1) - mood.v) * Math.min(1, dt / 6);
+  }
+
   function onBeat(power, ambient) {
-    music.beat = Math.max(music.beat, power);
+    const I = fxI();
+    music.beat = Math.max(music.beat, power * (0.55 + 0.45 * I));
     sim.rings.forEach((r, i) => { r.kickT = -i * 0.022; r.kickP = power; r.hit = Math.max(r.hit, 0.6 * power); });
     sim.waves.push({ R: S * 0.04, hue: HS(sim.hue0 + rand(0, 60)), life: 1, beat: true, power });
-    beatFx.spawnTunnel(power);
+    if (I > 0.3) beatFx.spawnTunnel(power);
     if (ambient) return; // без музыки сцена только тихо дышит
     music.beats++;
-    sim.hueTarget += 18 + power * 30;
-    for (let i = 0; i < 18 * power; i++) {
+    sim.hueTarget += (18 + power * 30) * (0.25 + 0.75 * I);
+    for (let i = 0; i < 18 * power * I; i++) {
       const a = Math.random() * TAU, sp = S * rand(0.4, 1.3) * power;
       sim.parts.push({ x: 0, y: 0, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, dot: true, hue: HS(sim.hue0 + rand(0, 120)), life: 1, decay: rand(1.2, 2.2) });
     }
-    sim.flash = Math.max(sim.flash, 0.1 * power);
+    sim.flash = Math.max(sim.flash, 0.1 * power * I);
     lyrBeat();
     bgBeat();
-    // молнии иногда бьют и на обычном бите
-    if (Math.random() < 0.3 * power) beatFx.lightning(2);
-    // после затишья бит = дроп
-    if (music.dropNext || music.beats % 64 === 0) { music.dropNext = false; beatFx.drop(); return; }
+    // молнии на обычном бите — только на полной громкости эффектов
+    if (I > 0.8 && Math.random() < 0.3 * power) beatFx.lightning(2);
+    // после затишья бит = дроп; на спокойной музыке вместо дропа — мягкая волна
+    if (music.dropNext) { music.dropNext = false; if (I > 0.45) beatFx.drop(); else beatFx.ripple(); return; }
+    if (I > 0.8 && music.beats % 64 === 0) { beatFx.drop(); return; }
     // редкое событие: чёрная дыра
-    if (music.beats % 48 === 24 || (chaos.on && music.beats % 24 === 12)) { beatFx.blackhole(); return; }
-    // каждый 4-й бит (в безумии каждый 2-й): новое событие по кругу
-    if (music.beats % (chaos.on ? 2 : 4) === 0) {
-      const list = ['snap', 'echo', 'spiral', 'lasers', 'morph', 'fireworks', 'lightning', 'ripple'];
+    if (I > 0.8 && (music.beats % 48 === 24 || (chaos.on && music.beats % 24 === 12))) { beatFx.blackhole(); return; }
+    // новое событие по кругу: чем спокойнее, тем реже и мягче
+    const every = chaos.on ? 2 : I > 0.8 ? 4 : I > 0.45 ? 8 : 16;
+    if (music.beats % every === 0) {
+      const list = I > 0.45 ? ['snap', 'echo', 'spiral', 'lasers', 'morph', 'fireworks', 'lightning', 'ripple'] : ['echo', 'ripple', 'snap', 'morph'];
       beatFx[list[beatFx.cycle++ % list.length]](power);
     }
     // каждый 16-й бит: смена палитры
-    if (music.beats % 16 === 0) sim.hueTarget += 120;
+    if (music.beats % 16 === 0) sim.hueTarget += 120 * I;
   }
 
   // ---------- события под бит ----------
@@ -3063,25 +3099,36 @@ registerProcessor('pulse-feed', Feed);`;
     presence(j);
   }
 
+  // найденные тексты запоминаются на компьютере: песни, что уже звучали, показываются даже без сервера текстов
+  const LYR_CACHE = 'pulse-lyrcache', LYR_MAX = 400;
+  function lyrCacheGet(key) { const c = store.get(LYR_CACHE, {}); return c[key] || null; }
+  function lyrCachePut(key, res) {
+    const c = store.get(LYR_CACHE, {});
+    c[key] = { syncedLyrics: res.syncedLyrics || null, plainLyrics: res.syncedLyrics ? null : res.plainLyrics || null, at: Date.now() };
+    const keys = Object.keys(c);
+    if (keys.length > LYR_MAX) keys.sort((a, b) => c[a].at - c[b].at).slice(0, keys.length - LYR_MAX).forEach(k => delete c[k]);
+    store.set(LYR_CACHE, c);
+  }
   async function loadAutoLyrics(j, key, tries = 0) {
     const clean = s => (s || '').replace(/\s*[\(\[][^\)\]]*(feat|prod|ft\.|remix|version|edit|remaster)[^\)\]]*[\)\]]/gi, '').trim();
-    let res = null, failed = false;
-    try {
+    let res = lyrCacheGet(key), failed = false, down = false;
+    if (!res) try {
       const q = new URLSearchParams({ artist_name: j.artist || '', track_name: j.title });
       if (j.duration) q.set('duration', Math.round(j.duration));
       const r = await fetch(LRC + '/get?' + q);
       if (r.ok) res = await r.json();
-    } catch (e) {}
+      else if (r.status >= 500) down = true;
+    } catch (e) { down = true; }
     if (!res || !(res.syncedLyrics || res.plainLyrics)) {
       try {
         const r = await fetch(LRC + '/search?q=' + encodeURIComponent(clean(j.artist) + ' ' + clean(j.title)));
-        if (!r.ok) throw new Error('http ' + r.status);
+        if (!r.ok) { if (r.status >= 500) down = true; throw new Error('http ' + r.status); }
         // у песни бывает несколько версий текста под разную длину трека: берём ту, что совпадает с плеером
         const d = j.duration || 0;
         const list = (await r.json()).filter(x => x.syncedLyrics || x.plainLyrics);
         list.sort((a, b) => ((b.syncedLyrics ? 1 : 0) - (a.syncedLyrics ? 1 : 0)) || (d ? Math.abs((a.duration || 0) - d) - Math.abs((b.duration || 0) - d) : 0));
         res = list[0] || null;
-      } catch (e) { res = null; failed = true; }
+      } catch (e) { res = null; failed = true; if (!(e.message || '').startsWith('http')) down = true; }
     }
     if (auto.key !== key) return; // пока искали, трек уже сменился
     const name = `${j.artist ? j.artist + ' — ' : ''}${j.title}`;
@@ -3090,6 +3137,15 @@ registerProcessor('pulse-feed', Feed);`;
       setTimeout(() => { if (auto.key === key) loadAutoLyrics(j, key, tries + 1); }, 3000 + tries * 2000);
       return;
     }
+    // сервер текстов лежит: это не «текста нет», а временная поломка — тихо пробуем раз в минуту, пока играет этот трек
+    if (!res && down) {
+      if (lyr.on) changeLine(-1);
+      lyr.on = false; $('lSync').hidden = true;
+      setAuto(`${name}: сервер текстов lrclib.net сейчас не работает. Текст появится сам, как только он заработает.`, true);
+      setTimeout(() => { if (auto.key === key && auto.loadedKey !== key) loadAutoLyrics(j, key, 3); }, 60000);
+      return;
+    }
+    if (res && (res.syncedLyrics || res.plainLyrics)) lyrCachePut(key, res);
     if (!res) {
       if (lyr.on) changeLine(-1);
       lyr.on = false; $('lSync').hidden = true;
@@ -4857,6 +4913,7 @@ registerProcessor('pulse-feed', Feed);`;
     last = nowMs;
     const now = nowMs / 1000;
     analyse(dt, now);
+    moodUpdate(dt);
     if (music.on && music.raw > 0.02) music.lastSound = now;
     const silent = !music.on || now - (music.lastSound || -99) > 2.5;
     updateCam(dt);
@@ -4884,7 +4941,8 @@ registerProcessor('pulse-feed', Feed);`;
     sim.flash = Math.max(0, sim.flash - dt * 2.6);
     sim.shake = Math.max(0, sim.shake - dt * 30);
     sim.slow += (1 - sim.slow) * Math.min(1, dt * 2);
-    ringsUpdate(dt * sim.slow);
+    // на грустной музыке кольца крутятся медленнее
+    ringsUpdate(dt * sim.slow * (fx.moodOn && !chaos.on ? 0.55 + 0.45 * mood.v : 1));
     idleT += dt;
     if (idleT > 3 && $('settings').hidden && $('lyrics').hidden && $('lib').hidden) document.body.classList.add('zen');
 
@@ -4910,6 +4968,12 @@ registerProcessor('pulse-feed', Feed);`;
     if (uiT > 0.25) {
       uiT = 0;
       tickPlayer();
+      // настроение: ниже середины краски блекнут и уходят в холодный синий
+      if (!lite) {
+        const sad = fx.moodOn && !chaos.on ? clamp((0.55 - mood.v) / 0.4, 0, 1) : 0;
+        const f = sad < 0.03 ? '' : `saturate(${(1 - 0.6 * sad).toFixed(2)}) brightness(${(1 - 0.18 * sad).toFixed(2)})`;
+        if (f !== frame.mf) { frame.mf = f; cv.style.filter = bgcv.style.filter = f; $('moodTint').style.opacity = (0.4 * sad).toFixed(2); }
+      }
       if (local.active) $('libNp').classList.toggle('paused', eng().paused); // пластинка замирает на паузе
       const pill = $('pill');
       pill.classList.toggle('off', silent);
@@ -4941,6 +5005,24 @@ registerProcessor('pulse-feed', Feed);`;
   $('libWave').addEventListener('click', startWave);
   $('autoMode').addEventListener('change', e => { post({ cmd: 'autostart', mode: e.target.value }); toast(e.target.value === 'off' ? 'Автозапуск выключен' : 'Pulse будет запускаться вместе с Windows'); });
   $('autoRow').hidden = !native;
+  $('fxLevel').value = fx.level; $('fxMood').value = fx.moodOn ? 'on' : 'off';
+  $('fxLevel').addEventListener('change', e => { fx.level = e.target.value; store.set('pulse-fx', fx.level); toast({ calm: '🌙 Спокойные эффекты', normal: '✨ Обычные эффекты', max: '🔥 Эффекты на максимум' }[fx.level]); });
+  $('fxMood').addEventListener('change', e => { fx.moodOn = e.target.value === 'on'; store.set('pulse-mood', fx.moodOn); });
+  // ускорение YouTube (zapret): включается в приложении, при каждом запуске Windows заново спрашивает права
+  function onDpi(m) {
+    if (m.error) {
+      store.set('pulse-dpi', false); $('dpiMode').value = 'off'; $('dpiState').textContent = '';
+      toast(m.error === 'cancel' ? 'Без прав администратора ускорение YouTube не включится' : 'Не получилось включить ускорение: ' + m.error);
+      return;
+    }
+    $('dpiState').textContent = m.on ? '✓' : '';
+    if (m.check && !m.on && store.get('pulse-dpi', false)) toast('Ускорение YouTube не запустилось. Возможно, антивирус заблокировал WinDivert.');
+    else if (m.check && m.on) toast('⚡ YouTube ускорен — можно без VPN');
+  }
+  $('dpiRow').hidden = $('dpiHint').hidden = !native;
+  $('dpiMode').value = store.get('pulse-dpi', false) ? 'on' : 'off';
+  $('dpiMode').addEventListener('change', e => { const on = e.target.value === 'on'; store.set('pulse-dpi', on); post({ cmd: 'dpi', on }); if (!on) toast('Ускорение YouTube выключено'); });
+  if (native && store.get('pulse-dpi', false)) post({ cmd: 'dpi', on: true });
   setKaraoke(karaoke);
   renderAccount();
   if (acc.session && supaOn()) { syncPull(); loadProfile(); loadFriends().catch(() => {}); }
