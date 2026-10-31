@@ -7089,7 +7089,10 @@ registerProcessor('pulse-feed', Feed);`;
   function aiBubble(m) {
     const b = el('div', 'ai-msg ' + (m.role === 'user' ? 'me' : 'bot') + (m.sys ? ' sys' : ''));
     if (m.role !== 'user') b.appendChild(el('b', 'who', 'ВАЙБ'));
-    b.appendChild(el('span', '', m.content));
+    // ИИ любит **жирный** из Markdown — показываем жирным, остальное как обычный текст (без HTML)
+    const sp = el('span');
+    String(m.content).replace(/^#+\s*/gm, '').split(/\*\*(.+?)\*\*/s).forEach((part, i) => sp.append(i % 2 ? el('strong', '', part) : document.createTextNode(part.replace(/(^|\s)\*(\S[^*]*?)\*(?=\s|$|[.,!?])/g, '$1$2'))));
+    b.appendChild(sp);
     if (m.actions && m.actions.length) {
       const row = el('div', 'ai-acts');
       m.actions.forEach(a => { const x = el('button', '', aiLabel(a)); x.type = 'button'; x.addEventListener('click', () => aiAction(a)); row.appendChild(x); });
