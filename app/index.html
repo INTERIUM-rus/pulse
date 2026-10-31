@@ -5890,8 +5890,9 @@ registerProcessor('pulse-feed', Feed);`;
     const m = /^#(q|v)=(.+)$/.exec(location.hash);
     if (!m) return;
     const v = decodeURIComponent(m[2]).slice(0, 120);
-    lib.q = m[1] === 'v' ? 'https://youtu.be/' + v : v;
-    $('libQ').value = lib.q; lib.tab = 'search'; openLib(true);
+    // ролик — сразу играет на экране визуала; запрос — открывает поиск
+    if (m[1] === 'v') { if (/^[\w-]{11}$/.test(v)) ytFromLink(v).then(it => playItem(it, [it])); return; }
+    lib.q = v; $('libQ').value = v; lib.tab = 'search'; openLib(true);
   }, 800);
 
   // ===================== переписка с друзьями =====================
