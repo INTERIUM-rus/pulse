@@ -913,6 +913,7 @@ body.mini .pmini-lyr { display: block; font-style: normal; font: 700 12px var(--
     <button id="dKara" type="button"><i>🎙</i><b>Караоке</b><small>текст крупно по центру · K</small></button>
     <button id="dRec" type="button"><i>⏺</i><b>Записать клип</b><small>видео с текстом и звуком · R</small></button>
     <button id="dMini" type="button"><i>▣</i><b>Мини-плеер</b><small>поверх всех окон · P</small></button>
+    <button id="dPromo" type="button"><i>🎬</i><b>Рекламный ролик</b><small>30 секунд с подписями</small></button>
     <button id="dFocus" type="button"><i>🎯</i><b>Фокус</b><small>лоу-фай и таймер 25/5</small></button>
     <button id="dRecap" type="button"><i>🎁</i><b>Итоги месяца</b><small>твоя музыкальная личность</small></button>
   </div>
@@ -4252,23 +4253,27 @@ registerProcessor('pulse-feed', Feed);`;
 
   // ===================== запись клипа =====================
   const rec = { on: false, mr: null, chunks: [], c: null, g: null, t0: 0, max: 30, timer: null, dest: null };
-  function startRec(sec) {
+  function startRec(sec, vertical) {
     if (rec.on) return;
-    const w = 1280, h = Math.round(1280 * H / W / 2) * 2;
+    rec.vertical = !!vertical;
+    // вертикальный ролик 1080×1920 вырезается из середины сцены; обычный клип — как окно
+    const w = vertical ? 1080 : 1280, h = vertical ? 1920 : Math.round(1280 * H / W / 2) * 2;
     rec.c = document.createElement('canvas'); rec.c.width = w; rec.c.height = h; rec.g = rec.c.getContext('2d');
     const stream = rec.c.captureStream(30);
     try {
       if (feed.node && actx) { rec.dest = actx.createMediaStreamDestination(); feed.node.connect(rec.dest); stream.addTrack(rec.dest.stream.getAudioTracks()[0]); }
       else if (music.stream) music.stream.getAudioTracks().forEach(t => stream.addTrack(t.clone()));
     } catch (e) {}
-    const mime = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'].find(m => MediaRecorder.isTypeSupported(m));
-    rec.mr = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 8e6 });
+    // mp4 открывается везде (Instagram, TikTok, телефоны); если браузер не умеет — webm
+    const mime = ['video/mp4;codecs=avc1.640028,mp4a.40.2', 'video/mp4;codecs=avc1,mp4a', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'].find(m => MediaRecorder.isTypeSupported(m));
+    rec.mr = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: vertical ? 14e6 : 8e6 });
     rec.chunks = [];
     rec.mr.ondataavailable = e => { if (e.data.size) rec.chunks.push(e.data); };
     rec.mr.onstop = () => {
-      const blob = new Blob(rec.chunks, { type: 'video/webm' });
+      const mp4 = mime.startsWith('video/mp4'), blob = new Blob(rec.chunks, { type: mp4 ? 'video/mp4' : 'video/webm' });
       const a = el('a'); a.href = URL.createObjectURL(blob);
-      a.download = `Pulse-${new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-')}.webm`; a.click();
+      a.download = `Pulse-${promo.on || promo.done ? 'реклама-' : ''}${new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-')}.${mp4 ? 'mp4' : 'webm'}`; a.click();
+      promo.done = false;
       setTimeout(() => URL.revokeObjectURL(a.href), 60000);
       try { if (rec.dest) feed.node.disconnect(rec.dest); } catch (e) {}
       rec.dest = null;
@@ -4280,6 +4285,7 @@ registerProcessor('pulse-feed', Feed);`;
     toast(`⏺ Запись ${sec} с пошла`);
   }
   function stopRec() {
+    if (promo.on) { promo.timers.forEach(clearTimeout); promo.timers = []; promo.on = false; promo.done = true; const s = promo.saved || {}; fx.level = s.fx || 'normal'; setChaos(!!s.chaos); setD3(!!s.d3); setKaraoke(!!s.kara); }
     if (!rec.on) return;
     rec.on = false; clearTimeout(rec.timer); $('recBadge').hidden = true;
     try { rec.mr.stop(); } catch (e) {}
@@ -4288,9 +4294,93 @@ registerProcessor('pulse-feed', Feed);`;
   function recFrame() {
     if (!rec.on) return;
     const g = rec.g, w = rec.c.width, h = rec.c.height;
-    g.drawImage(bgcv, 0, 0, w, h); g.drawImage(cv, 0, 0, w, h); g.drawImage(lcv, 0, 0, w, h);
-    g.font = '900 22px Unbounded, sans-serif'; g.fillStyle = 'rgba(255,255,255,.55)'; g.textAlign = 'right'; g.fillText('PULSE', w - 24, h - 22);
+    if (rec.vertical) {
+      // середина окна в пропорции 9:16 (если окно уже — берём его целиком по ширине)
+      const cw = Math.min(W, H * 9 / 16), ch = Math.min(H, cw * 16 / 9), sx = (W - cw) / 2, sy = (H - ch) / 2;
+      g.fillStyle = '#06050d'; g.fillRect(0, 0, w, h);
+      for (const c of [bgcv, cv, lcv]) { const k = c.width / W; g.drawImage(c, sx * k, sy * k, cw * k, ch * k, 0, 0, w, h); }
+    } else { g.drawImage(bgcv, 0, 0, w, h); g.drawImage(cv, 0, 0, w, h); g.drawImage(lcv, 0, 0, w, h); }
+    if (promo.on) promoDraw(g, w, h, (performance.now() - rec.t0) / 1000);
+    else { g.font = '900 22px Unbounded, sans-serif'; g.fillStyle = 'rgba(255,255,255,.55)'; g.textAlign = 'right'; g.fillText('PULSE', w - 24, h - 22); }
     $('recTime').textContent = fmtTime((performance.now() - rec.t0) / 1000) + ' / ' + fmtTime(rec.max);
+  }
+
+  // ===================== рекламный ролик =====================
+  // 30 секунд по сценарию: Pulse сам переключает эффекты, а крупные подписи впечатываются прямо в видео
+  const promo = { on: false, done: false, timers: [], saved: null };
+  const PROMO_LEN = 30;
+  const PROMO_CAPS = [
+    [2.6, 6.8, 'Визуал ловит', 'каждый бит'],
+    [7, 10.8, 'Текст песни', 'горит в такт'],
+    [11, 14, '3D-воронка', 'в один клик'],
+    [14.2, 17.8, '20+ живых фонов', ''],
+    [18, 23.6, 'Дропы', 'и чёрные дыры'],
+    [23.8, 26.4, 'Режим безумия', '🔥'],
+  ];
+  function promoText(g, txt, x, y, size, a, glowHue) {
+    g.save(); g.globalAlpha = a; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.font = `900 ${size}px Unbounded, sans-serif`;
+    g.shadowColor = `hsla(${glowHue},100%,60%,.9)`; g.shadowBlur = size * 0.45;
+    g.fillStyle = '#fff'; g.fillText(txt, x, y);
+    g.restore();
+  }
+  function promoDraw(g, w, h, t) {
+    const u = Math.min(w, h * 0.75) / 1080; // масштаб подписей под формат
+    const ease = x => 1 - Math.pow(1 - clamp(x, 0, 1), 3);
+    // заставка: логотип наезжает из глубины
+    if (t < 2.6) {
+      const k = ease(t / 1.2), a = t < 2.1 ? k : clamp((2.6 - t) / 0.5, 0, 1);
+      g.save(); g.fillStyle = `rgba(6,5,13,${0.75 * a})`; g.fillRect(0, 0, w, h); g.restore();
+      promoText(g, 'PULSE', w / 2, h / 2 - 40 * u, (150 + 60 * (1 - k)) * u, a, 300);
+      promoText(g, 'музыка, которая горит', w / 2, h / 2 + 90 * u, 46 * u, a * ease((t - 0.5) / 0.8), 25);
+    }
+    // подписи сцен: выезжают снизу, держатся, тают
+    for (const [t0, t1, a1, a2] of PROMO_CAPS) {
+      if (t < t0 || t > t1) continue;
+      const inK = ease((t - t0) / 0.45), outK = clamp((t1 - t) / 0.35, 0, 1), a = Math.min(inK, outK);
+      const y = h * (rec.vertical ? 0.2 : 0.17) + (1 - inK) * 60 * u;
+      promoText(g, a1, w / 2, y, 92 * u, a, (t0 * 47) % 360);
+      if (a2) promoText(g, a2, w / 2, y + 100 * u, 70 * u, a * ease((t - t0 - 0.2) / 0.45), (t0 * 47 + 60) % 360);
+    }
+    // финал: тёмная карточка с ссылкой
+    if (t > 26.6) {
+      const k = ease((t - 26.6) / 0.7);
+      g.save(); g.fillStyle = `rgba(6,5,13,${0.82 * k})`; g.fillRect(0, 0, w, h); g.restore();
+      promoText(g, 'PULSE', w / 2, h / 2 - 150 * u, 140 * u, k, 300);
+      promoText(g, 'бесплатно · Windows и телефон', w / 2, h / 2 - 20 * u, 44 * u, k, 190);
+      const feats = ['слушай вместе с друзьями', 'горящий текст · 20+ фонов', 'будильник · фокус · игры'];
+      feats.forEach((f, i) => promoText(g, f, w / 2, h / 2 + (70 + i * 58) * u, 36 * u, k * ease((t - 27.2 - i * 0.25) / 0.5) * 0.85, 260 + i * 40));
+      promoText(g, 'interium-rus.github.io/pulse', w / 2, h / 2 + 300 * u, 48 * u, ease((t - 28) / 0.6), 25);
+    }
+  }
+  function promoStart(vertical) {
+    if (!native) { toast('Рекламный ролик записывается в приложении Pulse.exe'); return; }
+    if (!music.on || music.kind !== 'native') { toast('Сначала включи трек — ролик пишется со звуком'); return; }
+    if (rec.on || promo.on) return;
+    promo.saved = { fx: fx.level, d3: cam.user, kara: karaoke, chaos: chaos.on };
+    fx.level = 'max'; setChaos(false); setD3(false); setKaraoke(false);
+    openLib(false); closePanels();
+    promo.on = true;
+    const at = (s, fn) => promo.timers.push(setTimeout(() => { if (promo.on) fn(); }, s * 1000));
+    at(2.6, () => bgNext(true));
+    at(7, () => { const it = local.item || auto.last || {}; titleCard(`${it.artist ? it.artist + ' — ' : ''}${it.title || 'Pulse'}`); });
+    at(11, () => setD3(true));
+    [14.2, 15.4, 16.6].forEach(s => at(s, () => bgNext(true)));
+    at(18, () => beatFx.drop());
+    at(21, () => beatFx.blackhole());
+    at(23.8, () => setChaos(true));
+    at(26.4, () => setChaos(false));
+    at(PROMO_LEN, promoEnd);
+    startRec(PROMO_LEN + 0.3, vertical);
+    toast('🎬 Снимаю рекламный ролик — 30 секунд');
+  }
+  function promoEnd() {
+    promo.timers.forEach(clearTimeout); promo.timers = [];
+    if (!promo.on) return;
+    promo.on = false; promo.done = true;
+    const s = promo.saved || {};
+    fx.level = s.fx || 'normal'; setChaos(!!s.chaos); setD3(!!s.d3); setKaraoke(!!s.kara);
+    if (rec.on) stopRec();
   }
   function recChooser(x, y) {
     showMenu([15, 30, 60].map(s => ['⏺', `${s} секунд`, () => { openLib(false); setTimeout(() => startRec(s), 400); }]), x, y);
@@ -5756,6 +5846,11 @@ registerProcessor('pulse-feed', Feed);`;
   $('alarmOn').addEventListener('change', e => { alarm.on = e.target.value === 'on'; alarmSave(); toast(alarm.on ? `⏰ Будильник на ${alarm.time}` : 'Будильник выключен'); });
   $('alarmSrc').addEventListener('focus', alarmFill);
   $('dFocus').addEventListener('click', () => (focus.on ? focusStop() : focusStart()));
+  $('dPromo').hidden = !native;
+  $('dPromo').addEventListener('click', e => {
+    const r = e.currentTarget.getBoundingClientRect();
+    showMenu([['📱', 'Вертикальный 9:16 — Reels, TikTok, Shorts', () => setTimeout(() => promoStart(true), 300)], ['🖥', 'Горизонтальный 16:9 — YouTube', () => setTimeout(() => promoStart(false), 300)]], r.left, r.bottom + 4);
+  });
   $('dRecap').addEventListener('click', () => { openLib(false); showRecap(); });
   $('pomoStop').addEventListener('click', focusStop);
   $('pomoPause').addEventListener('click', () => { focus.paused = !focus.paused; $('pomoPause').textContent = focus.paused ? '▶' : '⏸'; });
