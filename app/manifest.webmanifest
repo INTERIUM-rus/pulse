@@ -1,0 +1,17 @@
+{
+  "name": "Pulse — музыка, которая горит",
+  "short_name": "Pulse",
+  "description": "Визуал под бит, горящий текст песен, медиатека и друзья.",
+  "lang": "ru",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#06050d",
+  "theme_color": "#06050d",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
