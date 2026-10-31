@@ -343,7 +343,10 @@ body.lib-open .player { z-index: 7; opacity: 1 !important; }
   .ctl { grid-template-columns: 1fr 1.2fr 42px; }
   .ytwin { left: 8px; right: 8px; width: auto !important; bottom: calc(160px + var(--sab)); }
   .ytbox { min-height: 0; }
-  .lib-side { padding: calc(10px + var(--sat)) 10px 10px; gap: 6px; }
+  .lib-side { padding: calc(10px + var(--sat)) 10px 10px; gap: 6px; align-items: center; }
+  .lib-acc .acc-login { padding: 9px 12px; white-space: nowrap; }
+  .hero2 { padding: 20px 18px; border-radius: 22px; }
+  .hero2 h1 { font-size: 30px; }
   .lib-acc { margin: 0; flex: none; }
   .lib-acc .acc-me, .lib-acc .acc-login { width: auto; }
   .acc-me > div:last-child { display: none; }
@@ -4243,7 +4246,7 @@ registerProcessor('pulse-feed', Feed);`;
       b.append(avatar(u), tx); b.addEventListener('click', () => { lib.tab = 'account'; renderLib(); });
       box.appendChild(b);
     } else {
-      const b = el('button', 'acc-login'); b.type = 'button'; b.innerHTML = '<span>👤 Войти или создать аккаунт</span>';
+      const b = el('button', 'acc-login'); b.type = 'button'; b.innerHTML = innerWidth <= 600 ? '<span>👤 Войти</span>' : '<span>👤 Войти или создать аккаунт</span>';
       b.addEventListener('click', login);
       box.appendChild(b);
     }
@@ -4888,7 +4891,7 @@ registerProcessor('pulse-feed', Feed);`;
       pill.lastChild.textContent = !music.on ? 'нет звука' : silent ? 'тишина' : music.bpm ? music.bpm + ' BPM' + (music.locked ? ' · в ритме' : '') : 'слушаю…';
       if (!$('settings').hidden) $('mMeter').style.width = Math.round(music.level * 100) + '%';
       const hint = $('hint'), showHint = silent && $('player').hidden && !lyr.on && sim.t > 2;
-      if (showHint && hint.hidden) hint.textContent = native ? 'Включи музыку в любом плеере или нажми 🎧 Музыка — Pulse подхватит звук сам' : 'Нажми ⚙ и выбери, откуда брать звук';
+      if (showHint && hint.hidden) hint.textContent = native ? 'Включи музыку в любом плеере или нажми 🎧 Музыка — Pulse подхватит звук сам' : 'Нажми 🎧 и включи любой трек';
       hint.hidden = !showHint;
     }
     // отладка: раз в 2 с отправляем состояние в журнал приложения
