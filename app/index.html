@@ -174,6 +174,10 @@ body.zen .upnext { opacity: .4; transition: opacity .8s; }
   font: 500 14px var(--body); color: var(--ink); background: rgba(255,255,255,.06); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; min-width: 0;
 }
 .lyr-search input { flex: 1; }
+/* выпадающие списки: тёмный фон и светлый текст у самих пунктов, иначе Windows рисует белым по белому */
+select { color-scheme: dark; cursor: pointer; }
+select option { background: #17132c; color: #f4f1ff; }
+select option:checked { background: #3b2a6e; }
 .panel textarea { width: 100%; box-sizing: border-box; resize: vertical; margin: 8px 0; }
 .panel input:focus, .panel textarea:focus { outline: 2px solid var(--accent2); outline-offset: 1px; }
 .lyr-results { display: grid; gap: 6px; }
@@ -582,6 +586,81 @@ body.mini .pmini-lyr { display: block; font-style: normal; font: 700 12px var(--
 .fr-now b { display: block; font: 800 15px var(--body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .fr-now span { display: block; font-size: 13px; color: var(--dim); }
 .prof > .plbtns:last-child { padding: 16px 24px 24px; }
+/* ---------- сообщения, комнаты, игра, итоги, фокус, перевод, темы ---------- */
+.nbadge.live { background: #19c37d; min-width: 12px; height: 12px; padding: 0; font-size: 0; }
+.chat-people { display: grid; gap: 6px; max-width: 720px; }
+.chat-person { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px; border-radius: 16px; text-align: left; background: rgba(255,255,255,.04); }
+.chat-person b { display: block; font: 800 14px var(--body); }
+.chat-person span { display: block; font-size: 12px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-head { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: center; margin: 14px 0 10px; max-width: 720px; }
+.chat-head b { display: block; font: 800 16px var(--display); }
+.chat-head span { font-size: 12px; color: var(--dim); }
+.chat-list { display: flex; flex-direction: column; gap: 6px; max-width: 720px; height: min(52vh, 520px); overflow-y: auto; padding: 12px; border-radius: 18px; background: rgba(0,0,0,.22); border: 1px solid var(--line); box-sizing: border-box; -webkit-user-select: text; user-select: text; }
+.bub { align-self: flex-start; max-width: 78%; padding: 8px 12px 6px; border-radius: 16px 16px 16px 4px; background: rgba(255,255,255,.09); display: grid; gap: 2px; animation: fadeUp .25s both; }
+.bub.me { align-self: flex-end; border-radius: 16px 16px 4px 16px; background: linear-gradient(135deg, hsla(var(--lh),90%,55%,.55), hsla(calc(var(--lh) + 50),90%,55%,.4)); }
+.bub span { font-size: 14px; line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
+.bub small { font: 800 11px var(--body); color: hsl(var(--lh),100%,78%); }
+.bub time { justify-self: end; font-size: 10px; color: var(--faint); }
+.chat-sys { align-self: center; font-size: 11px; color: var(--faint); }
+.chat-form { display: flex; gap: 8px; max-width: 720px; margin-top: 10px; }
+.chat-form input { flex: 1; min-width: 0; font: 600 15px var(--body); color: var(--ink); background: rgba(255,255,255,.06); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; outline: none; }
+.chat-form input:focus { border-color: hsl(var(--lh),100%,70%); }
+.chat-form button { min-width: 48px; }
+.room-card { max-width: 640px; display: grid; gap: 12px; padding: 22px; border-radius: 22px; background: linear-gradient(140deg, hsla(var(--lh),90%,55%,.2), rgba(255,255,255,.03)); border: 1px solid hsla(var(--lh),90%,70%,.22); }
+.room-card h2 { margin: 0; font: 900 24px var(--display); }
+.room-card p { margin: 0; color: var(--dim); line-height: 1.5; }
+.room-card > button.primary { justify-self: start; }
+.room-top { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 16px; align-items: center; max-width: 720px; }
+.room-code { font: 900 26px var(--display); letter-spacing: .18em; padding: 12px 16px; border-radius: 16px; background: rgba(255,255,255,.08); }
+.room-top b { display: block; font: 800 15px var(--body); }
+.room-top span, .room-top small { display: block; font-size: 12px; color: var(--dim); }
+.room-top small { color: hsl(150,90%,70%); margin-top: 4px; }
+.room-reacts { display: flex; gap: 6px; flex-wrap: wrap; margin: 14px 0 10px; }
+.room-reacts button { width: 46px; height: 46px; padding: 0; font-size: 22px; border-radius: 14px; }
+.room-chat { height: min(40vh, 400px); }
+.flyemo { position: fixed; bottom: 80px; z-index: 40; font-size: 42px; pointer-events: none; animation: flyUp 3s cubic-bezier(.2,.7,.3,1) forwards; }
+@keyframes flyUp { 0% { transform: translate(0, 0) scale(.6); opacity: 0; } 12% { opacity: 1; transform: translate(0, -40px) scale(1.15); } 100% { transform: translate(var(--dx), -70vh) scale(.9); opacity: 0; } }
+.game-head { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+.game-head b { font: 800 18px var(--display); }
+.game-head span { color: var(--dim); }
+.game-opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; max-width: 760px; }
+.game-opts button { display: grid; gap: 3px; padding: 18px; text-align: left; border-radius: 18px; }
+.game-opts button b { font: 800 15px var(--body); }
+.game-opts button span { font-size: 12px; color: var(--dim); }
+.game-opts button.ok { background: rgba(25,195,125,.35); border-color: #19c37d; }
+.game-opts button.bad { background: rgba(255,61,110,.3); border-color: #ff3d6e; }
+.game-res { display: flex; align-items: center; gap: 14px; margin-top: 16px; flex-wrap: wrap; }
+.game-res img { width: 64px; height: 64px; border-radius: 12px; }
+.game-res p { margin: 0; font-weight: 700; }
+.recap { width: min(420px, calc(100% - 24px)); display: grid; gap: 14px; }
+.recap-stage { --h: 300; min-height: 380px; padding: 30px 26px; border-radius: 26px; display: grid; align-content: center; gap: 12px; text-align: center; box-sizing: border-box;
+  background: radial-gradient(80% 60% at 30% 20%, hsla(var(--h),95%,60%,.55), transparent 70%), radial-gradient(70% 60% at 80% 90%, hsla(calc(var(--h) + 120),95%,55%,.45), transparent 70%), #0d0a1c; animation: panelIn .45s cubic-bezier(.2,1.2,.4,1); }
+.recap-stage small { font: 800 11px var(--body); letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.75); }
+.recap-stage h1 { margin: 0; font: 900 clamp(30px, 8vw, 46px)/1.05 var(--display); word-break: break-word; }
+.recap-stage p { margin: 0; color: rgba(255,255,255,.8); line-height: 1.5; }
+.recap-stage ol { margin: 0; padding-left: 22px; text-align: left; display: grid; gap: 10px; }
+.recap-stage ol b { display: block; font-weight: 800; }
+.recap-stage ol span { font-size: 12px; color: rgba(255,255,255,.7); }
+.recap-emo { font-size: 64px; }
+.recap-dots { display: flex; gap: 6px; justify-content: center; }
+.recap-dots i { width: 28px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.2); }
+.recap-dots i.on { background: #fff; }
+.pomo { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 6; display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 16px; border-radius: 999px;
+  background: rgba(14,12,30,.85); border: 1px solid rgba(255,160,90,.4); box-shadow: 0 10px 30px rgba(0,0,0,.4); font-size: 13px; color: var(--dim); }
+.pomo b { font: 800 18px var(--display); color: #ffb36b; font-variant-numeric: tabular-nums; }
+.pomo.rest { border-color: rgba(79,240,255,.4); } .pomo.rest b { color: var(--accent2); }
+.pomo button { width: 30px; height: 30px; padding: 0; border-radius: 50%; display: grid; place-items: center; font-size: 12px; }
+.trline { position: fixed; left: 50%; bottom: 120px; transform: translateX(-50%); z-index: 3; max-width: min(80vw, 760px); text-align: center; pointer-events: none;
+  font: 700 clamp(15px, 2vw, 22px)/1.35 var(--body); color: rgba(255,255,255,.88); text-shadow: 0 2px 12px rgba(0,0,0,.9), 0 0 2px #000; animation: fadeIn .4s both; }
+.huebar { -webkit-appearance: none; appearance: none; height: 10px; border-radius: 5px; background: linear-gradient(90deg, hsl(0,90%,60%), hsl(60,90%,60%), hsl(120,90%,60%), hsl(180,90%,60%), hsl(240,90%,60%), hsl(300,90%,60%), hsl(359,90%,60%)); }
+.huebar::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 3px rgba(0,0,0,.4); }
+.theme-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.theme-chip { display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 6px; border-radius: 999px; }
+.theme-chip i { width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, hsl(var(--h),90%,60%), hsl(calc(var(--h) + 120),90%,55%)); }
+.theme-chip em { font-style: normal; opacity: .55; padding: 0 3px; }
+.theme-chip em:hover { opacity: 1; }
+.panel input[type=time], .keyrow input { color-scheme: dark; }
+@media (max-width: 600px) { .room-top { grid-template-columns: 1fr; } .trline { bottom: calc(170px + var(--sab)); } .pomo { top: calc(56px + var(--sat)); } .chat-list { height: 50vh; } }
 /* ---------- медиатека 2.0: анимации ---------- */
 @property --ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
 @keyframes spinAng { to { --ang: 360deg; } }
@@ -745,6 +824,8 @@ body.mini .pmini-lyr { display: block; font-style: normal; font: 700 12px var(--
 </div>
 
 <div class="hint" id="hint" hidden></div>
+<div class="trline" id="trLine" hidden></div>
+<div class="pomo" id="pomo" hidden><span id="pomoL">🎯 Фокус</span><b id="pomoT">25:00</b><button id="pomoPause" type="button" title="Пауза">⏸</button><button id="pomoStop" type="button" title="Выключить фокус">✕</button></div>
 <div class="recbadge" id="recBadge" hidden><i></i><span>REC</span><b id="recTime">0:00</b><button id="recStop" type="button">■ Стоп</button></div>
 
 <div class="player" id="player" hidden>
@@ -788,6 +869,9 @@ body.mini .pmini-lyr { display: block; font-style: normal; font: 700 12px var(--
     <button class="lib-nav" data-tab="queue" type="button"><i>☰</i>Очередь</button>
     <button class="lib-nav" data-tab="playlists" type="button"><i>♫</i>Плейлисты</button>
     <button class="lib-nav" data-tab="friends" type="button"><i>👥</i>Друзья<b class="nbadge" id="frBadge" hidden></b></button>
+    <button class="lib-nav" data-tab="chats" type="button"><i>💬</i>Сообщения<b class="nbadge" id="msgBadge" hidden></b></button>
+    <button class="lib-nav" data-tab="room" type="button"><i>🎧</i>Вместе<b class="nbadge live" id="roomBadge" hidden>●</b></button>
+    <button class="lib-nav" data-tab="game" type="button"><i>🎮</i>Угадай мелодию</button>
     <button class="lib-nav" data-tab="fav" type="button"><i>♥</i>Моё</button>
     <button class="lib-nav" data-tab="files" type="button"><i>📁</i>Мои файлы</button>
     <button class="lib-nav" data-tab="history" type="button"><i>↺</i>История</button>
@@ -829,12 +913,28 @@ body.mini .pmini-lyr { display: block; font-style: normal; font: 700 12px var(--
     <button id="dKara" type="button"><i>🎙</i><b>Караоке</b><small>текст крупно по центру · K</small></button>
     <button id="dRec" type="button"><i>⏺</i><b>Записать клип</b><small>видео с текстом и звуком · R</small></button>
     <button id="dMini" type="button"><i>▣</i><b>Мини-плеер</b><small>поверх всех окон · P</small></button>
+    <button id="dFocus" type="button"><i>🎯</i><b>Фокус</b><small>лоу-фай и таймер 25/5</small></button>
+    <button id="dRecap" type="button"><i>🎁</i><b>Итоги месяца</b><small>твоя музыкальная личность</small></button>
   </div>
   <label class="ctl"><span>Сила эффектов</span>
     <select id="fxLevel"><option value="calm">Спокойно</option><option value="normal">Обычно</option><option value="max">Максимум</option></select><output></output></label>
   <label class="ctl"><span>Под настроение песни</span>
     <select id="fxMood"><option value="on">Подстраиваться</option><option value="off">Всегда ярко</option></select><output></output></label>
+  <label class="ctl"><span>Цвета</span>
+    <select id="fxCover"><option value="on">Из обложки трека</option><option value="off">Радуга</option></select><output></output></label>
   <p class="hint2">«Спокойно» — без вспышек, молний и дропов. «Под настроение»: на медленной и тихой музыке краски блекнут и уходят в холодные тона, движение замедляется.</p>
+  <label class="ctl"><span>Перевод текста</span>
+    <select id="trOn"><option value="off">Выключен</option><option value="on">На русский</option></select><output></output></label>
+  <h3 class="set-h">Своя тема</h3>
+  <label class="ctl"><span>Цвет</span><input id="thHue" type="range" min="0" max="359" value="290" class="huebar"><output></output></label>
+  <div class="keyrow"><input id="thName" maxlength="24" placeholder="Название темы"><button id="thSave" type="button" class="primary">Сохранить тему</button></div>
+  <div class="keyrow"><input id="thCode" placeholder="Вставь код темы от друга"><button id="thImport" type="button">Добавить</button></div>
+  <div class="theme-list" id="myThemes"></div>
+  <h3 class="set-h">Будильник</h3>
+  <label class="ctl"><span>Время</span><input id="alarmT" type="time" value="08:00"><output></output></label>
+  <label class="ctl"><span>Что включить</span><select id="alarmSrc"></select><output></output></label>
+  <label class="ctl"><span>Будильник</span><select id="alarmOn"><option value="off">Выключен</option><option value="on">Включён</option></select><output></output></label>
+  <p class="hint2">Утром Pulse сам включит музыку и плавно поднимет громкость за минуту. Pulse должен быть запущен (можно свернуть или «Тихо в трее»).</p>
   <h3 class="set-h">Пресеты</h3>
   <div class="fxgrid" id="presetGrid"></div>
   <h3 class="set-h">Приложение</h3>
@@ -1247,19 +1347,77 @@ registerProcessor('pulse-feed', Feed);`;
   // ---------- сцена ----------
   const sim = { rings: [], parts: [], waves: [], texts: [], t: 0, hue0: 290, hueShift: 0, hueTarget: 0,
     zoom: 1, morph: 0, morphN: 6, morphRot: 0, invert: 0, dropT: 0, flash: 0, shake: 0, slow: 1 };
-  const HS = h => ((h + sim.hueShift) % 360 + 360) % 360;
+  // все оттенки сцены (кольца, искры, волны, горящий текст) проходят через HS:
+  // — цвета обложки: оттенок подтягивается к одному из трёх главных цветов обложки трека;
+  // — грустная музыка: всё сжимается в холодный диапазон от голубого до сине-фиолетового
+  let sadK = 0;
+  const cover = { hues: null, key: '' };
+  const mixHue = (a, b, t) => { const d = ((b - a + 540) % 360) - 180; return ((a + d * t) % 360 + 360) % 360; };
+  const HS = h => {
+    let x = ((h + sim.hueShift) % 360 + 360) % 360;
+    if (cover.hues && fx.coverOn) {
+      const k = Math.floor((((h - sim.hue0) % 360 + 360) % 360) / 120) % cover.hues.length;
+      x = mixHue(x, cover.hues[k], 0.7);
+    }
+    if (sadK > 0.01) x = mixHue(x, 195 + x / 360 * 70, sadK * 0.85);
+    return x;
+  };
+  // три главных цвета обложки: маленькая копия 24×24, оттенки с весом «насыщенность × яркость»
+  function coverHues(url) {
+    if (!url || url === cover.key) return;
+    cover.key = url;
+    const img = new Image(); img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const c = document.createElement('canvas'); c.width = c.height = 24;
+        const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0, 24, 24);
+        const d = g.getImageData(0, 0, 24, 24).data, bins = new Array(36).fill(0);
+        for (let i = 0; i < d.length; i += 4) {
+          const r = d[i] / 255, gg = d[i + 1] / 255, b = d[i + 2] / 255, mx = Math.max(r, gg, b), mn = Math.min(r, gg, b), s = mx ? (mx - mn) / mx : 0;
+          if (s < 0.2 || mx < 0.15) continue;
+          let hh = mx === r ? (gg - b) / (mx - mn) : mx === gg ? 2 + (b - r) / (mx - mn) : 4 + (r - gg) / (mx - mn);
+          hh = (hh * 60 + 360) % 360; bins[Math.floor(hh / 10)] += s * mx;
+        }
+        const picks = [];
+        for (let n = 0; n < 3; n++) {
+          let best = -1; bins.forEach((v, i) => { if (v > 0.5 && (best < 0 || v > bins[best]) && picks.every(p => Math.min(Math.abs(p - i), 36 - Math.abs(p - i)) > 3)) best = i; });
+          if (best < 0) break; picks.push(best);
+        }
+        cover.hues = picks.length ? picks.map(i => i * 10 + 5) : null;
+      } catch (e) { cover.hues = null; }
+    };
+    img.onerror = () => { cover.hues = null; };
+    img.src = url;
+  }
+  // дождь на грустной музыке: тонкие косые капли, сколько — зависит от грусти
+  const rain = [];
+  function drawRain(dt) {
+    const want = Math.round(sadK * (lite ? 60 : 140));
+    while (rain.length < want) rain.push({ x: Math.random() * W * 1.2, y: Math.random() * -H, v: rand(500, 900), len: rand(10, 26), a: rand(0.15, 0.4) });
+    if (!rain.length) return;
+    if (rain.length > want) rain.length = want;
+    const k = DPR * quality.k;
+    ctx.save(); ctx.setTransform(k, 0, 0, k, 0, 0); ctx.lineCap = 'round'; ctx.lineWidth = 1.2;
+    for (const d of rain) {
+      d.y += d.v * dt; d.x -= d.v * 0.18 * dt;
+      if (d.y > H + 30) { d.y = rand(-60, -10); d.x = Math.random() * W * 1.2; }
+      ctx.strokeStyle = `hsla(205,70%,80%,${d.a * sadK})`;
+      ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(d.x - d.len * 0.18, d.y + d.len); ctx.stroke();
+    }
+    ctx.restore();
+  }
 
   // сила эффектов: настройка («спокойно / обычно / максимум») × настроение песни.
   // Настроение 0 — медленная, тихая, «тёмная» музыка, 1 — быстрая и плотная; считается по звуку и плавно меняется
   const FX_BASE = { calm: 0.15, normal: 0.6, max: 1 };
-  const fx = { level: store.get('pulse-fx', 'normal'), moodOn: store.get('pulse-mood', true) };
+  const fx = { level: store.get('pulse-fx', 'normal'), moodOn: store.get('pulse-mood', true), coverOn: store.get('pulse-coverhue', true) };
   const mood = { v: 0.6 };
   function fxI() {
     if (chaos.on) return 1;
     return (FX_BASE[fx.level] ?? 0.6) * (fx.moodOn ? 0.35 + 0.65 * mood.v : 1);
   }
   function moodUpdate(dt) {
-    if (!music.on || music.kind === 'auto' || !fx.moodOn) { mood.v += (0.6 - mood.v) * Math.min(1, dt / 3); return; }
+    if (!music.on || music.kind === 'auto' || !fx.moodOn) { mood.v += (0.6 - mood.v) * Math.min(1, dt / 3); sadK = Math.max(0, sadK - dt / 3); return; }
     if (music.level < 0.03) return; // в паузах настроение не меняем
     const tempo = music.bpm ? clamp((music.bpm - 80) / 60, 0, 1) : 0.4;
     const punch = clamp(((music.bt && music.bt.power) || 0.5) - 0.45, 0, 0.55) / 0.55;
@@ -1267,6 +1425,7 @@ registerProcessor('pulse-feed', Feed);`;
     let target = 0.4 * tempo + 0.35 * punch + 0.25 * bright;
     if (!music.locked) target -= 0.12; // ровного бита нет — скорее баллада
     mood.v += (clamp(target, 0, 1) - mood.v) * Math.min(1, dt / 6);
+    sadK = fx.moodOn && !chaos.on ? clamp((0.55 - mood.v) / 0.4, 0, 1) : 0;
   }
 
   function onBeat(power, ambient) {
@@ -1603,12 +1762,13 @@ registerProcessor('pulse-feed', Feed);`;
       if (!(r.R > r.lw) || born <= 0) return;
       const h = sim.dropT > 0 ? HS(r.hue + sim.t * 300 + i * 32) : HS(r.hue), gap = gapOf(r);
       const alpha = (0.45 + 0.5 * r.v + r.hit * 0.3) * born * 0.85;
-      const L = 60 + r.hit * 22;
+      // грустная музыка: кольца бледнее и темнее
+      const L = 60 - sadK * 8 + r.hit * 22, sat = 100 - sadK * 50;
       ctx.lineCap = 'round';
-      ctx.strokeStyle = `hsla(${h},100%,${L}%,${0.1 * born})`;
+      ctx.strokeStyle = `hsla(${h},${sat}%,${L}%,${0.1 * born})`;
       ctx.lineWidth = r.lw * 3 + r.hit * 10;
       ctx.beginPath(); arcSet(r, gap, (a0, a1) => arcPath(r.R, a0, a1)); ctx.stroke();
-      ctx.strokeStyle = `hsla(${h},100%,${L}%,${alpha})`;
+      ctx.strokeStyle = `hsla(${h},${sat}%,${L}%,${alpha})`;
       ctx.lineWidth = r.lw;
       ctx.beginPath(); arcSet(r, gap, (a0, a1) => arcPath(r.R, a0, a1)); ctx.stroke();
       ctx.strokeStyle = `rgba(255,255,255,${0.4 * alpha})`;
@@ -2518,6 +2678,7 @@ registerProcessor('pulse-feed', Feed);`;
     lyr.nextL = j >= 0 ? layoutSide(j, true) : null;
     lyr.key = layoutKey();
     highlightLine();
+    if (tr.on || !$('trLine').hidden) trShow();
   }
   const layoutKey = () => W + 'x' + H + 'x' + textScale;
   function lyrBeat() {
@@ -3109,6 +3270,7 @@ registerProcessor('pulse-feed', Feed);`;
     if (j.coverUrl) $('pCover').src = j.coverUrl;
     else if (j.hasCover) $('pCover').src = API + '/cover?k=' + encodeURIComponent((j.artist || '') + '|' + j.title + '|' + Date.now());
     else { $('pCover').removeAttribute('src'); BG.cover = null; }
+    if ($('pCover').getAttribute('src')) coverHues($('pCover').src); else { cover.hues = null; cover.key = ''; }
     pushHistory(upnext.cur);
     upnext.cur = { title: j.title, artist: j.artist || '', cover: j.coverUrl || null };
     // в медиатеке своя очередь — её и показываем; для остальных плееров — похожие треки
@@ -3650,7 +3812,7 @@ registerProcessor('pulse-feed', Feed);`;
     if (set.parentNode === body) { set.hidden = true; set.classList.remove('inlib'); document.body.appendChild(set); }
     body.innerHTML = '';
     body.classList.remove('tab-in'); void body.offsetWidth; body.classList.add('tab-in');
-    document.querySelectorAll('.lib-nav').forEach(b => b.classList.toggle('on', b.dataset.tab === lib.tab || (b.dataset.tab === 'playlists' && lib.tab.startsWith('pl:')) || (b.dataset.tab === 'friends' && lib.tab.startsWith('friend:'))));
+    document.querySelectorAll('.lib-nav').forEach(b => b.classList.toggle('on', b.dataset.tab === lib.tab || (b.dataset.tab === 'playlists' && lib.tab.startsWith('pl:')) || (b.dataset.tab === 'friends' && lib.tab.startsWith('friend:')) || (b.dataset.tab === 'chats' && lib.tab.startsWith('chat:'))));
     $('lib').style.setProperty('--lh', Math.round(HS(sim.hue0)));
     $('libChips').innerHTML = '';
     const q = lib.q.trim();
@@ -4178,6 +4340,7 @@ registerProcessor('pulse-feed', Feed);`;
     if (!j) return;
     const d = lstats.days[today()] || (lstats.days[today()] = { sec: 0, tracks: {}, artists: {} });
     d.sec += dt;
+    (d.hours || (d.hours = new Array(24).fill(0)))[new Date().getHours()] += dt;
     const tk = (j.artist || '') + '|' + j.title;
     const tr = d.tracks[tk] || (d.tracks[tk] = { t: j.title, a: j.artist || '', c: j.cover && j.cover.length < 300 && !j.cover.startsWith('data:') && !j.cover.startsWith('/') ? j.cover : null, s: 0 });
     tr.s += dt;
@@ -4244,7 +4407,8 @@ registerProcessor('pulse-feed', Feed);`;
     if (!S.sec) body.appendChild(el('div', 'empty-note', 'Статистика копится, пока играет музыка: в Pulse или в любом плеере.'));
     const save = el('button', 'primary', '🖼 Сохранить картинкой'); save.type = 'button'; save.style.marginTop = '18px';
     save.addEventListener('click', () => saveStatsCard(S, periods.find(p => p[0] === lib.statsP)[1]));
-    body.appendChild(save);
+    const rc = el('button', '', '🎁 Итоги месяца'); rc.type = 'button'; rc.style.margin = '18px 0 0 8px'; rc.addEventListener('click', showRecap);
+    body.append(save, rc);
   }
   // карточка итогов 1080×1350 — удобно для сторис
   function saveStatsCard(S, period) {
@@ -4359,7 +4523,7 @@ registerProcessor('pulse-feed', Feed);`;
     } catch (e) { acc.state = 'Облако сейчас не отвечает, попробую позже'; post({ cmd: 'log', text: 'sync: ' + (e.message || '') }); }
     renderAccount();
   }
-  function logout() { setSession(null); acc.state = ''; Object.assign(social, { friends: [], incoming: [], outgoing: [], loaded: false, results: null }); $('frBadge').hidden = true; acc.profile = null; store.set('pulse-profile', null); profEdit = false; toast('Ты вышел из аккаунта. Всё осталось на этом компьютере.'); if (!$('lib').hidden) renderLib(); }
+  function logout() { roomLeave(true); setSession(null); acc.state = ''; Object.assign(social, { friends: [], incoming: [], outgoing: [], loaded: false, results: null }); $('frBadge').hidden = true; acc.profile = null; store.set('pulse-profile', null); profEdit = false; toast('Ты вышел из аккаунта. Всё осталось на этом компьютере.'); if (!$('lib').hidden) renderLib(); }
   const GOOGLE_G = '<svg viewBox="0 0 48 48" width="18" height="18" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>';
   // блок аккаунта внизу боковой панели
   function avatar(u, cls) {
@@ -4652,6 +4816,7 @@ registerProcessor('pulse-feed', Feed);`;
     await syncPull();
     await loadProfile();
     loadFriends().catch(() => {});
+    chatUnread();
     if (!$('lib').hidden) renderLib();
   }
 
@@ -4805,6 +4970,7 @@ registerProcessor('pulse-feed', Feed);`;
       prof.appendChild(np);
     }
     const row = el('div', 'plbtns');
+    if (x) { const wr = el('button', 'primary', '💬 Написать'); wr.type = 'button'; wr.addEventListener('click', () => { lib.tab = 'chat:' + p.id; renderLib(); }); row.appendChild(wr); }
     if (x) { const rm = el('button', 'danger', 'Удалить из друзей'); rm.type = 'button'; rm.addEventListener('click', () => confirmBox(`Удалить ${p.nickname || 'друга'} из друзей?`, 'Удалить', () => { friendAction('remove', x); lib.tab = 'friends'; })); row.appendChild(rm); }
     prof.appendChild(row);
     body.appendChild(prof);
@@ -4820,6 +4986,477 @@ registerProcessor('pulse-feed', Feed);`;
     rest(`profiles?id=eq.${uidMe()}`, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ now_playing: { title: j.title, artist: j.artist || '', cover }, now_at: new Date().toISOString() }) }).catch(() => {});
   }
 
+  // ===================== переписка с друзьями =====================
+  // сообщения лежат в таблице messages; пока чат открыт, новые подтягиваются раз в 3 секунды, непрочитанные — раз в 30
+  const chat = { unread: {}, lastN: undefined, timer: null, sig: '' };
+  const nickOf = id => (social.people[id] && social.people[id].nickname) || (id === uidMe() ? 'Ты' : 'Друг');
+  const hhmm = ts => new Date(ts).toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' });
+  async function chatUnread() {
+    if (!acc.session || !supaOn()) return;
+    try {
+      const r = await rest(`messages?receiver=eq.${uidMe()}&read_at=is.null&select=sender`);
+      if (!r.ok) return;
+      const rows = await r.json(); chat.unread = {};
+      rows.forEach(m => { chat.unread[m.sender] = (chat.unread[m.sender] || 0) + 1; });
+      const n = rows.length, b = $('msgBadge'); b.hidden = !n; b.textContent = n;
+      if (chat.lastN !== undefined && n > chat.lastN && !lib.tab.startsWith('chat:')) toast('💬 Новое сообщение');
+      chat.lastN = n;
+    } catch (e) {}
+  }
+  setInterval(chatUnread, 30000);
+  function loginCard(body, title, text) {
+    const card = el('div', 'acc-card');
+    card.append(el('h2', '', title), el('p', '', text));
+    const b = el('button', 'primary', 'Войти или создать аккаунт'); b.type = 'button'; b.addEventListener('click', login); card.appendChild(b);
+    body.appendChild(card);
+  }
+  function renderChats(body) {
+    body.appendChild(section('Сообщения'));
+    if (!acc.session || !supaOn()) { loginCard(body, 'Переписка появится после входа', 'Пиши друзьям прямо в Pulse: делись треками и обсуждай музыку.'); return; }
+    if (!social.loaded) { body.appendChild(skeleton(3)); const tok = lib.token; loadFriends().then(() => { if (tok === lib.token) renderLib(); }).catch(() => {}); return; }
+    if (!social.friends.length) { body.appendChild(el('div', 'empty-note', 'Писать можно друзьям. Добавь кого-нибудь во вкладке «Друзья».')); return; }
+    const list = el('div', 'chat-people');
+    social.friends.slice().sort((a, b) => (chat.unread[b.p.id] || 0) - (chat.unread[a.p.id] || 0)).forEach(x => {
+      const b = el('button', 'chat-person'); b.type = 'button';
+      const tx = el('div'); tx.append(el('b', '', x.p.nickname || 'Без ника'), el('span', '', listeningNow(x.p) ? '🎧 ' + x.p.now_playing.title : (x.p.bio || '').slice(0, 60)));
+      b.append(avatar({ name: x.p.nickname || '?', email: x.p.id, avatar: x.p.avatar_url }), tx);
+      if (chat.unread[x.p.id]) b.appendChild(el('b', 'nbadge', String(chat.unread[x.p.id])));
+      b.addEventListener('click', () => { lib.tab = 'chat:' + x.p.id; renderLib(); });
+      list.appendChild(b);
+    });
+    body.appendChild(list);
+  }
+  function renderChat(body, id) {
+    const p = social.people[id] || { id };
+    const back = el('button', '', '← Все сообщения'); back.type = 'button'; back.addEventListener('click', () => { lib.tab = 'chats'; renderLib(); });
+    const head = el('div', 'chat-head');
+    head.append(avatar({ name: p.nickname || '?', email: id, avatar: p.avatar_url }), (() => { const d = el('div'); d.append(el('b', '', p.nickname || 'Друг'), el('span', '', listeningNow(p) ? '🎧 слушает ' + p.now_playing.title : 'в Pulse')); return d; })());
+    const list = el('div', 'chat-list'), form = el('div', 'chat-form');
+    const inp = el('input'); inp.placeholder = 'Сообщение…'; inp.maxLength = 1000;
+    const send = el('button', 'primary', '➤'); send.type = 'button'; send.title = 'Отправить';
+    const share = el('button', '', '🎵'); share.type = 'button'; share.title = 'Поделиться тем, что играет';
+    form.append(share, inp, send);
+    body.append(back, head, list, form);
+    chat.sig = '';
+    const load = async () => {
+      const me = uidMe();
+      const r = await rest(`messages?or=(and(sender.eq.${me},receiver.eq.${id}),and(sender.eq.${id},receiver.eq.${me}))&order=id.desc&limit=80`);
+      if (!r.ok) return;
+      const rows = (await r.json()).reverse(), sig = rows.map(m => m.id).join(',');
+      if (sig === chat.sig) return;
+      chat.sig = sig;
+      const atBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 60;
+      list.innerHTML = '';
+      if (!rows.length) list.appendChild(el('div', 'empty-note', 'Здесь пока пусто. Напиши первым!'));
+      rows.forEach(m => {
+        const b = el('div', 'bub' + (m.sender === me ? ' me' : ''));
+        b.append(el('span', '', m.body), el('time', '', hhmm(m.created_at)));
+        list.appendChild(b);
+      });
+      if (atBottom || list.dataset.first !== '1') { list.scrollTop = list.scrollHeight; list.dataset.first = '1'; }
+      if (rows.some(m => m.receiver === me && !m.read_at)) {
+        rest(`messages?receiver=eq.${me}&sender=eq.${id}&read_at=is.null`, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ read_at: new Date().toISOString() }) }).then(chatUnread).catch(() => {});
+      }
+    };
+    const doSend = async text => {
+      text = (text || '').trim(); if (!text) return;
+      send.disabled = true;
+      try {
+        const r = await rest('messages', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ sender: uidMe(), receiver: id, body: text.slice(0, 1000) }) });
+        if (!r.ok) throw new Error(r.status === 403 || r.status === 401 ? 'писать можно только друзьям' : 'сервер не ответил');
+        inp.value = ''; await load();
+      } catch (e) { toast('Не отправилось: ' + e.message); }
+      send.disabled = false; inp.focus();
+    };
+    send.addEventListener('click', () => doSend(inp.value));
+    inp.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') doSend(inp.value); });
+    share.addEventListener('click', () => {
+      const it = local.active && local.item, j = auto.last;
+      const t = it ? `${it.artist ? it.artist + ' — ' : ''}${it.title}` : j && j.title ? `${j.artist ? j.artist + ' — ' : ''}${j.title}` : '';
+      if (!t) { toast('Сейчас ничего не играет'); return; }
+      doSend('🎵 Слушаю: ' + t);
+    });
+    load();
+    clearInterval(chat.timer);
+    chat.timer = setInterval(() => { if ($('lib').hidden || lib.tab !== 'chat:' + id || !list.isConnected) { clearInterval(chat.timer); return; } load(); }, 3000);
+    setTimeout(() => inp.focus(), 60);
+  }
+
+  // ===================== слушать вместе =====================
+  // ведущий раз в 2 секунды записывает в комнату, что играет; остальные подстраиваются: тот же трек, та же секунда
+  const room = { code: null, host: false, hostId: null, timer: null, lastEv: 0, events: [], members: [], pushed: null, beatT: 0, memT: 0 };
+  const genCode = () => Array.from(crypto.getRandomValues(new Uint8Array(6)), b => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[b % 32]).join('');
+  const roomState = () => { const it = local.active && local.item; return it ? { item: slim(it), t: eng().time, playing: !eng().paused, at: Date.now() } : null; };
+  async function roomCreate() {
+    if (!acc.session) { login(); return; }
+    const code = genCode();
+    const r = await rest('rooms', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ code, host: uidMe(), state: roomState() }) });
+    if (!r.ok) { toast('Не получилось создать комнату'); return; }
+    roomEnter(code, uidMe());
+    toast('🎧 Комната создана — отправь код друзьям');
+  }
+  async function roomJoin(code) {
+    if (!acc.session) { login(); return; }
+    code = (code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (code.length !== 6) { toast('Код комнаты — 6 букв и цифр'); return; }
+    const r = await rest(`rooms?code=eq.${code}&select=host`);
+    const rows = r.ok ? await r.json() : [];
+    if (!rows.length) { toast('Такой комнаты нет или она закрыта'); return; }
+    roomEnter(code, rows[0].host);
+    toast('👋 Ты в комнате ' + code);
+  }
+  function roomEnter(code, hostId) {
+    Object.assign(room, { code, hostId, host: hostId === uidMe(), lastEv: 0, events: [], members: [], pushed: null, beatT: 0, memT: 0 });
+    store.set('pulse-room', code);
+    rest('room_events', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ room: code, sender: uidMe(), kind: 'join', body: 'зашёл(а) в комнату' }) }).catch(() => {});
+    clearInterval(room.timer); room.timer = setInterval(roomTick, 2000); roomTick();
+    $('roomBadge').hidden = false;
+    if (!$('lib').hidden && lib.tab === 'room') renderLib();
+  }
+  async function roomLeave(quiet) {
+    const code = room.code; if (!code) return;
+    clearInterval(room.timer); room.timer = null;
+    rest(`room_members?room=eq.${code}&member=eq.${uidMe()}`, { method: 'DELETE' }).catch(() => {});
+    if (room.host) rest(`rooms?code=eq.${code}`, { method: 'DELETE' }).catch(() => {});
+    room.code = null; store.set('pulse-room', null); $('roomBadge').hidden = true;
+    if (!quiet) toast('Ты вышел из комнаты');
+    if (!$('lib').hidden && lib.tab === 'room') renderLib();
+  }
+  function roomFollow(s) {
+    if (!s || !s.item) return;
+    const exp = s.t + (s.playing ? (Date.now() - s.at) / 1000 : 0);
+    if (!local.active || !local.item || local.item.id !== s.item.id) { playItem(s.item, [s.item]); return; }
+    const e = eng();
+    if (s.playing && e.paused) e.play();
+    if (!s.playing && !e.paused) e.pause();
+    if (e.dur && Math.abs(e.time - exp) > 2.5) e.seek(exp);
+  }
+  async function roomTick() {
+    const code = room.code; if (!code || !acc.session) return;
+    try {
+      const now = Date.now();
+      if (now - room.beatT > 15000) {
+        room.beatT = now;
+        rest('room_members?on_conflict=room,member', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ room: code, member: uidMe(), seen_at: new Date().toISOString() }) }).catch(() => {});
+      }
+      if (room.host) {
+        // ведущий: пишем, только если что-то поменялось (другой трек, пауза или перемотка)
+        const s = roomState(), p = room.pushed;
+        const moved = s && p && Math.abs(s.t - (p.t + (p.playing ? (s.at - p.at) / 1000 : 0))) > 1.5;
+        if (!p !== !s || (s && (s.item.id !== p.item.id || s.playing !== p.playing || moved)) || (s && now - p.at > 10000)) {
+          room.pushed = s;
+          rest(`rooms?code=eq.${code}`, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ state: s, updated_at: new Date().toISOString() }) }).catch(() => {});
+        }
+      } else {
+        const r = await rest(`rooms?code=eq.${code}&select=host,state`);
+        const rows = r.ok ? await r.json() : null;
+        if (rows && !rows.length) { toast('Ведущий закрыл комнату'); roomLeave(true); return; }
+        if (rows) roomFollow(rows[0].state);
+      }
+      const er = await rest(`room_events?room=eq.${code}&id=gt.${room.lastEv}&order=id.asc&limit=50`);
+      if (er.ok) {
+        const evs = await er.json();
+        evs.forEach(e => {
+          room.lastEv = Math.max(room.lastEv, e.id);
+          if (e.kind === 'react') { if (room.events.length) flyEmoji(e.body); }
+          else room.events.push(e);
+        });
+        if (room.events.length > 100) room.events.splice(0, room.events.length - 100);
+        if (evs.length) roomChatRender();
+      }
+      if (now - room.memT > 10000) {
+        room.memT = now;
+        const mr = await rest(`room_members?room=eq.${code}&seen_at=gt.${new Date(now - 45000).toISOString()}&select=member`);
+        if (mr.ok) {
+          room.members = (await mr.json()).map(m => m.member);
+          const miss = room.members.filter(id => !social.people[id]);
+          if (miss.length) { const pr = await rest(`profiles?id=in.(${miss.join(',')})&select=*`); if (pr.ok) (await pr.json()).forEach(p => { social.people[p.id] = p; }); }
+          const mb = $('roomMembers'); if (mb) mb.textContent = room.members.map(nickOf).join(', ') || 'только ты';
+        }
+      }
+    } catch (e) {}
+  }
+  function roomSay(kind, text) {
+    if (!room.code || !text) return;
+    if (kind === 'react') flyEmoji(text);
+    rest('room_events', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ room: room.code, sender: uidMe(), kind, body: text.slice(0, 500) }) }).then(roomTick).catch(() => {});
+  }
+  // реакция: эмодзи взлетает снизу экрана
+  function flyEmoji(e) {
+    const s = el('span', 'flyemo', e);
+    s.style.left = (10 + Math.random() * 80) + 'vw';
+    s.style.setProperty('--dx', (Math.random() * 120 - 60) + 'px');
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 3200);
+  }
+  function roomChatRender() {
+    const box = $('roomChat'); if (!box) return;
+    const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
+    box.innerHTML = '';
+    room.events.forEach(e => {
+      if (e.kind === 'join') { box.appendChild(el('div', 'chat-sys', `${nickOf(e.sender)} ${e.body}`)); return; }
+      const b = el('div', 'bub' + (e.sender === uidMe() ? ' me' : ''));
+      if (e.sender !== uidMe()) b.appendChild(el('small', '', nickOf(e.sender)));
+      b.append(el('span', '', e.body), el('time', '', hhmm(e.created_at)));
+      box.appendChild(b);
+    });
+    if (atBottom) box.scrollTop = box.scrollHeight;
+  }
+  function renderRoom(body) {
+    body.appendChild(section('Слушать вместе', 'один трек у всех одновременно'));
+    if (!acc.session || !supaOn()) { loginCard(body, 'Комнаты доступны после входа', 'Создай комнату, отправь код друзьям — и у всех будет играть одно и то же в одну секунду, с чатом и реакциями.'); return; }
+    if (!room.code) {
+      const card = el('div', 'room-card');
+      card.append(el('h2', '', '🎧 Создай комнату'), el('p', '', 'Ты включаешь треки — у друзей они играют одновременно с тобой. Общайтесь в чате и кидайте реакции.'));
+      const mk = el('button', 'primary', 'Создать комнату'); mk.type = 'button'; mk.addEventListener('click', roomCreate);
+      card.appendChild(mk);
+      const join = el('div', 'keyrow'), inp = el('input'); inp.placeholder = 'Код комнаты, например K7QM2P'; inp.maxLength = 8;
+      const go = el('button', '', 'Войти'); go.type = 'button';
+      go.addEventListener('click', () => roomJoin(inp.value)); inp.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') roomJoin(inp.value); });
+      join.append(inp, go);
+      card.append(el('h3', 'set-h', 'Или зайди к другу'), join);
+      body.appendChild(card); return;
+    }
+    const top = el('div', 'room-top');
+    const codeB = el('button', 'room-code', room.code); codeB.type = 'button'; codeB.title = 'Скопировать код';
+    codeB.addEventListener('click', () => { navigator.clipboard.writeText(room.code).then(() => toast('Код скопирован'), () => toast('Код: ' + room.code)); });
+    const info = el('div');
+    info.append(el('b', '', room.host ? 'Ты ведущий' : 'Ведущий: ' + nickOf(room.hostId)),
+      el('span', '', room.host ? 'Включай любые треки — у всех в комнате заиграет то же самое.' : 'Музыку выбирает ведущий, она играет у тебя сама.'),
+      Object.assign(el('small', ''), { id: 'roomMembers', textContent: room.members.map(nickOf).join(', ') || 'загружаю участников…' }));
+    const out = el('button', 'danger', room.host ? 'Закрыть комнату' : 'Выйти'); out.type = 'button'; out.addEventListener('click', () => roomLeave());
+    top.append(codeB, info, out);
+    const reacts = el('div', 'room-reacts');
+    ['🔥', '❤️', '😂', '😭', '👏', '🕺', '🤯'].forEach(e => { const b = el('button', '', e); b.type = 'button'; b.addEventListener('click', () => roomSay('react', e)); reacts.appendChild(b); });
+    const box = el('div', 'chat-list room-chat'); box.id = 'roomChat';
+    const form = el('div', 'chat-form'), inp = el('input'); inp.placeholder = 'Написать в комнату…'; inp.maxLength = 500;
+    const send = el('button', 'primary', '➤'); send.type = 'button';
+    const doSend = () => { roomSay('msg', inp.value.trim()); inp.value = ''; };
+    send.addEventListener('click', doSend); inp.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') doSend(); });
+    form.append(inp, send);
+    body.append(top, reacts, box, form);
+    roomChatRender(); box.scrollTop = box.scrollHeight;
+  }
+
+  // ===================== итоги месяца =====================
+  function musicPersona(S) {
+    const total = S.sec || 1, top = S.topArtists[0], share = top ? top[1] / total : 0;
+    const hours = new Array(24).fill(0);
+    for (const [k, d] of Object.entries(lstats.days)) if (d.hours && k >= new Date(Date.now() - 29 * 864e5).toLocaleDateString('sv')) d.hours.forEach((v, h) => { hours[h] += v || 0; });
+    const night = [22, 23, 0, 1, 2, 3, 4].reduce((s, h) => s + hours[h], 0), morning = [5, 6, 7, 8, 9, 10].reduce((s, h) => s + hours[h], 0), all = hours.reduce((a, b) => a + b, 0) || 1;
+    const peak = hours.indexOf(Math.max(...hours));
+    if (night / all > 0.4) return ['🦉', 'Ночная сова', 'Больше всего музыки — после десяти вечера.', peak];
+    if (morning / all > 0.4) return ['🌅', 'Ранняя пташка', 'День начинается с музыки.', peak];
+    if (share > 0.35) return ['💘', 'Верный фанат', `Почти всё время — ${top[0]}.`, peak];
+    if (Object.keys(S.artists).length > 40) return ['🧭', 'Исследователь', 'Каждый день — новые артисты.', peak];
+    if (total > 40 * 3600) return ['🔊', 'Меломан', 'Музыка играет почти всегда.', peak];
+    return ['🎧', 'Слушатель с характером', 'Свой вкус, свои треки.', peak];
+  }
+  function showRecap() {
+    const S = statsFor(30);
+    if (!S.sec) { toast('За месяц пока ничего не послушано'); return; }
+    const [emo, persona, why, peak] = musicPersona(S);
+    const back = el('div', 'modal-back'), box = el('div', 'recap');
+    const slides = [
+      () => [el('small', '', 'Твой месяц в Pulse'), el('h1', '', hrs(S.sec)), el('p', '', `${Object.keys(S.tracks).length} треков · ${Object.keys(S.artists).length} артистов`)],
+      () => [el('small', '', 'Артист месяца'), el('h1', '', S.topArtists[0] ? S.topArtists[0][0] : '—'), el('p', '', S.topArtists[0] ? hrs(S.topArtists[0][1]) + ' вместе' : '')],
+      () => { const ol = el('ol'); S.topTracks.slice(0, 5).forEach(t => { const li = el('li'); li.append(el('b', '', t.t), el('span', '', t.a)); ol.appendChild(li); }); return [el('small', '', 'Топ-5 треков'), ol]; },
+      () => [el('small', '', 'Твоя музыкальная личность'), el('div', 'recap-emo', emo), el('h1', '', persona), el('p', '', why + (peak >= 0 ? ` Любимое время — около ${peak}:00.` : ''))],
+    ];
+    let i = 0;
+    const stage = el('div', 'recap-stage'), dots = el('div', 'recap-dots');
+    const show = () => {
+      stage.innerHTML = ''; stage.append(...slides[i]()); stage.style.setProperty('--h', (hueOf(persona) + i * 70) % 360);
+      dots.innerHTML = ''; slides.forEach((_, k) => dots.appendChild(el('i', k === i ? 'on' : '')));
+      nx.textContent = i < slides.length - 1 ? 'Дальше →' : '🖼 Сохранить картинкой';
+    };
+    const nx = el('button', 'primary', ''); nx.type = 'button';
+    nx.addEventListener('click', () => { if (i < slides.length - 1) { i++; show(); } else saveStatsCard(S, 'Месяц'); });
+    const cl = el('button', '', 'Закрыть'); cl.type = 'button'; cl.addEventListener('click', () => back.remove());
+    const row = el('div', 'modal-row'); row.append(cl, nx);
+    box.append(dots, stage, row); back.appendChild(box); document.body.appendChild(back);
+    back.addEventListener('pointerdown', e => { if (e.target === back) back.remove(); });
+    show();
+  }
+
+  // ===================== будильник =====================
+  // в заданное время включает «Мою волну» или плейлист и плавно поднимает громкость за минуту (Pulse должен быть запущен)
+  const alarm = Object.assign({ on: false, time: '08:00', src: 'wave', fired: '' }, store.get('pulse-alarm', {}));
+  function alarmSave() { store.set('pulse-alarm', alarm); }
+  function alarmFill() {
+    const sel = $('alarmSrc'); sel.innerHTML = '';
+    [['wave', '🌊 Моя волна'], ...playlists.map(p => ['pl:' + p.id, '♫ ' + p.name])].forEach(([v, l]) => { const o = el('option', '', l); o.value = v; sel.appendChild(o); });
+    sel.value = alarm.src; if (sel.value !== alarm.src) sel.value = 'wave';
+    $('alarmT').value = alarm.time; $('alarmOn').value = alarm.on ? 'on' : 'off';
+  }
+  async function alarmFire() {
+    toast('⏰ Доброе утро!');
+    local.fade = 0.05;
+    const p = alarm.src.startsWith('pl:') && playlists.find(x => x.id === alarm.src.slice(3));
+    if (p && p.items.length) playItem(p.items[0], p.items); else startWave();
+    const t0 = Date.now();
+    const up = setInterval(() => { const k = Math.min(1, (Date.now() - t0) / 60000); local.fade = 0.05 + 0.95 * k; if (local.active) eng().apply(); if (k >= 1) { clearInterval(up); local.fade = 1; } }, 1000);
+  }
+  setInterval(() => {
+    if (!alarm.on) return;
+    const d = new Date(), now = d.toTimeString().slice(0, 5), key = d.toLocaleDateString('sv') + ' ' + alarm.time;
+    if (now === alarm.time && alarm.fired !== key) { alarm.fired = key; alarmSave(); alarmFire(); }
+  }, 15000);
+
+  // ===================== фокус: спокойный визуал, лоу-фай и помидор 25/5 =====================
+  const focus = { on: false, work: true, left: 25 * 60, timer: null, prevFx: null };
+  function chime() {
+    try { const a = ac(), o = a.createOscillator(), g = a.createGain(); o.frequency.value = 880; g.gain.setValueAtTime(0.2, a.currentTime); g.gain.exponentialRampToValueAtTime(0.001, a.currentTime + 1.2); o.connect(g); g.connect(a.destination); o.start(); o.stop(a.currentTime + 1.3); } catch (e) {}
+  }
+  function focusDraw() {
+    const m = Math.floor(focus.left / 60), s = Math.floor(focus.left % 60);
+    $('pomoT').textContent = `${m}:${String(s).padStart(2, '0')}`;
+    $('pomoL').textContent = focus.work ? '🎯 Фокус' : '☕ Перерыв';
+    $('pomo').classList.toggle('rest', !focus.work);
+  }
+  async function focusStart() {
+    if (focus.on) return;
+    Object.assign(focus, { on: true, work: true, left: 25 * 60, prevFx: fx.level });
+    fx.level = 'calm'; $('fxLevel').value = 'calm';
+    $('pomo').hidden = false; focusDraw();
+    focus.timer = setInterval(() => {
+      if (focus.paused) return;
+      focus.left -= 1;
+      if (focus.left <= 0) { focus.work = !focus.work; focus.left = (focus.work ? 25 : 5) * 60; chime(); toast(focus.work ? '🎯 Снова за дело: 25 минут' : '☕ Перерыв 5 минут'); }
+      focusDraw();
+    }, 1000);
+    openLib(false);
+    toast('🎯 Режим фокуса: 25 минут работы, 5 отдыха');
+    if (!local.active) { try { const tr = await searchYT('lofi hip hop beats to study'); if (tr.length) playItem(tr[0], tr.slice(0, 10)); } catch (e) {} }
+  }
+  function focusStop() {
+    if (!focus.on) return;
+    clearInterval(focus.timer); focus.on = false; $('pomo').hidden = true;
+    fx.level = focus.prevFx || 'normal'; $('fxLevel').value = fx.level;
+    toast('Фокус выключен');
+  }
+
+  // ===================== угадай мелодию =====================
+  // 5 раундов: 10 секунд из популярного трека (отрывки Deezer) и 4 варианта ответа
+  const game = { audio: new Audio(), tracks: [], round: 0, score: 0, ans: null, opts: [], stopT: null, busy: false, picked: null };
+  game.audio.preload = 'auto';
+  async function gameNew() {
+    game.busy = true; renderLib();
+    try {
+      const r = await deezer('chart/0/tracks?limit=80');
+      game.tracks = shuffleArr((r.data || []).filter(t => t.preview).map(t => ({ title: t.title_short || t.title, artist: t.artist && t.artist.name, url: t.preview, cover: t.album && t.album.cover_medium })));
+      if (game.tracks.length < 8) throw 0;
+      game.round = 0; game.score = 0; game.busy = false; gameRound();
+    } catch (e) { game.busy = false; game.tracks = []; toast('Не получилось загрузить треки для игры'); renderLib(); }
+  }
+  function gameRound() {
+    game.round++; game.picked = null;
+    const pool = game.tracks.slice((game.round - 1) * 4, (game.round - 1) * 4 + 4);
+    game.ans = pool[0]; game.opts = shuffleArr(pool.slice());
+    if (local.active && !eng().paused) { eng().pause(); game.resume = true; }
+    clearTimeout(game.stopT);
+    game.audio.src = game.ans.url; game.audio.currentTime = 0;
+    game.audio.play().catch(() => {});
+    game.stopT = setTimeout(() => game.audio.pause(), 10000);
+    renderLib();
+  }
+  function gamePick(o) {
+    if (game.picked) return;
+    game.picked = o; clearTimeout(game.stopT);
+    if (o === game.ans) { game.score++; flyEmoji('🎉'); } else flyEmoji('😅');
+    renderLib();
+  }
+  function gameQuit() { game.audio.pause(); game.tracks = []; if (game.resume && local.active) { eng().play(); game.resume = false; } }
+  function renderGame(body) {
+    body.appendChild(section('Угадай мелодию', '10 секунд — 4 варианта'));
+    if (game.busy) { body.appendChild(skeleton(2)); return; }
+    if (!game.tracks.length || game.round === 0) {
+      const card = el('div', 'room-card');
+      card.append(el('h2', '', '🎮 Сколько хитов ты узнаешь?'), el('p', '', 'Пять раундов. Играет отрывок популярного трека — выбери, что это.'));
+      const go = el('button', 'primary', 'Начать игру'); go.type = 'button'; go.addEventListener('click', gameNew);
+      card.appendChild(go); body.appendChild(card); return;
+    }
+    if (game.round > 5) {
+      const card = el('div', 'room-card');
+      const best = Math.max(game.score, store.get('pulse-game-best', 0)); store.set('pulse-game-best', best);
+      card.append(el('h2', '', `${game.score} из 5 ${game.score >= 4 ? '🏆' : game.score >= 2 ? '👍' : '🙈'}`), el('p', '', `Лучший результат: ${best} из 5`));
+      const again = el('button', 'primary', 'Ещё раз'); again.type = 'button'; again.addEventListener('click', gameNew);
+      const stop = el('button', '', 'Хватит'); stop.type = 'button'; stop.addEventListener('click', () => { gameQuit(); game.round = 0; renderLib(); });
+      const row = el('div', 'plbtns'); row.append(again, stop); card.appendChild(row);
+      body.appendChild(card); return;
+    }
+    const head = el('div', 'game-head');
+    head.append(el('b', '', `Раунд ${game.round} из 5`), el('span', '', `Очки: ${game.score}`));
+    const replay = el('button', '', '🔁 Ещё раз послушать'); replay.type = 'button';
+    replay.addEventListener('click', () => { game.audio.currentTime = 0; game.audio.play().catch(() => {}); clearTimeout(game.stopT); game.stopT = setTimeout(() => game.audio.pause(), 10000); });
+    head.appendChild(replay);
+    const grid = el('div', 'game-opts');
+    game.opts.forEach(o => {
+      const b = el('button', game.picked ? (o === game.ans ? 'ok' : o === game.picked ? 'bad' : '') : ''); b.type = 'button';
+      b.append(el('b', '', o.title), el('span', '', o.artist || ''));
+      b.addEventListener('click', () => gamePick(o)); grid.appendChild(b);
+    });
+    body.append(head, grid);
+    if (game.picked) {
+      const res = el('div', 'game-res');
+      if (game.ans.cover) res.appendChild(Object.assign(el('img'), { src: game.ans.cover, alt: '' }));
+      res.appendChild(el('p', '', (game.picked === game.ans ? '✅ Верно! ' : '❌ Это было: ') + `${game.ans.artist} — ${game.ans.title}`));
+      const nx = el('button', 'primary', game.round < 5 ? 'Следующий раунд →' : 'Итог'); nx.type = 'button';
+      nx.addEventListener('click', () => { if (game.round < 5) gameRound(); else { game.round++; game.audio.pause(); renderLib(); } });
+      res.appendChild(nx); body.appendChild(res);
+    }
+  }
+
+  // ===================== перевод текста песни =====================
+  // строка не на русском переводится бесплатным сервисом MyMemory и показывается под визуалом
+  const tr = { on: store.get('pulse-tr', false), cache: {}, line: -1 };
+  const isCyr = s => /[а-яё]/i.test(s);
+  async function trText(s) {
+    if (tr.cache[s] !== undefined) return tr.cache[s];
+    try {
+      const r = await fetch('https://api.mymemory.translated.net/get?langpair=en|ru&q=' + encodeURIComponent(s.slice(0, 450)));
+      const j = await r.json(), t = j && j.responseData && j.responseData.translatedText;
+      tr.cache[s] = t && !/MYMEMORY WARNING|QUERY LENGTH/i.test(t) ? decodeHtml(t) : '';
+    } catch (e) { tr.cache[s] = ''; }
+    return tr.cache[s];
+  }
+  async function trShow() {
+    const box = $('trLine');
+    const l = tr.on && lyr.on && lyr.lines[lyr.idx];
+    if (!l || !l.text || isCyr(l.text)) { box.hidden = true; return; }
+    const idx = lyr.idx, t = await trText(l.text);
+    if (idx !== lyr.idx) return;
+    box.textContent = t; box.hidden = !t;
+    const n = lyr.lines[idx + 1]; if (n && n.text && !isCyr(n.text)) trText(n.text); // следующая строка — заранее
+  }
+
+  // ===================== своя тема =====================
+  // цвет, сила эффектов и фон; сохраняется как пресет, делится кодом
+  let myThemes = store.get('pulse-mythemes', []);
+  const themeNow = () => ({ n: '', h: Math.round(sim.hue0), f: fx.level, b: BGS[BG.cur].name, c: fx.coverOn ? 1 : 0 });
+  function themeApply(t) {
+    sim.hue0 = ((+t.h || 0) % 360 + 360) % 360; $('thHue').value = sim.hue0;
+    fx.level = FX_BASE[t.f] ? t.f : 'normal'; $('fxLevel').value = fx.level; store.set('pulse-fx', fx.level);
+    fx.coverOn = !!t.c; $('fxCover').value = fx.coverOn ? 'on' : 'off'; store.set('pulse-coverhue', fx.coverOn);
+    const i = BGS.findIndex(b => b.name === t.b); if (i >= 0) bgSwitch(i, true);
+    store.set('pulse-hue0', sim.hue0);
+  }
+  const themeCode = t => 'PULSE-' + btoa(unescape(encodeURIComponent(JSON.stringify(t))));
+  function themeParse(s) { try { return JSON.parse(decodeURIComponent(escape(atob(s.trim().replace(/^PULSE-/, ''))))); } catch (e) { return null; } }
+  function themesRender() {
+    const box = $('myThemes'); box.innerHTML = '';
+    myThemes.forEach((t, k) => {
+      const b = el('button', 'theme-chip'); b.type = 'button'; b.style.setProperty('--h', t.h);
+      b.append(el('i'), el('span', '', t.n));
+      b.addEventListener('click', () => { themeApply(t); toast(`🎨 Тема «${t.n}»`); });
+      const share = el('em', '', '⧉'); share.title = 'Скопировать код темы';
+      share.addEventListener('click', e => { e.stopPropagation(); navigator.clipboard.writeText(themeCode(t)).then(() => toast('Код темы скопирован — отправь другу'), () => toast(themeCode(t))); });
+      const del = el('em', '', '✕'); del.title = 'Удалить';
+      del.addEventListener('click', e => { e.stopPropagation(); myThemes.splice(k, 1); store.set('pulse-mythemes', myThemes); themesRender(); });
+      b.append(share, del); box.appendChild(b);
+    });
+  }
+
   // дополнительные вкладки медиатеки
   function renderExtraTab(body) {
     const tb = lib.tab;
@@ -4831,6 +5468,10 @@ registerProcessor('pulse-feed', Feed);`;
     if (tb === 'account') { renderAccountTab(body); return true; }
     if (tb === 'friends') { renderFriends(body); return true; }
     if (tb.startsWith('friend:')) { renderFriendProfile(body, tb.slice(7)); return true; }
+    if (tb === 'chats') { renderChats(body); return true; }
+    if (tb.startsWith('chat:')) { renderChat(body, tb.slice(5)); return true; }
+    if (tb === 'room') { renderRoom(body); return true; }
+    if (tb === 'game') { renderGame(body); return true; }
     return false;
   }
 
@@ -5010,6 +5651,7 @@ registerProcessor('pulse-feed', Feed);`;
       drawBg(dt);
       render(dt * sim.slow);
       drawShards(dt);
+      drawRain(dt);
     }
     const t1 = performance.now();
     if (!covered) drawLyrics(dt);
@@ -5027,7 +5669,7 @@ registerProcessor('pulse-feed', Feed);`;
       tickPlayer();
       // настроение: ниже середины краски блекнут и уходят в холодный синий
       if (!lite) {
-        const sad = fx.moodOn && !chaos.on ? clamp((0.55 - mood.v) / 0.4, 0, 1) : 0;
+        const sad = sadK;
         const f = sad < 0.03 ? '' : `saturate(${(1 - 0.6 * sad).toFixed(2)}) brightness(${(1 - 0.18 * sad).toFixed(2)})`;
         if (f !== frame.mf) { frame.mf = f; cv.style.filter = bgcv.style.filter = f; $('moodTint').style.opacity = (0.4 * sad).toFixed(2); }
       }
@@ -5065,6 +5707,8 @@ registerProcessor('pulse-feed', Feed);`;
   $('fxLevel').value = fx.level; $('fxMood').value = fx.moodOn ? 'on' : 'off';
   $('fxLevel').addEventListener('change', e => { fx.level = e.target.value; store.set('pulse-fx', fx.level); toast({ calm: '🌙 Спокойные эффекты', normal: '✨ Обычные эффекты', max: '🔥 Эффекты на максимум' }[fx.level]); });
   $('fxMood').addEventListener('change', e => { fx.moodOn = e.target.value === 'on'; store.set('pulse-mood', fx.moodOn); });
+  $('fxCover').value = fx.coverOn ? 'on' : 'off';
+  $('fxCover').addEventListener('change', e => { fx.coverOn = e.target.value === 'on'; store.set('pulse-coverhue', fx.coverOn); });
   // ускорение YouTube (zapret): включается в приложении, при каждом запуске Windows заново спрашивает права
   function onDpi(m) {
     if (m.error) {
@@ -5082,7 +5726,38 @@ registerProcessor('pulse-feed', Feed);`;
   if (native && store.get('pulse-dpi', false)) post({ cmd: 'dpi', on: true });
   setKaraoke(karaoke);
   renderAccount();
-  if (acc.session && supaOn()) { syncPull(); loadProfile(); loadFriends().catch(() => {}); }
+  if (acc.session && supaOn()) { syncPull(); loadProfile(); loadFriends().catch(() => {}); chatUnread(); }
+  {
+    const qr = new URLSearchParams(location.search).get('room'), saved = store.get('pulse-room', null);
+    if (acc.session && supaOn() && (qr || saved)) roomJoin(qr || saved);
+  }
+  sim.hue0 = store.get('pulse-hue0', 290);
+  $('thHue').value = sim.hue0;
+  $('thHue').addEventListener('input', e => { sim.hue0 = +e.target.value; store.set('pulse-hue0', sim.hue0); });
+  $('thSave').addEventListener('click', () => {
+    const n = $('thName').value.trim() || 'Моя тема ' + (myThemes.length + 1);
+    myThemes.unshift({ ...themeNow(), n }); myThemes = myThemes.slice(0, 12); store.set('pulse-mythemes', myThemes);
+    $('thName').value = ''; themesRender(); toast(`🎨 Тема «${n}» сохранена`);
+  });
+  $('thImport').addEventListener('click', () => {
+    const t = themeParse($('thCode').value);
+    if (!t || t.h === undefined) { toast('Код темы не подошёл'); return; }
+    t.n = (t.n || 'Тема друга').slice(0, 24); myThemes.unshift(t); store.set('pulse-mythemes', myThemes);
+    $('thCode').value = ''; themesRender(); themeApply(t); toast(`🎨 Тема «${t.n}» добавлена`);
+  });
+  ['thName', 'thCode'].forEach(id => $(id).addEventListener('keydown', e => e.stopPropagation()));
+  themesRender();
+  $('trOn').value = tr.on ? 'on' : 'off';
+  $('trOn').addEventListener('change', e => { tr.on = e.target.value === 'on'; store.set('pulse-tr', tr.on); trShow(); });
+  alarmFill();
+  $('alarmT').addEventListener('change', e => { alarm.time = e.target.value || '08:00'; alarmSave(); });
+  $('alarmSrc').addEventListener('change', e => { alarm.src = e.target.value; alarmSave(); });
+  $('alarmOn').addEventListener('change', e => { alarm.on = e.target.value === 'on'; alarmSave(); toast(alarm.on ? `⏰ Будильник на ${alarm.time}` : 'Будильник выключен'); });
+  $('alarmSrc').addEventListener('focus', alarmFill);
+  $('dFocus').addEventListener('click', () => (focus.on ? focusStop() : focusStart()));
+  $('dRecap').addEventListener('click', () => { openLib(false); showRecap(); });
+  $('pomoStop').addEventListener('click', focusStop);
+  $('pomoPause').addEventListener('click', () => { focus.paused = !focus.paused; $('pomoPause').textContent = focus.paused ? '▶' : '⏸'; });
   // веб-версия: вернулись со входа Google (?code=…) или из письма о подтверждении почты (#access_token=…)
   if (!native) {
     const q = new URLSearchParams(location.search), h = new URLSearchParams(location.hash.slice(1));
