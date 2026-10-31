@@ -6658,7 +6658,8 @@ registerProcessor('pulse-feed', Feed);`;
   seasonApply();
   // качество графики: авто по устройству или вручную
   const perfHintUpd = () => {
-    const d = device, gpu = (d.gpu || '').replace(/ANGLE \(|\)|Direct3D.*|\(TM\)|vs_\S+|ps_\S+/g, '').trim().slice(0, 48);
+    // «ANGLE (NVIDIA, NVIDIA GeForce GTX 1060 3GB (0x…) Direct3D11…)» → «NVIDIA GeForce GTX 1060 3GB»
+    const d = device, m = (d.gpu || '').match(/ANGLE \([^,]*,\s*([^,(]+)/), gpu = (m ? m[1] : d.gpu || '').replace(/\(TM\)/g, '').trim().slice(0, 48);
     $('perfHint').textContent = `Сейчас: «${perf.name}». Устройство: ${d.cores} ядер${d.mem ? `, ${d.mem} ГБ памяти` : ''}${gpu ? ', ' + gpu : ''}. В «Авто» Pulse сам снизит качество, если станет тормозить.`;
   };
   $('perfSel').value = perfPick();
