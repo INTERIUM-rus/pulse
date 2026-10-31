@@ -1,6 +1,6 @@
 {
-    "version":  "1.5.1",
+    "version":  "1.5.2",
     "url":  "https://interium-rus.github.io/pulse/Pulse.exe",
-    "sha256":  "4BD127C027506D6425FDBBC7B34B7160DFFE95E3E2E2C1B2C5A1F4F5AB10F1EF",
-    "notes":  "Вайб заработал: ИИ-друг в медиатеке подберёт музыку и сам её включит."
+    "sha256":  "04CEF991B4F04015AF1B6D6FE914B8D09ACECD6533E33F98779DFD8A3DE0F7DC",
+    "notes":  "Больше музыки в поиске: hearthis.at (полные треки) и отрывки iTunes, умная сортировка результатов, свой ключ YouTube. Исправлено: первый трек мог не играть при включённом эквалайзере."
 }
