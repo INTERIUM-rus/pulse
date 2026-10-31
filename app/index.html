@@ -3950,7 +3950,7 @@ registerProcessor('pulse-feed', Feed);`;
   }
   async function ytPopular() {
     if (ytCache.__pop) return ytCache.__pop;
-    const v = await ytApi('videos?part=snippet,contentDetails&chart=mostPopular&videoCategoryId=10&regionCode=RU&maxResults=30');
+    const v = await ytApi('videos?part=snippet,contentDetails&chart=mostPopular&videoCategoryId=10&regionCode=RU&maxResults=50');
     return (ytCache.__pop = (v.items || []).map(ytItem).filter(x => x.duration > 50 && x.duration < 1500));
   }
   const ytIdFrom = s => { const m = /(?:youtu\.be\/|[?&]v=|\/shorts\/|\/embed\/)([\w-]{11})/.exec(s || ''); return m && m[1]; };
@@ -4487,20 +4487,28 @@ registerProcessor('pulse-feed', Feed);`;
       smb.addEventListener('click', () => { lib.q = smQ; $('libQ').value = smQ; lib.tab = 'search'; renderLib(); });
       body.appendChild(smb);
       const pop = shelf('Популярное сейчас', 'топ музыки в России'); body.appendChild(pop.wrap); pop.loading();
+      const trend = shelf('🔥 В тренде', 'ещё из чарта YouTube по России'); body.appendChild(trend.wrap); trend.loading();
       guarded(body, async ok => {
         let tr = null;
         try { tr = await ytPopular(); } catch (e) { toast(ytProblem(e)); }
+        const chart = tr && tr.length >= 30;
         if (!tr || !tr.length) tr = await jamendoPopular().catch(() => []);
         if (!tr || !tr.length) tr = await searchArchive('collection:(netlabels)');
-        if (ok()) pop.fill(tr.slice(0, 24));
+        if (!ok()) return;
+        pop.fill(tr.slice(0, 25));
+        // вторая половина чарта YouTube по России — то, что сейчас набирает (в том числе из TikTok)
+        if (chart) trend.fill(tr.slice(25, 50)); else trend.wrap.remove();
       });
-      // то, что сейчас слушают: тренды TikTok и русские новинки (через общий кэш — почти не тратят лимит YouTube)
-      [['🔥 Тренды TikTok', 'что звучит в видео', 'тренды тикток песни'], ['🇷🇺 Русские хиты', 'новинки и то, что на повторе', 'русские хиты новинки']].forEach(([t, sub, sq]) => {
+      // русские новинки — через общий кэш поиска, почти не тратят лимит YouTube
+      [['🇷🇺 Русские хиты', 'новинки и то, что на повторе', 'русские хиты новинки']].forEach(([t, sub, sq]) => {
         const sh = shelf(t, sub); body.appendChild(sh.wrap); sh.loading();
         guarded(body, async ok => {
           let tr = [];
           try { tr = await searchYT(sq); } catch (e) {}
           if (!ok()) return;
+          // только песни: без часовых подборок и «плейлистов» в одном ролике
+          const notSong = /плейлист|подборк|сборник|компиляц|лучшие треки|самые (лучшие|популярные)|популярные треки|top \d+|топ \d+|mix|микс|\bhour\b|час/i;
+          tr = tr.filter(x => x.duration >= 90 && x.duration <= 420 && !notSong.test(x.title));
           if (tr.length) sh.fill(tr.slice(0, 20)); else sh.wrap.remove();
         });
       });
