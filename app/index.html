@@ -661,6 +661,45 @@ body.mini .pmini-lyr { display: block; font-style: normal; font: 700 12px var(--
 .theme-chip em:hover { opacity: 1; }
 .panel input[type=time], .keyrow input { color-scheme: dark; }
 @media (max-width: 600px) { .room-top { grid-template-columns: 1fr; } .trline { bottom: calc(170px + var(--sab)); } .pomo { top: calc(56px + var(--sat)); } .chat-list { height: 50vh; } }
+/* ---------- обновление, караоке с оценкой, лента, достижения, онлайн-игра, импорт ---------- */
+.updbar { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 35; display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 18px; border-radius: 18px; max-width: calc(100% - 32px); box-sizing: border-box;
+  background: linear-gradient(120deg, rgba(255,79,216,.35), rgba(20,17,40,.95) 60%); border: 1px solid rgba(255,79,216,.45); box-shadow: 0 16px 40px rgba(0,0,0,.5); animation: upIn .5s cubic-bezier(.2,1.2,.4,1); }
+.updbar b { display: block; font: 800 14px var(--body); }
+.updbar span { display: block; font-size: 12px; color: var(--dim); }
+.updbar #updX { width: 34px; height: 34px; padding: 0; border-radius: 50%; }
+.karabox { position: fixed; right: 18px; top: 50%; transform: translateY(-50%); z-index: 6; display: grid; justify-items: center; gap: 4px; padding: 16px 18px; border-radius: 22px; background: rgba(14,12,30,.82); border: 1px solid rgba(255,138,42,.4); }
+.karabox small { font: 800 11px var(--body); letter-spacing: .12em; color: var(--dim); text-transform: uppercase; }
+.karabox b { font: 900 54px/1 var(--display); color: #ffb36b; font-variant-numeric: tabular-nums; transition: transform .1s, text-shadow .1s; }
+.karabox.hot b { transform: scale(1.08); text-shadow: 0 0 24px rgba(255,138,42,.9); }
+.feed { display: grid; gap: 10px; max-width: 760px; }
+.feed-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "who btns" "tr btns"; gap: 8px 12px; align-items: center; padding: 12px 14px; border-radius: 18px; background: rgba(255,255,255,.04); border: 1px solid var(--line); animation: fadeUp .35s both; }
+.feed-who { grid-area: who; display: flex; align-items: center; gap: 8px; }
+.feed-who .acc-av { width: 26px; height: 26px; font-size: 12px; }
+.feed-who b { font: 800 13px var(--body); }
+.feed-who span { font-size: 11px; color: var(--faint); }
+.feed-tr { grid-area: tr; display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; align-items: center; }
+.feed-tr b { display: block; font: 800 14px var(--body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.feed-tr span { display: block; font-size: 12px; color: var(--dim); }
+.feed-rep { grid-column: 1 / -1; font-style: normal; font-size: 11px; color: hsl(150,90%,70%); }
+.feed-btns { grid-area: btns; display: flex; gap: 6px; }
+.feed-btns button { height: 36px; padding: 0 12px; border-radius: 12px; }
+.feed-like.on { background: rgba(255,61,110,.3); border-color: rgba(255,61,110,.6); }
+.badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.badge { display: flex; align-items: center; gap: 6px; padding: 6px 10px 6px 6px; border-radius: 999px; background: linear-gradient(120deg, rgba(255,200,90,.22), rgba(255,255,255,.04)); border: 1px solid rgba(255,200,90,.35); font-size: 12px; font-weight: 700; }
+.badge i { font-style: normal; font-size: 18px; }
+.badge.locked { filter: grayscale(1); opacity: .4; }
+.prof-sec { padding: 0 24px; }
+.prof .badges { padding: 0 24px 4px; }
+.mp-box { max-width: 720px; margin: 0 0 12px; display: grid; gap: 10px; }
+.mp-box > button { justify-self: start; }
+.mp-board { margin: 0; padding-left: 22px; display: grid; gap: 6px; }
+.mp-board li b { font-weight: 800; margin-right: 8px; }
+.mp-board li span { color: var(--dim); }
+.bub button { margin-top: 6px; justify-self: start; padding: 8px 12px; font-size: 12px; }
+.imp-area { font: 500 14px var(--body); color: var(--ink); background: rgba(255,255,255,.06); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; resize: vertical; }
+.share-list { display: flex; flex-wrap: wrap; gap: 8px; max-height: 40vh; overflow-y: auto; }
+body.saver .brand, body.saver .dock, body.saver .player, body.saver .upnext, body.saver .hint, body.saver .ytwin, body.saver .updbar, body.saver .toast { display: none !important; }
+body.saver { cursor: none; }
 /* ---------- медиатека 2.0: анимации ---------- */
 @property --ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
 @keyframes spinAng { to { --ang: 360deg; } }
@@ -825,6 +864,8 @@ body.mini .pmini-lyr { display: block; font-style: normal; font: 700 12px var(--
 
 <div class="hint" id="hint" hidden></div>
 <div class="trline" id="trLine" hidden></div>
+<div class="updbar" id="updBar" hidden><div><b></b><span></span></div><button id="updGo" type="button" class="primary">Обновить</button><button id="updX" type="button" aria-label="Позже">✕</button></div>
+<div class="karabox" id="karaBox" hidden><small>🎤 Баллы</small><b id="karaScore">0</b><button id="karaStop" type="button">Стоп</button></div>
 <div class="pomo" id="pomo" hidden><span id="pomoL">🎯 Фокус</span><b id="pomoT">25:00</b><button id="pomoPause" type="button" title="Пауза">⏸</button><button id="pomoStop" type="button" title="Выключить фокус">✕</button></div>
 <div class="recbadge" id="recBadge" hidden><i></i><span>REC</span><b id="recTime">0:00</b><button id="recStop" type="button">■ Стоп</button></div>
 
@@ -870,6 +911,7 @@ body.mini .pmini-lyr { display: block; font-style: normal; font: 700 12px var(--
     <button class="lib-nav" data-tab="playlists" type="button"><i>♫</i>Плейлисты</button>
     <button class="lib-nav" data-tab="friends" type="button"><i>👥</i>Друзья<b class="nbadge" id="frBadge" hidden></b></button>
     <button class="lib-nav" data-tab="chats" type="button"><i>💬</i>Сообщения<b class="nbadge" id="msgBadge" hidden></b></button>
+    <button class="lib-nav" data-tab="feed" type="button"><i>📰</i>Лента</button>
     <button class="lib-nav" data-tab="room" type="button"><i>🎧</i>Вместе<b class="nbadge live" id="roomBadge" hidden>●</b></button>
     <button class="lib-nav" data-tab="game" type="button"><i>🎮</i>Угадай мелодию</button>
     <button class="lib-nav" data-tab="fav" type="button"><i>♥</i>Моё</button>
@@ -913,6 +955,7 @@ body.mini .pmini-lyr { display: block; font-style: normal; font: 700 12px var(--
     <button id="dKara" type="button"><i>🎙</i><b>Караоке</b><small>текст крупно по центру · K</small></button>
     <button id="dRec" type="button"><i>⏺</i><b>Записать клип</b><small>видео с текстом и звуком · R</small></button>
     <button id="dMini" type="button"><i>▣</i><b>Мини-плеер</b><small>поверх всех окон · P</small></button>
+    <button id="dKaraScore" type="button"><i>🎤</i><b>Караоке с оценкой</b><small>пой в микрофон — получай баллы</small></button>
     <button id="dPromo" type="button"><i>🎬</i><b>Рекламный ролик</b><small>30 секунд с подписями</small></button>
     <button id="dFocus" type="button"><i>🎯</i><b>Фокус</b><small>лоу-фай и таймер 25/5</small></button>
     <button id="dRecap" type="button"><i>🎁</i><b>Итоги месяца</b><small>твоя музыкальная личность</small></button>
@@ -943,6 +986,8 @@ body.mini .pmini-lyr { display: block; font-style: normal; font: 700 12px var(--
     <select id="autoMode"><option value="off">Не запускать</option><option value="window">Открывать окно</option><option value="tray">Тихо в трее</option><option value="wallpaper">Сразу как обои</option></select><output></output></label>
   <label class="ctl" id="dpiRow"><span>Ускорить YouTube без VPN</span>
     <select id="dpiMode"><option value="off">Выключено</option><option value="on">Включено</option></select><output id="dpiState"></output></label>
+  <label class="ctl" id="dscRow"><span>Статус в Discord</span><select id="dscOn"><option value="on">Показывать, что слушаю</option><option value="off">Не показывать</option></select><output></output></label>
+  <label class="ctl" id="saverRow"><span>Заставка Windows</span><select id="saverOn"><option value="off">Выключена</option><option value="on">Pulse</option></select><output></output></label>
   <p class="hint2" id="dpiHint">Если YouTube не открывается без VPN. Работает только для адресов YouTube через открытый zapret, Windows попросит права администратора. С включённым VPN не нужно.</p>
   <p class="hint2"><a href="https://interium-rus.github.io/pulse/" target="_blank">Сайт Pulse</a> · <a href="https://interium-rus.github.io/pulse/privacy.html" target="_blank">Конфиденциальность</a> · <a href="https://interium-rus.github.io/pulse/terms.html" target="_blank">Условия</a></p>
   <h3 class="set-h">Звук и текст</h3>
@@ -1197,6 +1242,10 @@ registerProcessor('pulse-feed', Feed);`;
         else if (m.type === 'oauth') onOAuth(m);
         else if (m.type === 'autostart') $('autoMode').value = m.mode || 'off';
         else if (m.type === 'dpi') onDpi(m);
+        else if (m.type === 'update' || m.type === 'update-progress' || m.type === 'update-error') onUpdate(m);
+        else if (m.type === 'notify-click') onNotifyClick(m.tag);
+        else if (m.type === 'saver') onSaver(m);
+        else if (m.type === 'saver-mode') enterSaver();
         else if (m.type === 'selftest-yt') ytSelfTest();
         else if (m.type === 'wallpaper') { wallOn = !!m.on; $('dWall').classList.toggle('on', wallOn); document.body.classList.toggle('wall', wallOn); if (m.error) toast('Не получилось встать под значки рабочего стола'); }
         else if (m.type === 'nodevice') srcState('Не нашёл устройство вывода звука. Подключи колонки или наушники.', true);
@@ -1393,16 +1442,19 @@ registerProcessor('pulse-feed', Feed);`;
   // дождь на грустной музыке: тонкие косые капли, сколько — зависит от грусти
   const rain = [];
   function drawRain(dt) {
-    const want = Math.round(sadK * (lite ? 60 : 140));
+    rainBoost.t = Math.max(0, rainBoost.t - dt);
+    const k2 = Math.max(sadK, Math.min(1, rainBoost.t)), snow = rainBoost.t > 0 && rainBoost.snow;
+    const want = Math.round(k2 * (lite ? 60 : 140));
     while (rain.length < want) rain.push({ x: Math.random() * W * 1.2, y: Math.random() * -H, v: rand(500, 900), len: rand(10, 26), a: rand(0.15, 0.4) });
     if (!rain.length) return;
     if (rain.length > want) rain.length = want;
     const k = DPR * quality.k;
     ctx.save(); ctx.setTransform(k, 0, 0, k, 0, 0); ctx.lineCap = 'round'; ctx.lineWidth = 1.2;
     for (const d of rain) {
+      if (snow) { d.y += d.v * 0.12 * dt; d.x += Math.sin((d.y + d.len * 40) / 60) * 20 * dt; if (d.y > H + 30) { d.y = rand(-60, -10); d.x = Math.random() * W * 1.2; } ctx.fillStyle = `rgba(255,255,255,${d.a * 1.6 * k2})`; ctx.beginPath(); ctx.arc(d.x, d.y, d.len / 9, 0, TAU); ctx.fill(); continue; }
       d.y += d.v * dt; d.x -= d.v * 0.18 * dt;
       if (d.y > H + 30) { d.y = rand(-60, -10); d.x = Math.random() * W * 1.2; }
-      ctx.strokeStyle = `hsla(205,70%,80%,${d.a * sadK})`;
+      ctx.strokeStyle = `hsla(205,70%,80%,${d.a * k2})`;
       ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(d.x - d.len * 0.18, d.y + d.len); ctx.stroke();
     }
     ctx.restore();
@@ -2680,6 +2732,7 @@ registerProcessor('pulse-feed', Feed);`;
     lyr.key = layoutKey();
     highlightLine();
     if (tr.on || !$('trLine').hidden) trShow();
+    if (i >= 0 && lyr.lines[i]) wordFx(lyr.lines[i].text);
   }
   const layoutKey = () => W + 'x' + H + 'x' + textScale;
   function lyrBeat() {
@@ -3604,6 +3657,11 @@ registerProcessor('pulse-feed', Feed);`;
     if (!it) { stopLocal(); return; }
     local.item = it; local.active = true;
     synthStart();
+    // трек из импорта: сначала находим его на YouTube
+    if (it.src === 'q') {
+      try { await resolveQueued(it); } catch (e) { toast('Не нашёл «' + it.title + '», включаю следующий'); if (local.item === it) setTimeout(localNext, 400); return; }
+      if (local.item !== it) return;
+    }
     if (it.src === 'yt') {
       local.audio.pause(); local.audio.removeAttribute('src');
       showYT(true);
@@ -4083,7 +4141,7 @@ registerProcessor('pulse-feed', Feed);`;
 
   // ===================== плейлисты =====================
   let playlists = store.get('pulse-playlists', []);
-  function savePlaylists() { store.set('pulse-playlists', playlists); syncMark('playlists'); }
+  function savePlaylists() { store.set('pulse-playlists', playlists); syncMark('playlists'); if (playlists.some(p => p.shared)) sharedSchedule(); }
   function newPlaylist(name, first) {
     const p = { id: 'pl' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), name, items: first ? [slim(first)] : [], created: Date.now() };
     playlists.unshift(p); savePlaylists(); toast(`Плейлист «${name}» создан`); return p;
@@ -4118,9 +4176,13 @@ registerProcessor('pulse-feed', Feed);`;
     add.append(el('div', 'mosaic new', '＋'), el('b', '', 'Новый плейлист'), el('span', '', 'собери свою подборку'));
     add.addEventListener('click', () => askText('Новый плейлист', '', 'Создать', name => { const p = newPlaylist(name); lib.tab = 'pl:' + p.id; renderLib(); }));
     grid.appendChild(add);
+    const imp = el('button', 'pltile add'); imp.type = 'button';
+    imp.append(el('div', 'mosaic new', '📥'), el('b', '', 'Импорт'), el('span', '', 'из Яндекс Музыки, Spotify или списком'));
+    imp.addEventListener('click', importDialog); grid.appendChild(imp);
+    sharedPull();
     playlists.forEach((p, i) => {
       const b = el('button', 'pltile'); b.type = 'button'; b.style.setProperty('--i', i);
-      b.append(mosaic(p), el('b', '', p.name), el('span', '', tracksN(p.items.length)));
+      b.append(mosaic(p), el('b', '', (p.shared ? '👥 ' : '') + p.name), el('span', '', tracksN(p.items.length)));
       b.addEventListener('click', () => { lib.tab = 'pl:' + p.id; renderLib(); });
       grid.appendChild(b);
     });
@@ -4131,13 +4193,15 @@ registerProcessor('pulse-feed', Feed);`;
     if (!p) { lib.tab = 'playlists'; renderPlaylists(body); return; }
     const head = el('div', 'plhead');
     const info = el('div', 'plinfo');
-    info.append(el('small', '', 'Плейлист'), el('h1', '', p.name), el('span', '', tracksN(p.items.length) + ' · ' + durLabel(totalDur(p.items))));
+    info.append(el('small', '', p.shared ? '👥 Общий плейлист' : 'Плейлист'), el('h1', '', p.name), el('span', '', tracksN(p.items.length) + ' · ' + durLabel(totalDur(p.items))));
     const btns = el('div', 'plbtns');
     const mk = (cls, label, fn) => { const b = el('button', cls, label); b.type = 'button'; b.addEventListener('click', fn); btns.appendChild(b); };
     mk('primary', '▶ Слушать', () => p.items.length && playItem(p.items[0], p.items.slice()));
     mk('', '🔀 Вперемешку', () => { if (!p.items.length) return; const a = shuffleArr(p.items.slice()); playItem(a[0], a); });
     mk('', '✎ Переименовать', () => askText('Новое название', p.name, 'Сохранить', name => { p.name = name; savePlaylists(); renderLib(); }));
-    mk('danger', '🗑 Удалить', () => confirmBox(`Удалить плейлист «${p.name}»?`, 'Удалить', () => { playlists = playlists.filter(x => x !== p); savePlaylists(); lib.tab = 'playlists'; renderLib(); }));
+    if (acc.session && supaOn() && (!p.shared || p.owner === uidMe())) mk('', p.shared ? '👥 Участники' : '👥 Сделать общим', () => shareDialog(p));
+    if (p.shared) mk('danger', p.owner === uidMe() ? '🗑 Удалить у всех' : '🚪 Выйти из плейлиста', () => confirmBox(p.owner === uidMe() ? `Удалить общий плейлист «${p.name}» у всех?` : `Выйти из плейлиста «${p.name}»?`, 'Да', () => sharedLeave(p)));
+    else mk('danger', '🗑 Удалить', () => confirmBox(`Удалить плейлист «${p.name}»?`, 'Удалить', () => { playlists = playlists.filter(x => x !== p); savePlaylists(); lib.tab = 'playlists'; renderLib(); }));
     info.appendChild(btns);
     head.append(mosaic(p, 'big'), info);
     body.appendChild(head);
@@ -4749,6 +4813,8 @@ registerProcessor('pulse-feed', Feed);`;
       const st = el('div', 'acc-stats');
       [[lib.fav.length, 'в «Моё»'], [playlists.length, 'плейлистов'], [hrs(statsFor(0).sec), 'музыки']].forEach(([v, l]) => { const d = el('div'); d.append(el('b', '', String(v)), el('span', '', l)); st.appendChild(d); });
       prof.appendChild(st);
+      prof.appendChild(el('h3', 'set-h prof-sec', '🏅 Достижения · ' + myBadges.size + ' из ' + BADGES.length));
+      prof.appendChild(badgesGrid([...myBadges], true));
       const row = el('div', 'plbtns');
       const s = el('button', '', '☁ Синхронизировать'); s.type = 'button'; s.addEventListener('click', () => { syncPull(); loadProfile(); });
       const o = el('button', 'danger', 'Выйти'); o.type = 'button'; o.addEventListener('click', logout);
@@ -5046,6 +5112,7 @@ registerProcessor('pulse-feed', Feed);`;
     const info = el('div', 'prof-info');
     info.append(el('h2', '', p.nickname || 'Без ника'), el('span', 'prof-mail', listeningNow(p) ? 'в сети' : (p.now_at ? 'слушал(а) музыку ' + fmtAgo(p.now_at) : '')));
     if (p.bio) info.appendChild(el('p', 'prof-bio', p.bio));
+    if (p.badges && p.badges.length) info.appendChild(badgesGrid(p.badges, false));
     prof.append(ban, head, info);
     if (p.now_playing && p.now_playing.title) {
       const np = el('div', 'fr-now');
@@ -5069,6 +5136,7 @@ registerProcessor('pulse-feed', Feed);`;
   let presenceT = 0, presenceKey = '';
   function presence(j) {
     if (!acc.session || !supaOn() || !j || !j.title) return;
+    listenLog(j);
     const key = (j.artist || '') + '|' + j.title;
     if (key === presenceKey && Date.now() - presenceT < 120000) return;
     presenceKey = key; presenceT = Date.now();
@@ -5141,6 +5209,8 @@ registerProcessor('pulse-feed', Feed);`;
       rows.forEach(m => {
         const b = el('div', 'bub' + (m.sender === me ? ' me' : ''));
         b.append(el('span', '', m.body), el('time', '', hhmm(m.created_at)));
+        const inv = roomInviteCode(m.body);
+        if (inv && m.sender !== me) { const jb = el('button', 'primary', '🎧 Войти в комнату'); jb.type = 'button'; jb.addEventListener('click', () => { roomJoin(inv); lib.tab = 'room'; renderLib(); }); b.appendChild(jb); }
         list.appendChild(b);
       });
       if (atBottom || list.dataset.first !== '1') { list.scrollTop = list.scrollHeight; list.dataset.first = '1'; }
@@ -5154,7 +5224,7 @@ registerProcessor('pulse-feed', Feed);`;
       try {
         const r = await rest('messages', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ sender: uidMe(), receiver: id, body: text.slice(0, 1000) }) });
         if (!r.ok) throw new Error(r.status === 403 || r.status === 401 ? 'писать можно только друзьям' : 'сервер не ответил');
-        inp.value = ''; await load();
+        inp.value = ''; bump('msgs'); await load();
       } catch (e) { toast('Не отправилось: ' + e.message); }
       send.disabled = false; inp.focus();
     };
@@ -5183,7 +5253,8 @@ registerProcessor('pulse-feed', Feed);`;
     const r = await rest('rooms', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ code, host: uidMe(), state: roomState() }) });
     if (!r.ok) { toast('Не получилось создать комнату'); return; }
     roomEnter(code, uidMe());
-    toast('🎧 Комната создана — отправь код друзьям');
+    bump('rooms');
+    toast('🎧 Комната создана — позови друзей');
   }
   async function roomJoin(code) {
     if (!acc.session) { login(); return; }
@@ -5196,7 +5267,8 @@ registerProcessor('pulse-feed', Feed);`;
     toast('👋 Ты в комнате ' + code);
   }
   function roomEnter(code, hostId) {
-    Object.assign(room, { code, hostId, host: hostId === uidMe(), lastEv: 0, events: [], members: [], pushed: null, beatT: 0, memT: 0 });
+    Object.assign(room, { code, hostId, host: hostId === uidMe(), lastEv: 0, events: [], members: [], pushed: null, beatT: 0, memT: 0, joinedAt: Date.now() });
+    Object.assign(mp, { cur: null, picked: null, answers: [] });
     store.set('pulse-room', code);
     rest('room_events', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ room: code, sender: uidMe(), kind: 'join', body: 'зашёл(а) в комнату' }) }).catch(() => {});
     clearInterval(room.timer); room.timer = setInterval(roomTick, 2000); roomTick();
@@ -5248,6 +5320,7 @@ registerProcessor('pulse-feed', Feed);`;
         const evs = await er.json();
         evs.forEach(e => {
           room.lastEv = Math.max(room.lastEv, e.id);
+          if (e.kind === 'game' || e.kind === 'answer') { if (Date.parse(e.created_at) > room.joinedAt - 15000) mpOnEvent(e); return; }
           if (e.kind === 'react') { if (room.events.length) flyEmoji(e.body); }
           else room.events.push(e);
         });
@@ -5315,7 +5388,9 @@ registerProcessor('pulse-feed', Feed);`;
       el('span', '', room.host ? 'Включай любые треки — у всех в комнате заиграет то же самое.' : 'Музыку выбирает ведущий, она играет у тебя сама.'),
       Object.assign(el('small', ''), { id: 'roomMembers', textContent: room.members.map(nickOf).join(', ') || 'загружаю участников…' }));
     const out = el('button', 'danger', room.host ? 'Закрыть комнату' : 'Выйти'); out.type = 'button'; out.addEventListener('click', () => roomLeave());
-    top.append(codeB, info, out);
+    const inv = el('button', '', '📨 Позвать друга'); inv.type = 'button'; inv.addEventListener('click', e => { const r = e.currentTarget.getBoundingClientRect(); roomInvitePick(r.left, r.bottom + 4); });
+    const tb = el('div', 'plbtns'); tb.append(inv, out);
+    top.append(codeB, info, tb);
     const reacts = el('div', 'room-reacts');
     ['🔥', '❤️', '😂', '😭', '👏', '🕺', '🤯'].forEach(e => { const b = el('button', '', e); b.type = 'button'; b.addEventListener('click', () => roomSay('react', e)); reacts.appendChild(b); });
     const box = el('div', 'chat-list room-chat'); box.id = 'roomChat';
@@ -5324,8 +5399,9 @@ registerProcessor('pulse-feed', Feed);`;
     const doSend = () => { roomSay('msg', inp.value.trim()); inp.value = ''; };
     send.addEventListener('click', doSend); inp.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') doSend(); });
     form.append(inp, send);
-    body.append(top, reacts, box, form);
-    roomChatRender(); box.scrollTop = box.scrollHeight;
+    const mpBox = el('div', 'mp-box'); mpBox.id = 'mpBox';
+    body.append(top, reacts, mpBox, box, form);
+    roomChatRender(); box.scrollTop = box.scrollHeight; mpRender();
   }
 
   // ===================== итоги месяца =====================
@@ -5413,7 +5489,7 @@ registerProcessor('pulse-feed', Feed);`;
     focus.timer = setInterval(() => {
       if (focus.paused) return;
       focus.left -= 1;
-      if (focus.left <= 0) { focus.work = !focus.work; focus.left = (focus.work ? 25 : 5) * 60; chime(); toast(focus.work ? '🎯 Снова за дело: 25 минут' : '☕ Перерыв 5 минут'); }
+      if (focus.left <= 0) { if (focus.work) bump('pomos'); focus.work = !focus.work; focus.left = (focus.work ? 25 : 5) * 60; chime(); toast(focus.work ? '🎯 Снова за дело: 25 минут' : '☕ Перерыв 5 минут'); }
       focusDraw();
     }, 1000);
     openLib(false);
@@ -5548,6 +5624,488 @@ registerProcessor('pulse-feed', Feed);`;
     });
   }
 
+  // ===================== уведомления Windows =====================
+  // приложение показывает их, только если окно Pulse сейчас не в фокусе
+  const notifyWin = (title, text, tag) => { if (native) post({ cmd: 'notify', title, text, tag }); };
+  const notified = { msgId: store.get('pulse-notified-msg', 0), req: new Set(store.get('pulse-notified-req', [])) };
+  async function notifyCheck() {
+    if (!acc.session || !supaOn()) return;
+    try {
+      // новые сообщения (и приглашения в комнату)
+      const r = await rest(`messages?receiver=eq.${uidMe()}&read_at=is.null&order=id.desc&limit=5&select=id,sender,body`);
+      if (r.ok) {
+        const rows = (await r.json()).filter(m => m.id > notified.msgId);
+        if (rows.length) {
+          notified.msgId = rows[0].id; store.set('pulse-notified-msg', notified.msgId);
+          const m = rows[0], inv = roomInviteCode(m.body);
+          if (!social.people[m.sender]) await loadFriends().catch(() => {});
+          if (inv) notifyWin('🎧 Зовут слушать вместе', `${nickOf(m.sender)} зовёт в комнату ${inv}`, 'room:' + inv);
+          else notifyWin('💬 ' + nickOf(m.sender), m.body, 'chat:' + m.sender);
+        }
+      }
+      // новые заявки в друзья
+      const fr = await rest(`friendships?addressee=eq.${uidMe()}&status=eq.pending&select=id,requester`);
+      if (fr.ok) {
+        const rows = (await fr.json()).filter(f => !notified.req.has(f.id));
+        if (rows.length) {
+          rows.forEach(f => notified.req.add(f.id)); store.set('pulse-notified-req', [...notified.req].slice(-200));
+          await loadFriends().catch(() => {});
+          notifyWin('🤝 Заявка в друзья', `${nickOf(rows[0].requester)} хочет дружить в Pulse`, 'friends');
+          if (!$('lib').hidden && lib.tab === 'friends') renderLib();
+        }
+      }
+    } catch (e) {}
+  }
+  setInterval(notifyCheck, 30000);
+  // клик по уведомлению: открыть нужное место
+  function onNotifyClick(tag) {
+    if (!tag) return;
+    if (tag.startsWith('room:')) { roomJoin(tag.slice(5)); lib.tab = 'room'; openLib(true); return; }
+    lib.tab = tag; openLib(true);
+  }
+  // приглашение в комнату — обычное сообщение особого вида
+  const ROOM_INVITE = '🎧 Зову слушать вместе, комната ';
+  const roomInviteCode = body => { const m = (body || '').match(/комната ([A-Z0-9]{6})$/); return body && body.startsWith(ROOM_INVITE) && m ? m[1] : null; };
+  function roomInvitePick(x, y) {
+    if (!social.friends.length) { toast('Сначала добавь друзей'); return; }
+    showMenu(social.friends.slice(0, 15).map(f => ['🎧', f.p.nickname || 'Друг', async () => {
+      const r = await rest('messages', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ sender: uidMe(), receiver: f.p.id, body: ROOM_INVITE + room.code }) });
+      toast(r.ok ? `📨 Приглашение отправлено: ${f.p.nickname || 'друг'}` : 'Не отправилось');
+    }]), x, y);
+  }
+
+  // ===================== автообновление =====================
+  function onUpdate(m) {
+    const bar = $('updBar');
+    if (m.type === 'update') {
+      bar.querySelector('b').textContent = `Вышла новая версия Pulse ${m.version}`;
+      bar.querySelector('span').textContent = m.notes || 'Новые функции и исправления';
+      bar.hidden = false;
+    } else if (m.type === 'update-progress') { $('updGo').textContent = `Скачиваю… ${m.p}%`; $('updGo').disabled = true; }
+    else if (m.type === 'update-error') { $('updGo').disabled = false; $('updGo').textContent = 'Обновить'; toast('Обновление не скачалось: ' + m.error); }
+  }
+
+  // ===================== статус в Discord =====================
+  const dsc = { on: store.get('pulse-discord', true), sig: '' };
+  function discordTick() {
+    if (!native) return;
+    let j = null;
+    if (local.active && local.item) { const e = eng(); j = { title: local.item.title, artist: local.item.artist, cover: local.item.cover, pos: e.time, dur: e.dur, playing: !e.paused }; }
+    else if (auto.last && auto.last.title) j = { title: auto.last.title, artist: auto.last.artist, cover: auto.last.coverUrl, pos: auto.last.position, dur: auto.last.duration, playing: auto.last.status === 'Playing' };
+    const show = dsc.on && j && j.playing;
+    const start = show && j.pos != null ? Math.round((Date.now() - j.pos * 1000) / 10000) * 10000 : 0;
+    const sig = show ? [j.title, j.artist, start].join('|') : 'off';
+    if (sig === dsc.sig) return;
+    dsc.sig = sig;
+    if (!show) { post({ cmd: 'discord' }); return; }
+    post({ cmd: 'discord', title: j.title, artist: j.artist || '', cover: j.cover && /^https:/.test(j.cover) ? j.cover : null, start, end: j.dur ? start + Math.round(j.dur * 1000) : 0 });
+  }
+  setInterval(discordTick, 5000);
+
+  // ===================== импорт плейлистов =====================
+  // Яндекс Музыка и Spotify — по ссылке (только в Pulse.exe), или просто список «Артист — Название» строками
+  async function importFetch(u) {
+    const r = await fetch('/api/import?u=' + encodeURIComponent(u));
+    if (!r.ok) throw new Error(r.status === 404 ? 'плейлист не найден или закрыт' : 'сервис не ответил');
+    return r.text();
+  }
+  const yaCover = c => c ? 'https://' + c.replace('%%', '200x200') : null;
+  const yaTrack = t => t && t.title ? { title: t.title + (t.version ? ` (${t.version})` : ''), artist: (t.artists || []).map(a => a.name).join(', '), cover: yaCover(t.coverUri || (t.albums && t.albums[0] && t.albums[0].coverUri)), duration: t.durationMs ? Math.round(t.durationMs / 1000) : 0 } : null;
+  async function importFromLink(link) {
+    let m;
+    if ((m = link.match(/music\.yandex\.\w+\/users\/([^/]+)\/playlists\/(\d+)/))) {
+      const j = JSON.parse(await importFetch(`https://api.music.yandex.net/users/${encodeURIComponent(m[1])}/playlists/${m[2]}`));
+      if (!j.result) throw new Error('плейлист не найден или закрыт');
+      return { name: j.result.title, tracks: (j.result.tracks || []).map(x => yaTrack(x.track)).filter(Boolean) };
+    }
+    if ((m = link.match(/music\.yandex\.\w+\/playlists\/([\w.-]+)/))) {
+      const j = JSON.parse(await importFetch(`https://api.music.yandex.net/playlist/${encodeURIComponent(m[1])}`));
+      if (!j.result) throw new Error('плейлист не найден или закрыт');
+      return { name: j.result.title, tracks: (j.result.tracks || []).map(x => yaTrack(x.track)).filter(Boolean) };
+    }
+    if ((m = link.match(/music\.yandex\.\w+\/album\/(\d+)/))) {
+      const j = JSON.parse(await importFetch(`https://api.music.yandex.net/albums/${m[1]}/with-tracks`));
+      if (!j.result) throw new Error('альбом не найден');
+      return { name: j.result.title, tracks: (j.result.volumes || []).flat().map(yaTrack).filter(Boolean) };
+    }
+    if ((m = link.match(/open\.spotify\.com\/(?:intl-\w+\/)?(playlist|album)\/(\w+)/))) {
+      const html = await importFetch(`https://open.spotify.com/embed/${m[1]}/${m[2]}`);
+      const nd = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
+      const ent = nd && JSON.parse(nd[1]).props.pageProps.state.data.entity;
+      if (!ent) throw new Error('Spotify не отдал список');
+      return { name: ent.name || ent.title || 'Из Spotify', tracks: (ent.trackList || []).map(t => ({ title: t.title, artist: t.subtitle || '', cover: null, duration: t.duration ? Math.round(t.duration / 1000) : 0 })) };
+    }
+    throw new Error('это не ссылка на плейлист Яндекс Музыки или Spotify');
+  }
+  function importFromText(text) {
+    const tracks = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean).slice(0, 300).map(l => {
+      const p = l.replace(/^\d+[.)]\s*/, '').split(/\s[—–-]\s/);
+      return p.length > 1 ? { artist: p[0].trim(), title: p.slice(1).join(' - ').trim() } : { artist: '', title: p[0] };
+    });
+    return { name: 'Мой список', tracks };
+  }
+  // треки из импорта ищутся на YouTube не сразу, а когда до них дойдёт очередь: так не тратится лимит поиска
+  function importSave(res) {
+    if (!res.tracks.length) throw new Error('в списке нет треков');
+    const p = newPlaylist(res.name || 'Импорт');
+    p.items = res.tracks.map(t => ({ id: 'q:' + hueOf(t.artist + '|' + t.title) + ':' + Math.random().toString(36).slice(2, 7), src: 'q', title: t.title, artist: t.artist, cover: t.cover || null, duration: t.duration || 0 }));
+    savePlaylists();
+    lib.tab = 'pl:' + p.id; renderLib();
+    toast(`📥 Готово: ${tracksN(p.items.length)} в «${p.name}»`);
+  }
+  function importDialog() {
+    const back = el('div', 'modal-back'), box = el('div', 'modal');
+    const close = () => back.remove();
+    const link = el('input'); link.placeholder = 'Ссылка на плейлист или альбом';
+    const area = el('textarea'); area.rows = 6; area.placeholder = 'Или вставь список, по треку в строке:\nArtist — Title\nМонеточка — Каждый раз';
+    area.className = 'imp-area';
+    const st = el('div', 'mstatus');
+    const row = el('div', 'modal-row'), cl = el('button', '', 'Отмена'), go = el('button', 'primary', 'Импортировать');
+    cl.type = go.type = 'button'; row.append(cl, go);
+    box.append(el('h3', '', '📥 Импорт плейлиста'), el('p', 'hint2', native ? 'Яндекс Музыка (открытый плейлист или альбом) или Spotify. Треки найдутся на YouTube, когда до них дойдёт очередь.' : 'По ссылкам импорт работает в приложении Pulse.exe. Здесь можно вставить список треков.'), link, area, st, row);
+    back.appendChild(box); document.body.appendChild(back);
+    [link, area].forEach(x => x.addEventListener('keydown', e => e.stopPropagation()));
+    cl.addEventListener('click', close);
+    go.addEventListener('click', async () => {
+      go.disabled = true; st.className = 'mstatus'; st.textContent = 'Загружаю…';
+      try {
+        const res = link.value.trim() ? (native ? await importFromLink(link.value.trim()) : (() => { throw new Error('по ссылке — только в Pulse.exe'); })()) : importFromText(area.value);
+        importSave(res); close();
+      } catch (e) { st.className = 'mstatus err'; st.textContent = 'Не получилось: ' + e.message; go.disabled = false; }
+    });
+    setTimeout(() => link.focus(), 50);
+  }
+  // трек из импорта: перед игрой находим его на YouTube (один поиск) и запоминаем
+  async function resolveQueued(it) {
+    const tr = await searchYT(`${it.artist} ${it.title}`.trim());
+    if (!tr.length) throw new Error('не нашёл');
+    const f = tr[0];
+    Object.assign(it, { src: f.src, vid: f.vid || (f.id || '').replace(/^yt:/, ''), url: f.url, cover: it.cover || f.cover, duration: it.duration || f.duration });
+    playlists.forEach(p => p.items.forEach(x => { if (x.id === it.id) Object.assign(x, slim(it)); }));
+    savePlaylists();
+  }
+
+  // ===================== общие плейлисты =====================
+  // плейлист с друзьями хранится в shared_playlists; локальная копия помнит его id (shared) и подтягивает изменения
+  const shared = { pushT: null, lastPull: 0, pushed: {} };
+  function sharedSchedule() { clearTimeout(shared.pushT); shared.pushT = setTimeout(sharedPush, 1500); }
+  async function sharedPush() {
+    if (!acc.session || !supaOn()) return;
+    for (const p of playlists.filter(x => x.shared)) {
+      const sig = JSON.stringify([p.name, p.items.map(i => i.id)]);
+      if (shared.pushed[p.shared] === sig) continue;
+      const r = await rest(`shared_playlists?id=eq.${p.shared}`, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ name: p.name.slice(0, 80), items: p.items.map(slim), updated_at: new Date().toISOString() }) }).catch(() => null);
+      if (r && r.ok) { shared.pushed[p.shared] = sig; p.syncedAt = Date.now(); }
+    }
+  }
+  async function sharedPull(force) {
+    if (!acc.session || !supaOn() || (!force && Date.now() - shared.lastPull < 15000)) return;
+    shared.lastPull = Date.now();
+    try {
+      const r = await rest('shared_playlists?select=*');
+      if (!r.ok) return;
+      const rows = await r.json(), ids = new Set(rows.map(x => x.id));
+      let changed = false;
+      rows.forEach(row => {
+        let p = playlists.find(x => x.shared === row.id);
+        const t = Date.parse(row.updated_at);
+        if (!p) { p = { id: 'pl' + row.id.slice(0, 8), name: row.name, items: row.items || [], created: Date.now(), shared: row.id, owner: row.owner, editors: row.editors }; playlists.push(p); changed = true; }
+        else if (t > (p.syncedAt || 0) + 1000) { p.name = row.name; p.items = row.items || []; p.owner = row.owner; p.editors = row.editors; changed = true; }
+        p.syncedAt = Math.max(p.syncedAt || 0, t);
+        shared.pushed[row.id] = JSON.stringify([p.name, p.items.map(i => i.id)]);
+      });
+      // меня убрали из плейлиста или его удалили
+      const gone = playlists.filter(x => x.shared && !ids.has(x.shared));
+      if (gone.length) { playlists = playlists.filter(x => !gone.includes(x)); changed = true; }
+      if (changed) { store.set('pulse-playlists', playlists); if (!$('lib').hidden && (lib.tab === 'playlists' || lib.tab.startsWith('pl:'))) renderLib(); }
+    } catch (e) {}
+  }
+  setInterval(() => { if (!$('lib').hidden && (lib.tab === 'playlists' || lib.tab.startsWith('pl:'))) sharedPull(); }, 15000);
+  function shareDialog(p) {
+    if (!acc.session) { login(); return; }
+    if (!social.friends.length) { toast('Сначала добавь друзей'); return; }
+    const back = el('div', 'modal-back'), box = el('div', 'modal');
+    const list = el('div', 'share-list'), chosen = new Set(p.editors || []);
+    social.friends.forEach(f => {
+      const l = el('label', 'chip'), c = el('input'); c.type = 'checkbox'; c.checked = chosen.has(f.p.id);
+      c.addEventListener('change', () => c.checked ? chosen.add(f.p.id) : chosen.delete(f.p.id));
+      l.append(c, el('span', '', f.p.nickname || 'Друг')); list.appendChild(l);
+    });
+    const row = el('div', 'modal-row'), cl = el('button', '', 'Отмена'), ok = el('button', 'primary', p.shared ? 'Сохранить' : 'Сделать общим');
+    cl.type = ok.type = 'button'; row.append(cl, ok);
+    box.append(el('h3', '', '👥 Общий плейлист'), el('p', 'hint2', 'Выбранные друзья увидят плейлист у себя и смогут добавлять и убирать треки.'), list, row);
+    back.appendChild(box); document.body.appendChild(back);
+    cl.addEventListener('click', () => back.remove());
+    ok.addEventListener('click', async () => {
+      ok.disabled = true;
+      const editors = [...chosen];
+      let r;
+      if (!p.shared) r = await rest('shared_playlists', { method: 'POST', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ owner: uidMe(), name: p.name.slice(0, 80), items: p.items.map(slim), editors }) });
+      else r = await rest(`shared_playlists?id=eq.${p.shared}`, { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ editors }) });
+      if (!r.ok) { toast('Не получилось'); ok.disabled = false; return; }
+      const row0 = (await r.json())[0];
+      Object.assign(p, { shared: row0.id, owner: row0.owner, editors: row0.editors, syncedAt: Date.parse(row0.updated_at) });
+      store.set('pulse-playlists', playlists); back.remove(); renderLib();
+      toast('👥 Плейлист теперь общий');
+    });
+  }
+  async function sharedLeave(p) {
+    if (p.owner === uidMe()) await rest(`shared_playlists?id=eq.${p.shared}`, { method: 'DELETE' });
+    else await rest(`shared_playlists?id=eq.${p.shared}`, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ editors: (p.editors || []).filter(x => x !== uidMe()) }) });
+    playlists = playlists.filter(x => x !== p); store.set('pulse-playlists', playlists);
+    lib.tab = 'playlists'; renderLib();
+  }
+
+  // ===================== лента друзей =====================
+  let listenKey = '';
+  function listenLog(j) {
+    if (!acc.session || !supaOn() || !j || !j.title) return;
+    const key = (j.artist || '') + '|' + j.title;
+    if (key === listenKey) return;
+    listenKey = key;
+    const cover = j.coverUrl && /^https:/.test(j.coverUrl) ? j.coverUrl : null;
+    rest('listens', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ user_id: uidMe(), title: j.title.slice(0, 300), artist: (j.artist || '').slice(0, 300), cover }) }).catch(() => {});
+  }
+  async function renderFeed(body) {
+    body.appendChild(section('Лента', 'что слушают друзья'));
+    if (!acc.session || !supaOn()) { loginCard(body, 'Лента появится после входа', 'Смотри, что слушают друзья, и ставь лайки трекам.'); return; }
+    const box = el('div', 'feed'); box.appendChild(skeleton(4)); body.appendChild(box);
+    const tok = lib.token;
+    try {
+      if (!social.loaded) await loadFriends();
+      const r = await rest(`listens?user_id=neq.${uidMe()}&order=at.desc&limit=60`);
+      const rows = r.ok ? await r.json() : [];
+      const lr = rows.length ? await rest(`listen_likes?listen_id=in.(${rows.map(x => x.id).join(',')})&select=listen_id,user_id`) : null;
+      const likes = lr && lr.ok ? await lr.json() : [];
+      if (tok !== lib.token) return;
+      box.innerHTML = '';
+      if (!rows.length) { box.appendChild(el('div', 'empty-note', social.friends.length ? 'Друзья пока ничего не слушали. Загляни позже!' : 'Добавь друзей — и здесь появится, что они слушают.')); return; }
+      // топ недели у каждого друга
+      const week = {};
+      rows.filter(x => Date.now() - Date.parse(x.at) < 7 * 864e5).forEach(x => { const k = x.user_id; (week[k] = week[k] || {})[x.artist + '|' + x.title] = (week[k][x.artist + '|' + x.title] || 0) + 1; });
+      rows.forEach(x => {
+        const it = { id: 'lf:' + x.id, src: 'stat', title: x.title, artist: x.artist, cover: x.cover };
+        const card = el('div', 'feed-item');
+        const who = el('div', 'feed-who'); who.append(avatar({ name: nickOf(x.user_id), email: x.user_id, avatar: (social.people[x.user_id] || {}).avatar_url }), el('b', '', nickOf(x.user_id)), el('span', '', fmtAgo(x.at)));
+        const tr = el('div', 'feed-tr'); tr.append(art(it, 'tart'), (() => { const d = el('div'); d.append(el('b', '', x.title), el('span', '', x.artist)); return d; })());
+        const mine = likes.some(l => l.listen_id === x.id && l.user_id === uidMe()), n = likes.filter(l => l.listen_id === x.id).length;
+        const like = el('button', 'feed-like' + (mine ? ' on' : ''), `❤️ ${n || ''}`); like.type = 'button';
+        like.addEventListener('click', async () => {
+          const on = like.classList.toggle('on');
+          const cnt = Math.max(0, (parseInt(like.textContent.replace(/\D/g, '')) || 0) + (on ? 1 : -1)); like.textContent = `❤️ ${cnt || ''}`;
+          if (on) rest('listen_likes', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ listen_id: x.id, user_id: uidMe() }) }).catch(() => {});
+          else rest(`listen_likes?listen_id=eq.${x.id}&user_id=eq.${uidMe()}`, { method: 'DELETE' }).catch(() => {});
+        });
+        const play = el('button', '', '▶'); play.type = 'button'; play.title = 'Включить у себя';
+        play.addEventListener('click', async () => { try { const t = await searchYT(`${x.artist} ${x.title}`); if (!t.length) throw 0; playItem(t[0], t.slice(0, 1)); } catch (e) { toast('Не нашёл этот трек'); } });
+        const btns = el('div', 'feed-btns'); btns.append(like, play);
+        const rep = week[x.user_id] && week[x.user_id][x.artist + '|' + x.title];
+        if (rep > 2) tr.appendChild(el('em', 'feed-rep', `🔁 ${rep} раз за неделю`));
+        card.append(who, tr, btns); box.appendChild(card);
+      });
+    } catch (e) { box.innerHTML = ''; box.appendChild(el('div', 'empty-note', 'Ленту не удалось загрузить')); }
+  }
+
+  // ===================== достижения =====================
+  const counters = Object.assign({ rooms: 0, msgs: 0, pomos: 0, kara: 0 }, store.get('pulse-counters', {}));
+  const bump = k => { counters[k] = (counters[k] || 0) + 1; store.set('pulse-counters', counters); badgesCheck(); };
+  const BADGES = [
+    ['h10', '🎧', '10 часов музыки', () => statsFor(0).sec >= 36000],
+    ['h100', '🔊', '100 часов музыки', () => statsFor(0).sec >= 360000],
+    ['art50', '🧭', '50 разных артистов', () => Object.keys(statsFor(0).artists).length >= 50],
+    ['owl', '🦉', 'Ночная сова', () => musicPersona(statsFor(30))[1] === 'Ночная сова'],
+    ['bird', '🌅', 'Ранняя пташка', () => musicPersona(statsFor(30))[1] === 'Ранняя пташка'],
+    ['guess5', '🏆', 'Угадал 5 из 5', () => store.get('pulse-game-best', 0) >= 5],
+    ['friends3', '🤝', '3 друга', () => social.friends.length >= 3],
+    ['chat', '💬', 'Первое сообщение', () => counters.msgs >= 1],
+    ['host3', '🎪', 'Провёл 3 комнаты', () => counters.rooms >= 3],
+    ['focus4', '🎯', '4 помидора фокуса', () => counters.pomos >= 4],
+    ['kara80', '🎤', 'Караоке на 80+', () => counters.kara >= 80],
+    ['pl5', '♫', '5 плейлистов', () => playlists.length >= 5],
+  ];
+  let myBadges = new Set(store.get('pulse-badges', []));
+  function badgesCheck() {
+    const fresh = BADGES.filter(([id, , , ok]) => !myBadges.has(id) && (() => { try { return ok(); } catch (e) { return false; } })());
+    if (!fresh.length) return;
+    fresh.forEach(([id, icon, name]) => { myBadges.add(id); toast(`🏅 Достижение: ${icon} ${name}`); });
+    store.set('pulse-badges', [...myBadges]);
+    if (acc.session && supaOn()) rest(`profiles?id=eq.${uidMe()}`, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ badges: [...myBadges] }) }).catch(() => {});
+  }
+  setInterval(badgesCheck, 60000);
+  function badgesGrid(ids, all) {
+    const g = el('div', 'badges');
+    BADGES.forEach(([id, icon, name]) => {
+      const has = ids.includes(id);
+      if (!has && !all) return;
+      const b = el('div', 'badge' + (has ? '' : ' locked')); b.title = name;
+      b.append(el('i', '', icon), el('span', '', name)); g.appendChild(b);
+    });
+    return g;
+  }
+
+  // ===================== онлайн «Угадай мелодию» в комнате =====================
+  // ведущий раздаёт раунды (событие game), все слушают одновременно и отвечают (answer); очки — за скорость
+  const mp = { round: 0, cur: null, picked: null, answers: [], timer: null, hostTracks: [] };
+  async function mpStart() {
+    if (!room.host) return;
+    try {
+      const r = await deezer('chart/0/tracks?limit=80');
+      mp.hostTracks = shuffleArr((r.data || []).filter(t => t.preview).map(t => ({ t: t.title_short || t.title, a: t.artist && t.artist.name, u: t.preview, c: t.album && t.album.cover_medium })));
+      if (mp.hostTracks.length < 20) throw 0;
+      if (local.active && !eng().paused) eng().pause();
+      mp.answers = []; mpRoundHost(1);
+    } catch (e) { toast('Не получилось загрузить треки для игры'); }
+  }
+  function mpRoundHost(n) {
+    if (!room.code || !room.host) return;
+    if (n > 5) { roomSay('game', JSON.stringify({ end: true })); return; }
+    const pool = mp.hostTracks.slice((n - 1) * 4, (n - 1) * 4 + 4), ans = Math.floor(Math.random() * 4);
+    const opts = shuffleArr(pool.slice()); const right = opts.indexOf(pool[0]);
+    roomSay('game', JSON.stringify({ r: n, u: pool[0].u, c: pool[0].c, o: opts.map(x => [x.t.slice(0, 60), (x.a || '').slice(0, 40)]), k: right, at: Date.now() + 4000 }));
+    clearTimeout(mp.timer); mp.timer = setTimeout(() => mpRoundHost(n + 1), 4000 + 15000);
+    void ans;
+  }
+  function mpOnEvent(e) {
+    let d; try { d = JSON.parse(e.body); } catch (x) { return; }
+    if (e.kind === 'answer') { mp.answers.push({ who: e.sender, r: d.r, ok: d.ok, pts: d.pts }); mpRender(); return; }
+    if (d.end) { mp.cur = { end: true }; game.audio.pause(); mpRender(); return; }
+    mp.cur = d; mp.picked = null;
+    const wait = Math.max(0, d.at - Date.now());
+    setTimeout(() => { if (mp.cur !== d) return; game.audio.src = d.u; game.audio.currentTime = 0; game.audio.play().catch(() => {}); setTimeout(() => { if (mp.cur === d) game.audio.pause(); }, 12000); }, wait);
+    mpRender();
+  }
+  function mpPick(i) {
+    const d = mp.cur; if (!d || mp.picked !== null || Date.now() < d.at) return;
+    mp.picked = i;
+    const ms = Date.now() - d.at, ok = i === d.k, pts = ok ? Math.max(100, 1000 - Math.round(ms / 12)) : 0;
+    roomSay('answer', JSON.stringify({ r: d.r, ok, pts }));
+    flyEmoji(ok ? '🎉' : '😅'); mpRender();
+  }
+  function mpScores() {
+    const s = {};
+    mp.answers.forEach(a => { s[a.who] = (s[a.who] || 0) + a.pts; });
+    return Object.entries(s).sort((a, b) => b[1] - a[1]);
+  }
+  function mpRender() {
+    const box = $('mpBox'); if (!box) return;
+    box.innerHTML = '';
+    const d = mp.cur;
+    if (!d) {
+      if (room.host) { const b = el('button', 'primary', '🎮 Игра для всех: угадай мелодию'); b.type = 'button'; b.addEventListener('click', mpStart); box.appendChild(b); }
+      else box.appendChild(el('p', 'hint2', 'Ведущий может запустить «Угадай мелодию» для всех в комнате.'));
+      return;
+    }
+    if (d.end) {
+      box.appendChild(el('h3', 'set-h', '🏆 Итоги игры'));
+      const ol = el('ol', 'mp-board'); mpScores().forEach(([who, pts]) => { const li = el('li'); li.append(el('b', '', nickOf(who)), el('span', '', pts + ' очков')); ol.appendChild(li); }); box.appendChild(ol);
+      if (room.host) { const b = el('button', '', 'Сыграть ещё'); b.type = 'button'; b.addEventListener('click', () => { mp.cur = null; mpStart(); }); box.appendChild(b); }
+      return;
+    }
+    const left = Math.ceil((d.at - Date.now()) / 1000);
+    box.appendChild(el('h3', 'set-h', left > 0 ? `Раунд ${d.r} из 5 — через ${left}…` : `Раунд ${d.r} из 5 — что это за трек?`));
+    const grid = el('div', 'game-opts');
+    d.o.forEach(([t, a], i) => {
+      const b = el('button', mp.picked !== null ? (i === d.k ? 'ok' : i === mp.picked ? 'bad' : '') : ''); b.type = 'button';
+      b.append(el('b', '', t), el('span', '', a)); b.addEventListener('click', () => mpPick(i)); grid.appendChild(b);
+    });
+    box.appendChild(grid);
+    const sc = mpScores(); if (sc.length) box.appendChild(el('p', 'hint2', 'Счёт: ' + sc.map(([w, p]) => `${nickOf(w)} ${p}`).join(' · ')));
+    if (left > 0) setTimeout(mpRender, 1000);
+  }
+
+  // ===================== караоке с оценкой =====================
+  // микрофон → высота голоса; звук песни (через Windows) → какие ноты сейчас звучат; попал в ноту песни — очко
+  const ks = { on: false, an: null, buf: null, stream: null, voiced: 0, hits: 0, timer: null, last: 0 };
+  async function karaScoreStart() {
+    if (!native) { toast('Караоке с оценкой — в приложении Pulse.exe'); return; }
+    if (!music.on || music.kind !== 'native') { toast('Сначала включи песню'); return; }
+    try {
+      ks.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+    } catch (e) { toast('Нет доступа к микрофону'); return; }
+    const a = ac(); ks.an = a.createAnalyser(); ks.an.fftSize = 2048; ks.buf = new Float32Array(2048);
+    a.createMediaStreamSource(ks.stream).connect(ks.an);
+    Object.assign(ks, { on: true, voiced: 0, hits: 0 });
+    setKaraoke(true); openLib(false);
+    $('karaBox').hidden = false; $('karaScore').textContent = '0';
+    ks.timer = setInterval(karaTick, 60);
+    toast('🎤 Пой! Pulse слушает и ставит баллы');
+  }
+  function pitchOf(buf, rate) {
+    let rms = 0; for (const v of buf) rms += v * v; rms = Math.sqrt(rms / buf.length);
+    if (rms < 0.02) return 0;
+    // автокорреляция в диапазоне голоса 80–1000 Гц
+    let best = 0, bestLag = 0;
+    for (let lag = Math.floor(rate / 1000); lag < Math.floor(rate / 80); lag++) {
+      let s = 0; for (let i = 0; i < buf.length - lag; i += 2) s += buf[i] * buf[i + lag];
+      if (s > best) { best = s; bestLag = lag; }
+    }
+    return bestLag ? rate / bestLag : 0;
+  }
+  function songChroma() {
+    const c = new Array(12).fill(0); if (!music.an || !music.freq) return c;
+    const hz = ac().sampleRate / music.an.fftSize;
+    for (let i = Math.ceil(100 / hz); i < Math.min(music.freq.length, 2000 / hz); i++) {
+      const f = i * hz, pc = ((Math.round(12 * Math.log2(f / 440)) % 12) + 12 + 9) % 12;
+      c[pc] += music.freq[i] * music.freq[i];
+    }
+    return c;
+  }
+  function karaTick() {
+    if (!ks.on) return;
+    ks.an.getFloatTimeDomainData(ks.buf);
+    const f = pitchOf(ks.buf, ac().sampleRate);
+    if (!f) return;
+    ks.voiced++;
+    const pc = ((Math.round(12 * Math.log2(f / 440)) % 12) + 12 + 9) % 12, c = songChroma(), mx = Math.max(...c) || 1;
+    const near = Math.max(c[pc], c[(pc + 11) % 12] * 0.6, c[(pc + 1) % 12] * 0.6) / mx;
+    if (near > 0.55) ks.hits++;
+    const score = Math.round(100 * ks.hits / Math.max(1, ks.voiced));
+    $('karaScore').textContent = ks.voiced < 15 ? '…' : score;
+    $('karaBox').classList.toggle('hot', near > 0.55);
+  }
+  function karaScoreStop() {
+    if (!ks.on) return;
+    ks.on = false; clearInterval(ks.timer);
+    try { ks.stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+    $('karaBox').hidden = true;
+    const score = Math.round(100 * ks.hits / Math.max(1, ks.voiced));
+    if (ks.voiced > 40) {
+      toast(`🎤 Твой результат: ${score} баллов ${score >= 80 ? '🏆' : score >= 60 ? '👏' : '🙂'}`);
+      if (score > (counters.kara || 0)) { counters.kara = score; store.set('pulse-counters', counters); badgesCheck(); }
+    } else toast('Караоке выключено');
+  }
+
+  // ===================== эффекты от слов песни =====================
+  const WORD_FX = [
+    [/огон|огн|плам|гор(ю|ит|им)|пожар|fire|burn|flame/i, () => { beatFx.fireworks(); sim.flash = Math.max(sim.flash, 0.35); }],
+    [/дожд|ливн|слёз|слез|плач|rain|tears|cry/i, () => { rainBoost.t = 7; rainBoost.snow = false; }],
+    [/снег|зим|мороз|snow|winter/i, () => { rainBoost.t = 8; rainBoost.snow = true; }],
+    [/сердц|любл|любов|люби|love|heart/i, () => { for (let i = 0; i < 6; i++) setTimeout(() => flyEmoji(['❤️', '💖', '💗'][i % 3]), i * 180); }],
+    [/звёзд|звезд|космос|галакт|star|space|galaxy/i, () => { beatFx.spiral(1); beatFx.spawnTunnel(1); }],
+    [/молни|гром|гроз|thunder|lightning|storm/i, () => beatFx.lightning(8)],
+    [/деньг|бабк|кэш|money|cash|dollar/i, () => { for (let i = 0; i < 5; i++) setTimeout(() => flyEmoji('💸'), i * 200); }],
+    [/лечу|летать|полёт|небо|крыль|fly|sky|wings/i, () => { cam.boost = Math.max(cam.boost || 0, 3); beatFx.ripple(); }],
+  ];
+  const rainBoost = { t: 0, snow: false };
+  let wordFxT = 0;
+  function wordFx(text) {
+    if (!text || fxI() < 0.3 || performance.now() - wordFxT < 4000) return;
+    const hit = WORD_FX.find(([re]) => re.test(text));
+    if (hit) { wordFxT = performance.now(); hit[1](); }
+  }
+
+  // ===================== заставка =====================
+  let saverMode = false;
+  function enterSaver() {
+    saverMode = true;
+    document.body.classList.add('saver', 'zen');
+    openLib(false); closePanels();
+    const t0 = performance.now(); let sx = null, sy = null;
+    const quit = () => { if (performance.now() - t0 > 1500) post({ cmd: 'quit' }); };
+    addEventListener('pointermove', e => { if (sx === null) { sx = e.clientX; sy = e.clientY; return; } if (Math.hypot(e.clientX - sx, e.clientY - sy) > 12) quit(); });
+    ['pointerdown', 'keydown', 'wheel'].forEach(ev => addEventListener(ev, quit, true));
+  }
+
   // дополнительные вкладки медиатеки
   function renderExtraTab(body) {
     const tb = lib.tab;
@@ -5563,6 +6121,7 @@ registerProcessor('pulse-feed', Feed);`;
     if (tb.startsWith('chat:')) { renderChat(body, tb.slice(5)); return true; }
     if (tb === 'room') { renderRoom(body); return true; }
     if (tb === 'game') { renderGame(body); return true; }
+    if (tb === 'feed') { renderFeed(body); return true; }
     return false;
   }
 
@@ -5814,10 +6373,10 @@ registerProcessor('pulse-feed', Feed);`;
   $('dpiRow').hidden = $('dpiHint').hidden = !native;
   $('dpiMode').value = store.get('pulse-dpi', false) ? 'on' : 'off';
   $('dpiMode').addEventListener('change', e => { const on = e.target.value === 'on'; store.set('pulse-dpi', on); post({ cmd: 'dpi', on }); if (!on) toast('Ускорение YouTube выключено'); });
-  if (native && store.get('pulse-dpi', false)) post({ cmd: 'dpi', on: true });
+  if (native && store.get('pulse-dpi', false)) setTimeout(() => { if (!saverMode) post({ cmd: 'dpi', on: true }); }, 2500);
   setKaraoke(karaoke);
   renderAccount();
-  if (acc.session && supaOn()) { syncPull(); loadProfile(); loadFriends().catch(() => {}); chatUnread(); }
+  if (acc.session && supaOn()) { syncPull(); loadProfile(); loadFriends().catch(() => {}); chatUnread(); setTimeout(notifyCheck, 5000); setTimeout(badgesCheck, 8000); }
   {
     const qr = new URLSearchParams(location.search).get('room'), saved = store.get('pulse-room', null);
     if (acc.session && supaOn() && (qr || saved)) roomJoin(qr || saved);
@@ -5845,6 +6404,21 @@ registerProcessor('pulse-feed', Feed);`;
   $('alarmSrc').addEventListener('change', e => { alarm.src = e.target.value; alarmSave(); });
   $('alarmOn').addEventListener('change', e => { alarm.on = e.target.value === 'on'; alarmSave(); toast(alarm.on ? `⏰ Будильник на ${alarm.time}` : 'Будильник выключен'); });
   $('alarmSrc').addEventListener('focus', alarmFill);
+  $('updGo').addEventListener('click', () => { post({ cmd: 'update' }); $('updGo').disabled = true; $('updGo').textContent = 'Скачиваю…'; });
+  $('updX').addEventListener('click', () => { $('updBar').hidden = true; });
+  $('dKaraScore').hidden = !native;
+  $('dKaraScore').addEventListener('click', () => (ks.on ? karaScoreStop() : karaScoreStart()));
+  $('karaStop').addEventListener('click', karaScoreStop);
+  $('dscRow').hidden = $('saverRow').hidden = !native;
+  $('dscOn').value = dsc.on ? 'on' : 'off';
+  $('dscOn').addEventListener('change', e => { dsc.on = e.target.value === 'on'; store.set('pulse-discord', dsc.on); dsc.sig = ''; discordTick(); });
+  $('saverOn').addEventListener('change', e => { post({ cmd: 'saver', on: e.target.value === 'on' }); });
+  function onSaver(m) {
+    $('saverOn').value = m.on ? 'on' : 'off';
+    if (m.error) toast('Не получилось: ' + m.error);
+    else if (m.on !== undefined && m.error === null) toast(m.on ? '🖥 Pulse теперь заставка Windows' : 'Заставка Pulse выключена');
+  }
+  if (native) post({ cmd: 'saver' });
   $('dFocus').addEventListener('click', () => (focus.on ? focusStop() : focusStart()));
   $('dPromo').hidden = !native;
   $('dPromo').addEventListener('click', e => {
