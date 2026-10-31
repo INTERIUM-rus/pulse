@@ -711,6 +711,9 @@ body.mini .pmini-lyr { display: block; font-style: normal; font: 700 12px var(--
 .lib-next img, .lib-next .ph { width: 34px; height: 34px; border-radius: 8px; object-fit: cover; background: hsla(var(--lh),60%,30%,.5); }
 .lib-next b { display: block; font: 700 12px var(--body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lib-next span { display: block; font-size: 11px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lib-side > * { flex-shrink: 0; }
+/* плашка плеера лежит поверх низа панели — оставляем под ней место, чтобы «Дальше» можно было докрутить */
+@media (min-width: 821px) { body.lib-open .lib-side { padding-bottom: 170px; } }
 @media (max-width: 820px) { .side-search, .lib-next { display: none !important; } }
 .toast {
   position: fixed; left: 50%; bottom: 120px; transform: translateX(-50%); z-index: 7;
