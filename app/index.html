@@ -923,6 +923,98 @@ body.saver { cursor: none; }
 @keyframes toast { 0% { opacity: 0; transform: translate(-50%, 10px); } 12%, 80% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
 @media (max-width: 560px) { .ctl { grid-template-columns: 110px 1fr 44px; } .player { grid-template-columns: 52px minmax(0,1fr) auto; } .pcover { width: 52px; height: 52px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
+/* ================= Неон 2.0: единый вид всего приложения ================= */
+:root {
+  --bg: #08060f; --glass: rgba(20,14,36,.78); --line: rgba(255,255,255,.1);
+  --nline: rgba(255,79,216,.32); --nglow: 0 0 24px rgba(255,79,216,.12);
+  --ngrad: linear-gradient(135deg, var(--neon-a), var(--neon-c));
+  --npanel: rgba(18,12,34,.88);
+}
+/* кнопки: скруглённые квадраты из стекла, при наведении — розовый неон */
+button { border-radius: 12px; background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.1); }
+/* градиент под прозрачной рамкой не должен повторяться полоской по краю */
+button, .rail-nav, .lib-nav { background-origin: border-box !important; }
+button:hover { border-color: rgba(255,79,216,.55); box-shadow: 0 0 14px rgba(255,79,216,.22); }
+button.icon { border-radius: 12px; }
+button.primary, .yth-btn { background: var(--ngrad); box-shadow: 0 8px 24px rgba(255,79,216,.35); }
+button.primary:hover { box-shadow: 0 10px 30px rgba(255,79,216,.55); }
+.pill { background: rgba(20,14,36,.7); border-color: var(--nline); }
+/* поля ввода: голубое свечение при фокусе */
+.modal input, .panel input:not([type=range]):not([type=checkbox]), .panel textarea, .panel select, .lyr-search input, .keyrow input, .pl-filter, .imp-area, .side-search, select {
+  border-radius: 14px; border-color: rgba(79,240,255,.22); background-color: rgba(255,255,255,.05); }
+.modal input:focus, .panel input:not([type=range]):not([type=checkbox]):focus, .panel textarea:focus, .lyr-search input:focus, .keyrow input:focus, .pl-filter:focus, .imp-area:focus, .side-search:focus-within {
+  outline: none; border-color: rgba(79,240,255,.7); box-shadow: 0 0 0 1px rgba(79,240,255,.4), 0 0 18px rgba(79,240,255,.25); }
+/* всплывающие стёкла: панели, меню, окна, подсказки — одна рамка и одно стекло */
+.panel, .modal, .ctxmenu, .upnext, .toast, .hint, .updbar, .karabox, .pomo {
+  background: var(--npanel); border: 1px solid var(--nline); box-shadow: 0 24px 70px rgba(0,0,0,.55), var(--nglow); }
+.panel { border-radius: 24px; }
+.panel.inlib { background: transparent; border: 0; box-shadow: none; }
+.modal { border-radius: 24px; }
+.modal h3, .phead h3 { font-family: var(--display); }
+.ctxmenu { border-radius: 18px; }
+.ctxmenu button { border-radius: 12px; }
+.ctxmenu button:hover { background: linear-gradient(90deg, rgba(255,79,216,.3), rgba(255,79,216,.04)); box-shadow: inset 3px 0 0 var(--neon-a); }
+.modal-back { background: rgba(6,4,14,.6); }
+.upnext h4 { color: var(--neon-b); }
+.ytwin { border-color: var(--nline); }
+.ytbar { background: rgba(18,12,34,.95); }
+/* плеер: плавающая неоновая панель */
+.player { background: linear-gradient(100deg, rgba(255,79,216,.14), rgba(20,14,36,.84) 45%); border-color: rgba(255,79,216,.38); }
+.pinfo small { color: var(--neon-b); }
+.pbtns button, .pextra button, .np-btns button, .shelf-nav button { border-radius: 12px; }
+.pbtns button.pp, .pbtns #pPlay { border-radius: 50%; }
+.pextra button.on, .fxgrid button.on, .dock button.on { background: var(--ngrad); border-color: transparent; box-shadow: 0 0 16px rgba(255,79,216,.45); }
+.pvol { background: linear-gradient(90deg, var(--neon-a), var(--neon-b) var(--v, 50%), rgba(255,255,255,.14) var(--v, 50%)); }
+/* медиатека: фиолетово-бирюзовое сияние, как в макете */
+.lib { background: radial-gradient(60% 50% at 25% 20%, rgba(75,28,110,.55), transparent 70%), radial-gradient(50% 45% at 85% 65%, rgba(15,75,99,.5), transparent 70%), rgba(8,6,15,.82); }
+.lib-side, .rail { background: rgba(12,9,24,.66); border-right: 1px solid rgba(255,255,255,.07); }
+.lib-nav, .rail-nav { border-radius: 12px; }
+.lib-nav.on, .rail-nav.on { color: #fff; background: linear-gradient(90deg, rgba(255,79,216,.35), rgba(255,79,216,0)); box-shadow: inset 3px 0 0 var(--neon-a); }
+.lib-wave, .rail-wave { background: linear-gradient(120deg, var(--neon-a), var(--neon-c)); box-shadow: 0 10px 28px rgba(255,79,216,.35); }
+.lib-logo span { background: linear-gradient(90deg, var(--neon-a), var(--neon-b)); -webkit-background-clip: text; background-clip: text; animation: none; }
+.lib-search::before { background: conic-gradient(from var(--ang), var(--neon-b), var(--neon-a), var(--neon-c), var(--neon-b)); opacity: .55; }
+.lib-search input { border-radius: 18px; }
+.lib-search svg { color: var(--neon-b); }
+.lib-close { border-radius: 14px; }
+.lib-chips button, .qchips button { border-radius: 999px; }
+.lib-chips button.on { background: var(--ngrad); box-shadow: 0 6px 20px rgba(255,79,216,.35); }
+.lib-body h2 { letter-spacing: -.01em; }
+.trk { border-radius: 14px; }
+.trk:hover { background: rgba(255,255,255,.05); box-shadow: inset 0 0 0 1px rgba(255,79,216,.18); }
+.trk.playing { background: linear-gradient(90deg, rgba(255,79,216,.24), transparent 75%); box-shadow: inset 3px 0 0 var(--neon-a); }
+.trk.playing .tmeta b { color: #ffb3ee; }
+.cplay { background: var(--ngrad); }
+.hero2 { border-color: var(--nline); }
+.fxgrid button, .more-item, .st, .pltile, .acc-card, .plhead { border-radius: 20px; }
+.fxgrid button { border-color: rgba(255,255,255,.08); }
+.lib-body, .panel, .lib-side, .upnext { scrollbar-width: thin; scrollbar-color: rgba(255,79,216,.5) transparent; }
+.lite .panel, .lite .modal, .lite .ctxmenu, .lite .upnext, .lite .toast { background: rgb(18,12,34); }
+/* компьютер: постоянная боковая панель слева, сцена и плеер — справа от неё */
+.rail { display: none; }
+@media (min-width: 901px) {
+  .rail { position: fixed; z-index: 4; left: 0; top: 0; bottom: 0; width: 236px; box-sizing: border-box; flex-direction: column; gap: 4px; padding: 74px 14px 16px;
+    backdrop-filter: blur(18px) saturate(1.2); transition: opacity .6s, transform .6s; overflow-y: auto; scrollbar-width: none; }
+  body:not(.mini):not(.wall):not(.saver) .rail { display: flex; }
+  .rail-nav { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; background: transparent; border-color: transparent; padding: 11px 14px; font: 700 14px var(--body); color: var(--dim); backdrop-filter: none; }
+  .rail-nav:hover { background: rgba(255,255,255,.05); color: var(--ink); border-color: transparent; box-shadow: none; }
+  .rail-nav i { font-style: normal; width: 22px; text-align: center; }
+  .rail-wave { display: flex; align-items: center; gap: 12px; margin: 6px 0 8px; padding: 12px 14px; border-radius: 16px; text-align: left; border: 0; color: #fff; }
+  .rail-wave i { font-style: normal; font-size: 22px; animation: wave 2s ease-in-out infinite; }
+  .rail-wave b { display: block; font: 800 14px var(--display); }
+  .rail-wave small { display: block; font-size: 11px; color: rgba(255,255,255,.85); }
+  .rail-fx { margin-top: auto; padding-top: 12px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; border-top: 1px solid rgba(255,255,255,.07); }
+  .rail-fx button { height: 42px; padding: 0; font-size: 16px; display: grid; place-items: center; }
+  .rail-fx button.on { background: var(--ngrad); border-color: transparent; box-shadow: 0 0 16px rgba(255,79,216,.45); }
+  body:not(.mini):not(.wall):not(.saver) .brand { left: 28px; top: 24px; z-index: 5; }
+  body:not(.mini):not(.wall):not(.saver) .dock { display: none; }
+  body.zen .rail { opacity: 0; transform: translateX(-16px); pointer-events: none; }
+  body:not(.mini):not(.wall):not(.saver) .player { left: 252px; right: 16px; width: min(1040px, calc(100% - 268px)); }
+  body:not(.mini):not(.wall):not(.saver) .upnext { left: 252px; }
+  body:not(.mini):not(.wall):not(.saver) .hint, body:not(.mini):not(.wall):not(.saver) .toast { left: calc(50% + 118px); }
+  body:not(.mini):not(.wall):not(.saver) .panel:not(.inlib) { top: 16px; max-height: calc(100vh - 32px); }
+  .lib { grid-template-columns: 236px minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { .rail-wave i { animation: none; } }
 </style>
 </head>
 <body>
@@ -945,6 +1037,24 @@ body.saver { cursor: none; }
   <button id="dSearch" type="button" class="ph-only" aria-label="Поиск музыки">⌕</button>
   <button id="dSet" type="button" class="ph-only" aria-label="Настройки">⚙</button>
 </div>
+
+<nav class="rail" id="rail" aria-label="Разделы Pulse">
+  <button class="rail-nav on" data-go="visual" type="button"><i>◉</i>Визуал</button>
+  <button class="rail-nav" data-go="home" type="button"><i>✦</i>Главная</button>
+  <button class="rail-nav" data-go="search" type="button"><i>⌕</i>Поиск</button>
+  <button class="rail-wave" data-go="wave" type="button"><i>🌊</i><span><b>Моя волна</b><small>бесконечный поток под тебя</small></span></button>
+  <button class="rail-nav" data-go="playlists" type="button"><i>♫</i>Плейлисты</button>
+  <button class="rail-nav" data-go="fav" type="button"><i>♥</i>Моё</button>
+  <button class="rail-nav" data-go="friends" type="button"><i>👥</i>Друзья</button>
+  <button class="rail-nav" data-go="room" type="button"><i>🎧</i>Вместе</button>
+  <button class="rail-nav" data-go="settings" type="button"><i>⚙</i>Настройки</button>
+  <div class="rail-fx">
+    <button data-go="lyrics" type="button" title="Текст песни (L)" aria-label="Текст песни">🎤</button>
+    <button data-go="3d" type="button" title="Объёмная воронка (V)" aria-label="Объёмная воронка">🌀</button>
+    <button data-go="bg" type="button" title="Сменить фон (N)" aria-label="Сменить фон">🎨</button>
+    <button data-go="full" type="button" title="Во весь экран (F11)" aria-label="Во весь экран">⛶</button>
+  </div>
+</nav>
 
 <div class="hint" id="hint" hidden></div>
 <div class="trline" id="trLine" hidden></div>
@@ -1212,7 +1322,8 @@ body.saver { cursor: none; }
     return t;
   }
 
-  let W = 0, H = 0, S = 0, DPR = 1, cx = 0, cy = 0, maxD = 600, stars = [];
+  let W = 0, H = 0, S = 0, DPR = 1, cx = 0, cy = 0, maxD = 600, stars = [], railL = 0;
+  function railWidth() { const r = document.getElementById('rail'); return r ? Math.round(r.getBoundingClientRect().right) : 0; }
   // автокачество: если кадров мало, визуализатор рисуется в меньшем разрешении (текст остаётся чётким)
   const quality = { k: perf.k, frames: 0, t: 0, good: 0, min: perf.min, fps: perf.fps, slow: 0 };
   // сменить ступень на лету (из настроек или когда устройство не справляется)
@@ -1251,8 +1362,10 @@ body.saver { cursor: none; }
     // текст песни чуть чётче сцены, но не выше потолка ступени качества
     const tr = Math.min(devicePixelRatio || 1, Math.max(perf.text, DPR));
     lcv.width = Math.round(W * tr); lcv.height = Math.round(H * tr); lctx.setTransform(tr, 0, 0, tr, 0, 0);
-    S = Math.min(W * 0.62, H * 0.76);
-    cx = W / 2; cy = H / 2;
+    // на компьютере слева боковая панель: сцена и текст живут в свободной части экрана
+    railL = railWidth();
+    S = Math.min((W - railL) * 0.62, H * 0.76);
+    cx = railL + (W - railL) / 2; cy = H / 2;
     maxD = Math.hypot(W, H) / 2 + 30;
     if (!stars.length) stars = Array.from({ length: 170 }, () => ({ a: Math.random() * TAU, d: Math.random() * maxD, z: Math.random(), tw: Math.random() * TAU }));
   }
@@ -1871,6 +1984,7 @@ registerProcessor('pulse-feed', Feed);`;
   function setD3(on) {
     cam.user = on; store.set('pulse-3d', on);
     $('d3').classList.toggle('on', on);
+    document.querySelector('#rail [data-go="3d"]').classList.toggle('on', on);
     if (on && !reduceMotion) cam.spin += Math.PI;
   }
   function setChaos(on) {
@@ -2825,12 +2939,12 @@ registerProcessor('pulse-feed', Feed);`;
   const LEAD = 0.2; // строка появляется чуть раньше, чем её начинают петь, чтобы успеть прочитать
   function lyrFont(fs, w = 800) { return `${w} ${fs}px Montserrat, Manrope, "Segoe UI", sans-serif`; }
   // строки по очереди садятся слева и справа от центра, каждая со своей высотой и лёгким наклоном
-  function sideMaxW() { return clamp(W / 2 - S * 0.34 - Math.max(20, W * 0.035), Math.min(W * 0.62, 260), 680); }
+  function sideMaxW() { return clamp((W - railL) / 2 - S * 0.34 - Math.max(20, W * 0.035), Math.min(W * 0.62, 260), 680); }
   function linePose(i, G) {
     const side = i % 2 ? 1 : -1;
     const s = fract(Math.sin((i + 1) * 12.9898) * 43758.5453), s2 = fract(Math.sin((i + 1) * 78.233) * 12345.678);
     const margin = Math.max(20, W * 0.035);
-    const x = side < 0 ? margin + G.w / 2 : W - margin - G.w / 2;
+    const x = side < 0 ? railL + margin + G.w / 2 : W - margin - G.w / 2;
     // слева внизу живут плашка плеера и список похожих: строки садятся выше них
     const yMin = H * 0.16 + G.h / 2;
     let yMax = Math.min(H * 0.8, H - 130) - G.h / 2;
@@ -6572,6 +6686,18 @@ registerProcessor('pulse-feed', Feed);`;
   }));
   $('dSearch').addEventListener('click', () => { openLib(true); setTimeout(() => $('libQ').focus(), 80); });
   $('dSet').addEventListener('click', () => { lib.tab = 'settings'; openLib(true); });
+  // боковая панель главного экрана (компьютер): разделы открывают медиатеку, нижние кнопки — эффекты
+  document.querySelectorAll('#rail [data-go]').forEach(b => b.addEventListener('click', () => {
+    const go = b.dataset.go;
+    if (go === 'visual') openLib(false);
+    else if (go === 'wave') $('libWave').click();
+    else if (go === 'lyrics') $('dLyr').click();
+    else if (go === '3d') $('d3').click();
+    else if (go === 'bg') $('dBg').click();
+    else if (go === 'full') $('dFull').click();
+    else if (go === 'search') { lib.tab = lib.q.trim() ? 'search' : 'home'; openLib(true); setTimeout(() => $('libQ').focus(), 80); }
+    else { lib.tab = go; openLib(true); }
+  }));
 
   // дополнительные вкладки медиатеки
   function renderExtraTab(body) {
@@ -6599,6 +6725,7 @@ registerProcessor('pulse-feed', Feed);`;
     const open = force ?? $(id).hidden;
     panels.forEach(p => { $(p).hidden = !(open && p === id); });
     $('dLyr').classList.toggle('on', !$('lyrics').hidden);
+    document.querySelector('#rail [data-go="lyrics"]').classList.toggle('on', !$('lyrics').hidden);
     if (open && id === 'lyrics') {
       $('lSync').hidden = !lyr.on;
       if (lyr.on) { renderLineList(); $('lPlain').hidden = lyr.synced; }
@@ -6789,6 +6916,7 @@ registerProcessor('pulse-feed', Feed);`;
     if (uiT > 0.25) {
       uiT = 0;
       tickPlayer();
+      if (railWidth() !== railL) resize(); // панель появилась или спряталась (обои, мини-плеер)
       // вертикальный телефон: кольца — в свободной зоне между окном видео и текстом песни
       if (portrait()) {
         const yw = $('ytwin'), top = yw.hidden ? H * 0.1 : yw.getBoundingClientRect().bottom;
