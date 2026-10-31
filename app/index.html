@@ -715,6 +715,70 @@ body.saver { cursor: none; }
 #instRow { align-items: center; }
 #instRow .hint2 { flex: 1 1 240px; }
 #ovlUrl b { color: var(--ink); -webkit-user-select: text; user-select: text; }
+/* ---------- Неон 2.0 ---------- */
+:root { --neon-a: #ff4fd8; --neon-b: #4ff0ff; --neon-c: #8a5bff; }
+.pbar div { background: linear-gradient(90deg, var(--neon-a), var(--neon-b)) !important; box-shadow: 0 0 10px rgba(255,79,216,.6); }
+.pbtns button.pp, .pbtns #pPlay { background: linear-gradient(135deg, var(--neon-a), var(--neon-c)); border-color: transparent; color: #fff; box-shadow: 0 0 calc(10px + var(--beat, 0) * 16px) rgba(255,79,216,.65); }
+.ph-only { display: none !important; }
+.lib-tabs { display: none; }
+.htiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 16px 0 6px; }
+.htile { position: relative; display: grid; align-content: end; gap: 2px; min-height: 120px; padding: 14px; border: 0; border-radius: 20px; text-align: left; color: #fff; overflow: hidden;
+  box-shadow: 0 12px 30px rgba(0,0,0,.35); animation: fadeUp .45s both; animation-delay: calc(var(--i) * 60ms); transition: transform .25s cubic-bezier(.2,1.4,.4,1), box-shadow .25s; }
+.htile:hover { transform: translateY(-4px); box-shadow: 0 18px 40px rgba(0,0,0,.45); }
+.htile i { position: absolute; right: 12px; top: 10px; font-style: normal; font-size: 30px; opacity: .9; }
+.htile b { font: 900 16px var(--display); }
+.htile span { font-size: 12px; opacity: .85; }
+.more-acc { margin-bottom: 14px; }
+.more-acc .acc-me { max-width: 520px; }
+.more-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.more-item { display: flex; align-items: center; gap: 10px; padding: 16px 14px; border-radius: 16px; text-align: left; font: 700 14px var(--body); background: rgba(255,255,255,.05); }
+.more-item i { font-style: normal; font-size: 20px; width: 26px; text-align: center; }
+/* компьютер: широкая панель плеера по низу экрана */
+@media (min-width: 901px) {
+  body:not(.mini) .player { left: 16px; right: 16px; margin: 0 auto; width: min(1040px, calc(100% - 32px)); bottom: 16px;
+    grid-template-columns: 56px minmax(140px, 230px) minmax(160px, 1fr) auto auto; grid-template-rows: auto auto auto; column-gap: 18px; row-gap: 0; padding: 10px 16px 10px 10px; border-radius: 22px;
+    background: linear-gradient(100deg, hsla(var(--pc),80%,45%,.22), rgba(16,12,32,.82) 40%); border-color: rgba(255,79,216,.32); }
+  body:not(.mini) .player .pcover { grid-area: 1 / 1 / 4 / 2; width: 56px; height: 56px; align-self: center; }
+  body:not(.mini) .player .pinfo { display: contents; }
+  body:not(.mini) .player .pinfo small { grid-area: 1 / 2; align-self: end; }
+  body:not(.mini) .player .pinfo b { grid-area: 2 / 2; }
+  body:not(.mini) .player .pinfo > span { grid-area: 3 / 2; align-self: start; }
+  body:not(.mini) .player .pmini-lyr { display: none !important; }
+  body:not(.mini) .player .pbar { grid-area: 2 / 3; margin: 0; align-self: center; }
+  body:not(.mini) .player .ptime { grid-area: 3 / 3; }
+  body:not(.mini) .player .pbtns { grid-area: 1 / 4 / 4 / 5; align-self: center; gap: 6px; }
+  body:not(.mini) .player .pbtns button { width: 38px; height: 38px; }
+  body:not(.mini) .player .pbtns #pPlay { width: 46px; height: 46px; font-size: 15px; }
+  body:not(.mini) .player .pextra { grid-area: 1 / 5 / 4 / 6; margin: 0; align-self: center; grid-template-columns: auto 100px auto; }
+  body.lib-open .lib-body { padding-bottom: 110px; }
+  body.lib-open .lib-side { padding-bottom: 110px !important; }
+}
+/* телефон: шапка с поиском и настройками, нижние вкладки медиатеки, компактный плеер */
+@media (max-width: 600px) {
+  .ph-only { display: grid !important; }
+  #dLib, #d3 { display: none !important; }
+  .dock button { width: 38px; height: 38px; border-radius: 12px; font-size: 16px; }
+  .player { grid-template-columns: 46px minmax(0, 1fr) auto; padding: 8px 10px 10px 8px; border-radius: 20px; border-color: rgba(255,79,216,.35); }
+  .pcover { width: 46px; height: 46px; border-radius: 12px; }
+  .pinfo small, .ptime { display: none; }
+  .pbar { grid-column: 1 / -1; }
+  .pextra, #pPrev { display: none !important; }
+  .pbtns button { width: 40px; height: 40px; }
+  .lib-side { display: none !important; }
+  .lib { grid-template-rows: minmax(0, 1fr); }
+  .lib-tabs { display: flex; position: fixed; z-index: 8; left: 8px; right: 8px; bottom: calc(8px + var(--sab)); height: 58px; border-radius: 18px; justify-content: space-around; align-items: center;
+    background: rgba(18,13,34,.96); border: 1px solid rgba(255,255,255,.08); box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+  .lib-tabs button { position: relative; display: grid; justify-items: center; gap: 1px; background: none; border: 0; padding: 4px 8px; color: rgba(255,255,255,.5); font: 700 10px var(--body); backdrop-filter: none; }
+  .lib-tabs button i { font-style: normal; font-size: 18px; }
+  .lib-tabs button.on { color: #fff; }
+  .lib-tabs button.on i { filter: drop-shadow(0 0 6px var(--neon-a)); }
+  .lib-tabs .nbadge { position: absolute; top: 0; right: 4px; margin: 0; }
+  body.lib-open .player { bottom: calc(74px + var(--sab)); }
+  .lib-body { padding-bottom: calc(230px + var(--sab)) !important; }
+  .htiles { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .htile { min-height: 96px; border-radius: 16px; }
+  .more-grid { grid-template-columns: 1fr 1fr; }
+}
 /* ---------- медиатека 2.0: анимации ---------- */
 @property --ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
 @keyframes spinAng { to { --ang: 360deg; } }
@@ -875,6 +939,8 @@ body.saver { cursor: none; }
 <div class="dock" id="dock">
   <button id="dLib" type="button" title="Музыка, эффекты и настройки (M)">🎧<span class="lb">Музыка</span></button>
   <button id="d3" type="button" title="Объёмная воронка (V)">🌀<span class="lb">3D</span></button>
+  <button id="dSearch" type="button" class="ph-only" aria-label="Поиск музыки">⌕</button>
+  <button id="dSet" type="button" class="ph-only" aria-label="Настройки">⚙</button>
 </div>
 
 <div class="hint" id="hint" hidden></div>
@@ -938,6 +1004,13 @@ body.saver { cursor: none; }
       <div class="np-btns"><button id="npPrev" type="button" aria-label="Предыдущий трек">⏮</button><button id="npPlay" type="button" aria-label="Пауза или продолжить">⏯</button><button id="npNext" type="button" aria-label="Следующий трек">⏭</button></div>
     </div>
     <div class="lib-next" id="libNext" hidden><small>Дальше</small><ul id="libNextList"></ul></div>
+  </nav>
+  <nav class="lib-tabs" id="libTabs" aria-label="Разделы">
+    <button type="button" data-tab="home"><i>✦</i><span>Главная</span></button>
+    <button type="button" data-tab="search"><i>⌕</i><span>Поиск</span></button>
+    <button type="button" data-tab="playlists"><i>♫</i><span>Плейлисты</span></button>
+    <button type="button" data-tab="friends"><i>👥</i><span>Друзья</span></button>
+    <button type="button" data-tab="more"><i>☰</i><span>Ещё</span><b class="nbadge" id="moreBadge" hidden></b></button>
   </nav>
   <div class="lib-main">
     <div class="lib-top">
@@ -3992,12 +4065,14 @@ registerProcessor('pulse-feed', Feed);`;
     body.innerHTML = '';
     body.classList.remove('tab-in'); void body.offsetWidth; body.classList.add('tab-in');
     document.querySelectorAll('.lib-nav').forEach(b => b.classList.toggle('on', b.dataset.tab === lib.tab || (b.dataset.tab === 'playlists' && lib.tab.startsWith('pl:')) || (b.dataset.tab === 'friends' && lib.tab.startsWith('friend:')) || (b.dataset.tab === 'chats' && lib.tab.startsWith('chat:'))));
+    syncLibTabs();
     $('lib').style.setProperty('--lh', Math.round(HS(sim.hue0)));
     $('libChips').innerHTML = '';
     const q = lib.q.trim();
     if (renderExtraTab(body)) return;
     if (lib.tab === 'home') {
       body.appendChild(heroBlock());
+      body.appendChild(homeTiles());
       const pop = shelf('Популярное сейчас', 'топ музыки в России'); body.appendChild(pop.wrap); pop.loading();
       guarded(body, async ok => {
         let tr = null;
@@ -6392,8 +6467,63 @@ registerProcessor('pulse-feed', Feed);`;
     back.addEventListener('pointerdown', e => { if (e.target === back) back.remove(); });
   }
 
-  // дополнительные вкладки медиатеки
-  function renderExtraTab(body) {
+  // ===================== Неон 2.0: плитки главной, раздел «Ещё», нижние вкладки =====================
+  function homeTiles() {
+    const g = el('div', 'htiles');
+    [
+      ['🌊', 'Моя волна', 'бесконечный поток', 'linear-gradient(135deg,#ff4fd8,#6b3cff)', () => startWave()],
+      ['🔥', 'Популярное', 'топ прямо сейчас', 'linear-gradient(135deg,#ff9a2e,#ff3d6e)', () => { const s = document.querySelector('#libBody .shelf-wrap'); if (s) s.scrollIntoView({ behavior: 'smooth', block: 'start' }); }],
+      ['♫', 'Плейлисты', 'твои подборки', 'linear-gradient(135deg,#4ff0ff,#2b6cff)', () => { lib.tab = 'playlists'; renderLib(); }],
+      ['👥', 'Друзья', 'кто что слушает', 'linear-gradient(135deg,#19c37d,#0f6b5c)', () => { lib.tab = 'friends'; renderLib(); }],
+    ].forEach(([ic, name, sub, bg, fn], i) => {
+      const b = el('button', 'htile'); b.type = 'button'; b.style.background = bg; b.style.setProperty('--i', i);
+      b.append(el('i', '', ic), el('b', '', name), el('span', '', sub));
+      b.addEventListener('click', fn); g.appendChild(b);
+    });
+    return g;
+  }
+  function renderMore(body) {
+    body.appendChild(section('Ещё'));
+    // аккаунт сверху
+    const accBox = el('div', 'more-acc');
+    if (acc.session) {
+      const u = me(), b = el('button', 'acc-me'); b.type = 'button';
+      const tx = el('div'); tx.append(el('b', '', u.name || u.email), el('span', '', 'Профиль и настройки аккаунта'));
+      b.append(avatar(u), tx); b.addEventListener('click', () => { lib.tab = 'account'; renderLib(); });
+      accBox.appendChild(b);
+    } else { const b = el('button', 'acc-login big', '👤 Войти или создать аккаунт'); b.type = 'button'; b.addEventListener('click', login); accBox.appendChild(b); }
+    body.appendChild(accBox);
+    const unread = Object.values(chat.unread || {}).reduce((s, n) => s + n, 0);
+    const items = [
+      ['♥', 'Моё', 'fav'], ['☰', 'Очередь', 'queue'], ['💬', 'Сообщения' + (unread ? ` · ${unread}` : ''), 'chats'], ['📰', 'Лента', 'feed'],
+      ['🎧', 'Вместе', 'room'], ['🎮', 'Угадай мелодию', 'game'], ['↺', 'История', 'history'], ['📊', 'Статистика', 'stats'],
+      ['🌙', 'Таймер сна', () => $('pSleep').click()], ['⚙', 'Настройки', 'settings'],
+    ];
+    if (native) items.splice(8, 0, ['📁', 'Мои файлы', 'files']);
+    const g = el('div', 'more-grid');
+    items.forEach(([ic, name, to]) => {
+      const b = el('button', 'more-item'); b.type = 'button'; b.append(el('i', '', ic), el('span', '', name));
+      b.addEventListener('click', () => { if (typeof to === 'function') to(); else { lib.tab = to; renderLib(); } });
+      g.appendChild(b);
+    });
+    body.appendChild(g);
+  }
+  // нижние вкладки: какая подсвечена (вложенные разделы относятся к своей вкладке, остальные — к «Ещё»)
+  function syncLibTabs() {
+    const tb = lib.tab, map = tb.startsWith('pl:') ? 'playlists' : tb.startsWith('friend') ? 'friends' : ['home', 'search', 'playlists', 'friends'].includes(tb) ? tb : 'more';
+    document.querySelectorAll('#libTabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === map));
+    const n = Object.values(chat.unread || {}).reduce((s, x) => s + x, 0) + social.incoming.length;
+    $('moreBadge').hidden = !n; $('moreBadge').textContent = n;
+  }
+  document.querySelectorAll('#libTabs button').forEach(b => b.addEventListener('click', () => {
+    lib.tab = b.dataset.tab;
+    if (lib.tab === 'search') { setTimeout(() => $('libQ').focus(), 60); if (!lib.q.trim()) lib.tab = 'home'; }
+    renderLib();
+  }));
+  $('dSearch').addEventListener('click', () => { openLib(true); setTimeout(() => $('libQ').focus(), 80); });
+  $('dSet').addEventListener('click', () => { lib.tab = 'settings'; openLib(true); });
+
+  // дополнительные вкладки медиатеки  function renderExtraTab(body) {
     const tb = lib.tab;
     if (tb === 'queue') { renderQueue(body); return true; }
     if (tb === 'playlists') { renderPlaylists(body); return true; }
@@ -6408,6 +6538,7 @@ registerProcessor('pulse-feed', Feed);`;
     if (tb === 'room') { renderRoom(body); return true; }
     if (tb === 'game') { renderGame(body); return true; }
     if (tb === 'feed') { renderFeed(body); return true; }
+    if (tb === 'more') { renderMore(body); return true; }
     return false;
   }
 
