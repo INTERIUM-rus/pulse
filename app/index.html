@@ -4062,6 +4062,7 @@ registerProcessor('pulse-feed', Feed);`;
     if (SND.graph) SND.graph.c.resume().catch(() => {});
     d.el.playbackRate = SPEEDS[SND.speed][1];
     if (!x || d.el.getAttribute('src') !== it.url) d.el.src = it.url; // при переходе трек уже подгружен
+    if (it.src === 'itunes' && !local.pvHint) { local.pvHint = true; toast('Это отрывок 30 секунд. Целиком — через YouTube (со своим ключом или по ссылке)'); }
     AE.apply(); AE.play();
   }
   function deckError(d) {
@@ -4490,9 +4491,14 @@ registerProcessor('pulse-feed', Feed);`;
         top.innerHTML = '';
         const val = p => p.status === 'fulfilled' ? p.value : [];
         const Y = val(y), H = val(h), A = val(a), C = val(c), items = [...Y];
-        // полные треки из бесплатных каталогов вперемешку; отрывки iTunes — только если YouTube не ответил, в конце
-        for (let i = 0; i < Math.max(H.length, A.length, C.length); i++) { if (H[i]) items.push(H[i]); if (A[i]) items.push(A[i]); if (C[i]) items.push(C[i]); }
-        if (!Y.length) items.push(...val(it));
+        // полные треки из бесплатных каталогов вперемешку; отрывки iTunes — только если YouTube не ответил
+        const pool = [];
+        for (let i = 0; i < Math.max(H.length, A.length, C.length); i++) { if (H[i]) pool.push(H[i]); if (A[i]) pool.push(A[i]); if (C[i]) pool.push(C[i]); }
+        if (!Y.length) pool.push(...val(it));
+        // выше то, где в названии и исполнителе больше слов из запроса; при равенстве полный трек выше отрывка
+        const words = q.toLowerCase().replace(/ё/g, 'е').split(/[\s\-—,.]+/).filter(w => w.length > 1);
+        const score = x => { const s = ((x.title || '') + ' ' + (x.artist || '')).toLowerCase().replace(/ё/g, 'е'); return words.filter(w => s.includes(w)).length - (x.preview ? 0.5 : 0); };
+        pool.map((x, i) => [x, score(x), i]).sort((p, r) => r[1] - p[1] || p[2] - r[2]).forEach(p => items.push(p[0]));
         if (y.status === 'rejected') body.insertBefore(ytNote(y.reason), top);
         if (!items.length) { top.appendChild(el('div', 'empty-note', 'Ничего не нашлось. Попробуй написать иначе.')); return; }
         // слева лучший результат, справа ещё четыре, ниже всё остальное
