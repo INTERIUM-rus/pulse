@@ -989,6 +989,10 @@ button.primary:hover { box-shadow: 0 10px 30px rgba(255,79,216,.55); }
 .fxgrid button { border-color: rgba(255,255,255,.08); }
 .lib-body, .panel, .lib-side, .upnext { scrollbar-width: thin; scrollbar-color: rgba(255,79,216,.5) transparent; }
 .lite .panel, .lite .modal, .lite .ctxmenu, .lite .upnext, .lite .toast { background: rgb(18,12,34); }
+/* подборка под время суток — широкая плитка на главной */
+.mood.smart { display: grid; align-content: center; gap: 2px; width: 100%; height: 110px; margin: 14px 0 4px; box-sizing: border-box; }
+.mood.smart small { position: relative; z-index: 1; font: 800 11px var(--body); letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.85); }
+.mood.smart span { position: relative; z-index: 1; font-size: 13px; color: rgba(255,255,255,.85); }
 /* звук: пресеты эквалайзера, кнопка скорости, полоса «продолжить» */
 .eq-presets { display: flex; flex-wrap: wrap; gap: 8px; }
 .eq-presets button { border-radius: 999px; padding: 8px 14px; font-size: 13px; }
@@ -3848,10 +3852,26 @@ registerProcessor('pulse-feed', Feed);`;
     if (!r.ok) { const er = j.error || {}; throw Object.assign(new Error(er.message || 'http ' + r.status), { reason: er.errors && er.errors[0] && er.errors[0].reason }); }
     return j;
   }
+  // поиск YouTube ограничен в сутки на весь Pulse, поэтому результаты хранятся на устройстве 3 дня,
+  // а после ответа «лимит исчерпан» час не дёргаем YouTube зря
+  const YT_DISK_TTL = 3 * 864e5;
+  function ytDiskGet(q) { const c = store.get('pulse-ytcache', {}), e = c[q.toLowerCase()]; return e && Date.now() - e.t < YT_DISK_TTL ? e.list : null; }
+  function ytDiskPut(q, list) {
+    const c = store.get('pulse-ytcache', {});
+    c[q.toLowerCase()] = { t: Date.now(), list: list.slice(0, 20) };
+    const keys = Object.keys(c).sort((a, b) => c[b].t - c[a].t);
+    keys.slice(40).forEach(k => delete c[k]);
+    try { store.set('pulse-ytcache', c); } catch (e) {}
+  }
+  const ytQuotaErr = e => ['quotaExceeded', 'dailyLimitExceeded', 'rateLimitExceeded'].includes(e && e.reason);
   async function searchYT(q) {
     if (ytCache[q]) return ytCache[q];
-    // поиск стоит 100 единиц из 10 000 в сутки, поэтому результаты запоминаются
-    const s = await ytApi(`search?part=snippet&type=video&videoEmbeddable=true&videoCategoryId=10&maxResults=25&q=${encodeURIComponent(q)}`);
+    const disk = ytDiskGet(q);
+    if (disk) return (ytCache[q] = disk);
+    if (Date.now() - store.get('pulse-ytquota', 0) < 3600e3) throw Object.assign(new Error('quota'), { reason: 'quotaExceeded' });
+    let s;
+    try { s = await ytApi(`search?part=snippet&type=video&videoEmbeddable=true&videoCategoryId=10&maxResults=25&q=${encodeURIComponent(q)}`); }
+    catch (e) { if (ytQuotaErr(e)) store.set('pulse-ytquota', Date.now()); throw e; }
     const ids = (s.items || []).map(i => i.id && i.id.videoId).filter(Boolean);
     if (!ids.length) return (ytCache[q] = []);
     const v = await ytApi(`videos?part=snippet,contentDetails&id=${ids.join(',')}`);
@@ -3860,6 +3880,7 @@ registerProcessor('pulse-feed', Feed);`;
     const key = x => (x.artist + '|' + x.title).toLowerCase();
     const audio = new Set(list.filter(x => x.topic).map(key));
     list.sort((a, b) => (b.topic - a.topic) || (audio.has(key(a)) - audio.has(key(b))));
+    if (list.length) ytDiskPut(q, list);
     return (ytCache[q] = list);
   }
   async function ytPopular() {
@@ -3874,7 +3895,7 @@ registerProcessor('pulse-feed', Feed);`;
     return { id: 'yt:' + id, src: 'yt', vid: id, title: 'Загружаю…', artist: '', cover: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`, duration: 0, fromPlayer: true };
   }
   function ytProblem(e) {
-    if (e.reason === 'quotaExceeded' || e.reason === 'dailyLimitExceeded') return 'Лимит поиска YouTube на сегодня исчерпан. Завтра снова заработает, а пока можно вставлять ссылки.';
+    if (ytQuotaErr(e)) return 'Поиск YouTube на сегодня исчерпан (у Google суточный лимит на всё приложение). Пока ищу в других каталогах, а ролики можно включать по ссылке. Завтра поиск снова заработает.';
     if (e.reason === 'keyInvalid' || /API key not valid/i.test(e.message)) return 'Поиск сейчас недоступен: ключ YouTube не принят. Ссылки на ролики при этом работают.';
     if (e.reason === 'accessNotConfigured' || /has not been used|disabled/i.test(e.message)) return 'В Google Cloud не включён YouTube Data API v3 для этого ключа.';
     return 'YouTube не ответил: проверь интернет или VPN.';
@@ -4302,10 +4323,10 @@ registerProcessor('pulse-feed', Feed);`;
   // умная подборка: утром бодрое, днём для дела, вечером вайб, ночью тихое; в выходные — своё
   function smartPick() {
     const d = new Date(), h = d.getHours(), we = d.getDay() === 0 || d.getDay() === 6;
-    if (h >= 5 && h < 11) return we ? ['Ленивое утро', 'выходной, никуда не спешим', 'lazy morning acoustic chill'] : ['Бодрое утро', 'проснуться и собраться', 'morning energy pop hits'];
-    if (h >= 11 && h < 17) return we ? ['Выходной день', 'гулять и кайфовать', 'summer vibes feel good hits'] : ['Для работы и учёбы', 'фокус без слов', 'lofi focus study beats'];
-    if (h >= 17 && h < 23) return we ? ['Вечеринка выходного', 'громко и весело', 'party dance hits'] : ['Вечерний вайб', 'выдохнуть после дня', 'evening chill vibes'];
-    return ['Ночной чилл', 'тихо и глубоко', 'late night chill rnb'];
+    if (h >= 5 && h < 11) return we ? ['Ленивое утро', 'выходной, никуда не спешим', 'lazy morning acoustic chill', '☕', 30] : ['Бодрое утро', 'проснуться и собраться', 'morning energy pop hits', '☀️', 40];
+    if (h >= 11 && h < 17) return we ? ['Выходной день', 'гулять и кайфовать', 'summer vibes feel good hits', '🌴', 160] : ['Для работы и учёбы', 'фокус без слов', 'lofi focus study beats', '🎯', 200];
+    if (h >= 17 && h < 23) return we ? ['Вечеринка выходного', 'громко и весело', 'party dance hits', '🎉', 318] : ['Вечерний вайб', 'выдохнуть после дня', 'evening chill vibes', '🌆', 280];
+    return ['Ночной чилл', 'тихо и глубоко', 'late night chill rnb', '🌙', 240];
   }
   function moodGrid() {
     const box = el('div', 'moods');
@@ -4345,13 +4366,12 @@ registerProcessor('pulse-feed', Feed);`;
     if (lib.tab === 'home') {
       body.appendChild(heroBlock());
       body.appendChild(homeTiles());
-      const [smT, smSub, smQ] = smartPick(), sm = shelf('🕒 ' + smT, smSub); body.appendChild(sm.wrap); sm.loading();
-      guarded(body, async ok => {
-        let tr = [];
-        try { if (ytKey()) tr = await searchYT(smQ); } catch (e) {}
-        if (!tr.length) tr = await searchArchive(smQ);
-        if (ok()) sm.fill(tr.slice(0, 20));
-      });
+      // подборка под время суток: ищет только по нажатию — поиск YouTube ограничен в сутки
+      const [smT, smSub, smQ, smE, smH] = smartPick(), smb = el('button', 'mood smart'); smb.type = 'button';
+      smb.style.setProperty('--h', smH); smb.style.setProperty('--i', 0);
+      smb.append(el('small', '', '🕒 Сейчас для тебя'), el('b', '', smT), el('span', '', smSub), el('i', '', smE));
+      smb.addEventListener('click', () => { lib.q = smQ; $('libQ').value = smQ; lib.tab = 'search'; renderLib(); });
+      body.appendChild(smb);
       const pop = shelf('Популярное сейчас', 'топ музыки в России'); body.appendChild(pop.wrap); pop.loading();
       guarded(body, async ok => {
         let tr = null;
@@ -4530,7 +4550,7 @@ registerProcessor('pulse-feed', Feed);`;
   // похожие треки для волны: по артисту текущего трека, без того, что недавно играло
   async function waveTracks(seed) {
     const artist = (seed && seed.artist || '').split(/,|&| feat\.? | ft\.? | x /i)[0].trim();
-    const list = artist ? await searchYT(artist) : [];
+    const list = artist ? await searchYT(artist).catch(() => []) : []; // лимит поиска — волна идёт по популярному
     const recent = new Set([...lib.played.slice(0, 50).map(p => p.id), ...local.queue.map(x => x.id)]);
     let pick = list.filter(x => !recent.has(x.id));
     if (pick.length < 4) pick = pick.concat((await ytPopular()).filter(x => !recent.has(x.id) && !pick.some(p => p.id === x.id)));
