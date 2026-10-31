@@ -750,6 +750,7 @@ body.saver { cursor: none; }
   body:not(.mini) .player .pbtns button { width: 38px; height: 38px; }
   body:not(.mini) .player .pbtns #pPlay { width: 46px; height: 46px; font-size: 15px; }
   body:not(.mini) .player .pextra { grid-area: 1 / 5 / 4 / 6; margin: 0; align-self: center; grid-template-columns: auto 100px auto; }
+  body:not(.mini) .ytwin { bottom: 104px; }
   body.lib-open .lib-body { padding-bottom: 110px; }
   body.lib-open .lib-side { padding-bottom: 110px !important; }
 }
@@ -774,6 +775,8 @@ body.saver { cursor: none; }
   .lib-tabs button.on i { filter: drop-shadow(0 0 6px var(--neon-a)); }
   .lib-tabs .nbadge { position: absolute; top: 0; right: 4px; margin: 0; }
   body.lib-open .player { bottom: calc(74px + var(--sab)); }
+  /* видео сверху не должно закрывать поиск и списки медиатеки */
+  body.lib-open.yt-on .lib-main { padding-top: calc(66px + max(200px, (100vw - 16px) * 9 / 16) + var(--sat)); }
   .lib-body { padding-bottom: calc(230px + var(--sab)) !important; }
   .htiles { grid-template-columns: 1fr 1fr; gap: 8px; }
   .htile { min-height: 96px; border-radius: 16px; }
@@ -3807,6 +3810,7 @@ registerProcessor('pulse-feed', Feed);`;
   }
   function showYT(on) {
     $('ytwin').hidden = !on;
+    document.body.classList.toggle('yt-on', on);
     if (document.body.classList.contains('mini')) post({ cmd: 'mini', on: true, h: on ? 370 : 160 });
     if (!on && yt.ready) { try { yt.player.stopVideo(); } catch (e) {} }
   }
