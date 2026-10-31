@@ -4043,7 +4043,9 @@ registerProcessor('pulse-feed', Feed);`;
   local.audio = deck.el;
   function route(d) {
     if (d.plain || d.gain) return;
-    const g = sndGraph(), src = g.c.createMediaElementSource(d.el);
+    const g = sndGraph();
+    if (d.gain) return; // sndGraph при первом запуске уже мог подключить эту деку
+    const src = g.c.createMediaElementSource(d.el);
     d.gain = g.c.createGain(); src.connect(d.gain); d.gain.connect(g.input);
     d.el.volume = 1;
   }
@@ -4058,7 +4060,8 @@ registerProcessor('pulse-feed', Feed);`;
     const x = local.xfDeck; local.xfDeck = null;
     const d = it.noFx ? plainDeck : x || (deck.plain ? decks[0] : deck);
     if (x) { deck = d; local.audio = d.el; } else useDeck(d);
-    if (!d.plain && sndFx()) route(d);
+    // эффекты не должны мешать играть: если подключить их не вышло, трек всё равно звучит
+    if (!d.plain && sndFx()) try { route(d); } catch (e) {}
     if (SND.graph) SND.graph.c.resume().catch(() => {});
     d.el.playbackRate = SPEEDS[SND.speed][1];
     if (!x || d.el.getAttribute('src') !== it.url) d.el.src = it.url; // при переходе трек уже подгружен
@@ -4090,7 +4093,7 @@ registerProcessor('pulse-feed', Feed);`;
     const old = deck, nd = old === decks[0] ? decks[1] : decks[0];
     // за полминуты до перехода следующий трек заранее подгружается на вторую деку — сервер может отвечать медленно
     if (nd.el.getAttribute('src') !== nx.url) {
-      if (sndFx()) route(nd);
+      if (sndFx()) try { route(nd); } catch (e) {}
       nd.el.playbackRate = SPEEDS[SND.speed][1]; deckVol(nd, 0);
       nd.el.src = nx.url; nd.el.load();
     }
@@ -4116,7 +4119,7 @@ registerProcessor('pulse-feed', Feed);`;
       g.bands.forEach((b, i) => b.gain.setTargetAtTime(SND.eq[i] || 0, t, 0.05));
       g.wet.gain.setTargetAtTime(sp[2], t, 0.1); g.dry.gain.setTargetAtTime(sp[2] ? 0.8 : 1, t, 0.1);
     }
-    if (sndFx() && local.active && eng() === AE) route(deck);
+    if (sndFx() && local.active && eng() === AE) try { route(deck); } catch (e) {}
     for (const d of [...decks, plainDeck]) d.el.playbackRate = sp[1];
     // YouTube умеет только скорость (высота тона там сохраняется); допустимые шаги — 0.75 и 1.25
     if (yt.ready && local.item && local.item.src === 'yt') try { yt.player.setPlaybackRate(sp[1] < 1 ? 0.75 : sp[1]); } catch (e) {}
