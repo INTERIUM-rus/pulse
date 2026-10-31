@@ -7687,7 +7687,7 @@ registerProcessor('pulse-feed', Feed);`;
   if (!native && 'serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
   // телефон усыпляет звук, когда приложение сворачивают: будим его при первом касании
   addEventListener('pointerdown', () => { if (actx && actx.state !== 'running') actx.resume().catch(() => {}); });
-  openLib(true);
+  if (!/^#v=/.test(location.hash)) openLib(true); // по ссылке на ролик сразу показываем визуал с видео
   post({ cmd: 'ready' });
   requestAnimationFrame(frame);
 })();
