@@ -700,6 +700,9 @@ body.mini .pmini-lyr { display: block; font-style: normal; font: 700 12px var(--
 .share-list { display: flex; flex-wrap: wrap; gap: 8px; max-height: 40vh; overflow-y: auto; }
 body.saver .brand, body.saver .dock, body.saver .player, body.saver .upnext, body.saver .hint, body.saver .ytwin, body.saver .updbar, body.saver .toast { display: none !important; }
 body.saver { cursor: none; }
+#instRow { align-items: center; }
+#instRow .hint2 { flex: 1 1 240px; }
+#ovlUrl b { color: var(--ink); -webkit-user-select: text; user-select: text; }
 /* ---------- медиатека 2.0: анимации ---------- */
 @property --ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
 @keyframes spinAng { to { --ang: 360deg; } }
@@ -967,6 +970,8 @@ body.saver { cursor: none; }
   <label class="ctl"><span>Цвета</span>
     <select id="fxCover"><option value="on">Из обложки трека</option><option value="off">Радуга</option></select><output></output></label>
   <p class="hint2">«Спокойно» — без вспышек, молний и дропов. «Под настроение»: на медленной и тихой музыке краски блекнут и уходят в холодные тона, движение замедляется.</p>
+  <label class="ctl"><span>Сезонные темы</span>
+    <select id="seasonSel"><option value="auto">Сами по датам</option><option value="halloween">🎃 Хэллоуин</option><option value="newyear">🎄 Новый год</option><option value="off">Выключены</option></select><output></output></label>
   <label class="ctl"><span>Перевод текста</span>
     <select id="trOn"><option value="off">Выключен</option><option value="on">На русский</option></select><output></output></label>
   <h3 class="set-h">Своя тема</h3>
@@ -988,6 +993,10 @@ body.saver { cursor: none; }
     <select id="dpiMode"><option value="off">Выключено</option><option value="on">Включено</option></select><output id="dpiState"></output></label>
   <label class="ctl" id="dscRow"><span>Статус в Discord</span><select id="dscOn"><option value="on">Показывать, что слушаю</option><option value="off">Не показывать</option></select><output></output></label>
   <label class="ctl" id="saverRow"><span>Заставка Windows</span><select id="saverOn"><option value="off">Выключена</option><option value="on">Pulse</option></select><output></output></label>
+  <label class="ctl" id="ovlRow"><span>Оверлей для стрима</span><select id="ovlOn"><option value="off">Выключен</option><option value="on">Включён</option></select><output></output></label>
+  <p class="hint2" id="ovlUrl" hidden>В OBS: Источник → Браузер → адрес <b>http://localhost:53690/</b>, размер 1920×1080. Без текста песни: <b>?lyrics=0</b>, плашка справа: <b>?pos=right</b>.</p>
+  <label class="ctl"><span>Анонимная статистика</span><select id="telOn"><option value="on">Отправлять</option><option value="off">Не отправлять</option></select><output></output></label>
+  <div class="keyrow" id="instRow" hidden><button id="instBtn" type="button">📦 Установить Pulse</button><span class="hint2" id="instHint"></span></div>
   <p class="hint2" id="dpiHint">Если YouTube не открывается без VPN. Работает только для адресов YouTube через открытый zapret, Windows попросит права администратора. С включённым VPN не нужно.</p>
   <p class="hint2"><a href="https://interium-rus.github.io/pulse/" target="_blank">Сайт Pulse</a> · <a href="https://interium-rus.github.io/pulse/privacy.html" target="_blank">Конфиденциальность</a> · <a href="https://interium-rus.github.io/pulse/terms.html" target="_blank">Условия</a></p>
   <h3 class="set-h">Звук и текст</h3>
@@ -1246,6 +1255,10 @@ registerProcessor('pulse-feed', Feed);`;
         else if (m.type === 'notify-click') onNotifyClick(m.tag);
         else if (m.type === 'saver') onSaver(m);
         else if (m.type === 'saver-mode') enterSaver();
+        else if (m.type === 'app') onAppInfo(m);
+        else if (m.type === 'overlay') onOverlay(m);
+        else if (m.type === 'mediakey') onMediaKey(m.key);
+        else if (m.type === 'install' && !m.ok) toast('Не получилось установить: ' + m.error);
         else if (m.type === 'selftest-yt') ytSelfTest();
         else if (m.type === 'wallpaper') { wallOn = !!m.on; $('dWall').classList.toggle('on', wallOn); document.body.classList.toggle('wall', wallOn); if (m.error) toast('Не получилось встать под значки рабочего стола'); }
         else if (m.type === 'nodevice') srcState('Не нашёл устройство вывода звука. Подключи колонки или наушники.', true);
@@ -1400,6 +1413,20 @@ registerProcessor('pulse-feed', Feed);`;
   // все оттенки сцены (кольца, искры, волны, горящий текст) проходят через HS:
   // — цвета обложки: оттенок подтягивается к одному из трёх главных цветов обложки трека;
   // — грустная музыка: всё сжимается в холодный диапазон от голубого до сине-фиолетового
+  const SEASONS = {
+    halloween: { name: '🎃 Хэллоуин', hues: [28, 275, 105], emoji: ['🎃', '🦇', '👻', '🦇', '🕸️'], drop: 'BOO!', fly: 'bat' },
+    newyear: { name: '🎄 Новый год', hues: [200, 355, 48], emoji: ['❄️', '🎄', '✨', '🎁', '⭐'], drop: 'С НОВЫМ ГОДОМ!', fly: 'snow' },
+  };
+  function seasonNow() {
+    const pick = store.get('pulse-season', 'auto');
+    if (pick === 'off') return null;
+    if (SEASONS[pick]) return pick;
+    const d = new Date(), md = (d.getMonth() + 1) * 100 + d.getDate();
+    if (md >= 1025 && md <= 1102) return 'halloween';
+    if (md >= 1220 || md <= 110) return 'newyear';
+    return null;
+  }
+  let seasonKey = seasonNow();
   let sadK = 0;
   const cover = { hues: null, key: '' };
   const mixHue = (a, b, t) => { const d = ((b - a + 540) % 360) - 180; return ((a + d * t) % 360 + 360) % 360; };
@@ -1409,6 +1436,7 @@ registerProcessor('pulse-feed', Feed);`;
       const k = Math.floor((((h - sim.hue0) % 360 + 360) % 360) / 120) % cover.hues.length;
       x = mixHue(x, cover.hues[k], 0.7);
     }
+    if (seasonKey) { const sh = SEASONS[seasonKey].hues, k = Math.floor((((h - sim.hue0) % 360 + 360) % 360) / 120) % sh.length; x = mixHue(x, sh[k], 0.75); }
     if (sadK > 0.01) x = mixHue(x, 195 + x / 360 * 70, sadK * 0.85);
     return x;
   };
@@ -1496,6 +1524,7 @@ registerProcessor('pulse-feed', Feed);`;
     }
     sim.flash = Math.max(sim.flash, 0.1 * power * I);
     lyrBeat();
+    seasonBeat(power);
     bgBeat();
     // молнии на обычном бите — только на полной громкости эффектов
     if (I > 0.8 && Math.random() < 0.3 * power) beatFx.lightning(2);
@@ -1600,7 +1629,7 @@ registerProcessor('pulse-feed', Feed);`;
     },
     drop() {
       beatFx.shatter();
-      sim.texts.push({ x: 0, y: 0, str: 'DROP', hue: HS(sim.hue0), life: 1.3, big: 2.4 });
+      sim.texts.push({ x: 0, y: 0, str: (season() && season().drop) || 'DROP', hue: HS(sim.hue0), life: 1.3, big: 2.4 });
       sim.invert = 1; sim.slow = 0.35; sim.shake = reduceMotion ? 0 : 18;
       sim.dropT = 4; sim.zoom = reduceMotion ? 1 : 1.35;
       // мир на несколько секунд становится объёмным, камера делает полный оборот вокруг воронки
@@ -6106,6 +6135,127 @@ registerProcessor('pulse-feed', Feed);`;
     ['pointerdown', 'keydown', 'wheel'].forEach(ev => addEventListener(ev, quit, true));
   }
 
+  // ===================== версия, установка, статистика и отчёты об ошибках =====================
+  const appInfo = { version: native ? '' : 'web', installed: false, installId: '' };
+  const telemetryOn = () => store.get('pulse-telemetry', true);
+  function installId() {
+    if (appInfo.installId) return appInfo.installId;
+    let id = store.get('pulse-install-id', '');
+    if (!id) { id = crypto.randomUUID ? crypto.randomUUID() : ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)); store.set('pulse-install-id', id); }
+    return id;
+  }
+  // отчёт об ошибке страницы: не больше 5 за запуск, одинаковые — один раз
+  const errSeen = new Set();
+  function reportError(kind, message, stack) {
+    if (!telemetryOn() || !supaOn() || errSeen.size >= 5) return;
+    const key = kind + '|' + message; if (errSeen.has(key)) return; errSeen.add(key);
+    fetch(`${SUPA.url}/rest/v1/errors`, { method: 'POST', headers: { apikey: SUPA.key, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ version: appInfo.version || (native ? '?' : 'web'), platform: native ? 'win' : 'web', os: navigator.userAgent.slice(0, 200), kind, message: String(message).slice(0, 500), stack: String(stack || '').slice(0, 4000), install_id: installId() }) }).catch(() => {});
+  }
+  addEventListener('error', e => { if (e.filename && !/pulse\.local|interium-rus\.github\.io|^$/.test(e.filename)) return; reportError('js', e.message, `${e.filename}:${e.lineno}:${e.colno}\n${e.error && e.error.stack || ''}`); });
+  addEventListener('unhandledrejection', e => { const r = e.reason; if (r && (r.name === 'AbortError' || /Failed to fetch|NetworkError|Load failed/i.test(r.message || ''))) return; reportError('promise', r && (r.message || r) || 'promise', r && r.stack); });
+  // раз в день: «этот Pulse запускался» — номер установки, версия и платформа, ничего больше
+  function dailyPing() {
+    if (!telemetryOn() || !supaOn() || (native && !appInfo.version)) return;
+    const day = new Date().toLocaleDateString('sv');
+    if (store.get('pulse-ping-day', '') === day) return;
+    // повторная отметка за день отклоняется как дубль (409) — это нормально
+    fetch(`${SUPA.url}/rest/v1/pings`, { method: 'POST', headers: { apikey: SUPA.key, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ day, install_id: installId(), version: appInfo.version || 'web', platform: native ? 'win' : (lite ? 'phone' : 'web') }) })
+      .then(r => { if (r.ok || r.status === 409) store.set('pulse-ping-day', day); }).catch(() => {});
+  }
+  setTimeout(dailyPing, native ? 6000 : 3000); setInterval(dailyPing, 3600 * 1000);
+  // предложение установить Pulse (один раз, если запущен из «Загрузок»)
+  function onAppInfo(m) {
+    Object.assign(appInfo, { version: m.version, installed: m.installed, installId: m.installId });
+    $('instRow').hidden = false;
+    $('instBtn').textContent = m.installed ? '🗑 Удалить Pulse' : '📦 Установить Pulse';
+    $('instHint').textContent = m.installed ? `Версия ${m.version}. Pulse установлен: ярлыки в «Пуске» и на рабочем столе.` : `Версия ${m.version}. Pulse запущен без установки — установи, чтобы был ярлык в «Пуске» и удаление через «Приложения» Windows.`;
+    dailyPing();
+    if (!m.installed && !store.get('pulse-noinstall', false) && !saverMode) setTimeout(installAsk, 2500);
+  }
+  function installAsk() {
+    const back = el('div', 'modal-back'), box = el('div', 'modal');
+    const row = el('div', 'modal-row'), no = el('button', '', 'Не спрашивать'), later = el('button', '', 'Потом'), ok = el('button', 'primary', '📦 Установить');
+    [no, later, ok].forEach(b => { b.type = 'button'; row.appendChild(b); });
+    box.append(el('h3', '', 'Установить Pulse?'), el('p', 'hint2', 'Появится ярлык в «Пуске» и на рабочем столе, а удалить Pulse можно будет через «Приложения» Windows. Права администратора не нужны.'), row);
+    back.appendChild(box); document.body.appendChild(back);
+    no.addEventListener('click', () => { store.set('pulse-noinstall', true); back.remove(); });
+    later.addEventListener('click', () => back.remove());
+    ok.addEventListener('click', () => { ok.disabled = true; ok.textContent = 'Устанавливаю…'; post({ cmd: 'install' }); });
+  }
+
+  // ===================== сезонные темы =====================
+  // Хэллоуин (25 октября — 2 ноября) и Новый год (20 декабря — 10 января): свои цвета, летающие фигурки и надпись дропа
+  const season = () => seasonKey && SEASONS[seasonKey];
+  const seasonFlyers = [];
+  function seasonBeat(power) {
+    const s = season(); if (!s || fxI() < 0.3 || Math.random() > 0.35 * power) return;
+    const e = s.emoji[Math.floor(Math.random() * s.emoji.length)], fromLeft = Math.random() < 0.5;
+    seasonFlyers.push(s.fly === 'bat' && (e === '🦇' || e === '👻')
+      ? { e, x: fromLeft ? -60 : W + 60, y: rand(H * 0.1, H * 0.6), vx: (fromLeft ? 1 : -1) * rand(220, 380), vy: rand(-30, 30), size: rand(30, 56), t: 0, flap: true }
+      : { e, x: rand(W * 0.1, W * 0.9), y: H + 40, vx: rand(-30, 30), vy: -rand(60, 130), size: rand(26, 48), t: 0 });
+    if (seasonFlyers.length > 24) seasonFlyers.shift();
+  }
+  function drawSeason(dt) {
+    const s = season(); if (!s) { seasonFlyers.length = 0; return; }
+    if (s.fly === 'snow') { rainBoost.snow = true; rainBoost.t = Math.max(rainBoost.t, 0.6); }
+    if (!seasonFlyers.length) return;
+    const k = DPR * quality.k;
+    ctx.save(); ctx.setTransform(k, 0, 0, k, 0, 0); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (let i = seasonFlyers.length - 1; i >= 0; i--) {
+      const f = seasonFlyers[i];
+      f.t += dt; f.x += f.vx * dt; f.y += f.vy * dt;
+      if (f.t > 9 || f.x < -120 || f.x > W + 120 || f.y < -80) { seasonFlyers.splice(i, 1); continue; }
+      ctx.globalAlpha = Math.min(1, f.t * 3, (9 - f.t) / 2) * 0.9;
+      ctx.save(); ctx.translate(f.x, f.y + (f.flap ? Math.sin(f.t * 9) * 8 : 0));
+      if (f.flap) ctx.scale(1, 0.75 + 0.25 * Math.abs(Math.sin(f.t * 14)));
+      ctx.font = `${f.size}px "Segoe UI Emoji", sans-serif`; ctx.fillText(f.e, 0, 0);
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+  function seasonApply() {
+    seasonKey = seasonNow();
+    const s = season();
+    if (s && store.get('pulse-season-hello', '') !== seasonKey + new Date().getFullYear()) { store.set('pulse-season-hello', seasonKey + new Date().getFullYear()); setTimeout(() => toast(`${s.name} в Pulse! Выключить — в Настройках → Эффекты`), 4000); }
+  }
+
+  // ===================== оверлей для стрима (OBS) =====================
+  const ovl = { on: store.get('pulse-overlay', false), timer: null };
+  function overlayTick() {
+    let j = null;
+    if (local.active && local.item) { const e = eng(); j = { title: local.item.title, artist: local.item.artist || '', cover: local.item.cover || null, pos: e.time, dur: e.dur, playing: !e.paused }; }
+    else if (auto.last && auto.last.title) j = { title: auto.last.title, artist: auto.last.artist || '', cover: auto.last.coverUrl && /^https:/.test(auto.last.coverUrl) ? auto.last.coverUrl : (auto.last.hasCover ? '/cover' : null), pos: auto.last.position, dur: auto.last.duration, playing: auto.last.status === 'Playing' };
+    const l = lyr.on && lyr.lines[lyr.idx], n = lyr.on && lyr.lines[lyr.idx + 1];
+    post({ cmd: 'overlay-state', text: JSON.stringify(Object.assign(j || {}, { line: l && l.text || '', next: n && n.text || '', beat: +music.beat.toFixed(2), hue: Math.round(HS(sim.hue0)) })) });
+  }
+  function overlaySet(on) {
+    ovl.on = on; store.set('pulse-overlay', on);
+    post({ cmd: 'overlay', on });
+    clearInterval(ovl.timer); if (on) ovl.timer = setInterval(overlayTick, 100);
+  }
+  function onOverlay(m) {
+    $('ovlOn').value = m.on ? 'on' : 'off';
+    $('ovlUrl').hidden = !m.on;
+    if (m.error) { toast('Оверлей не запустился: ' + m.error); ovl.on = false; store.set('pulse-overlay', false); clearInterval(ovl.timer); }
+  }
+
+  // ===================== медиаклавиши =====================
+  // пока играет медиатека Pulse, ⏯ ⏭ ⏮ на клавиатуре и наушниках управляют им
+  let mkeys = false;
+  setInterval(() => { const want = native && local.active; if (want !== mkeys) { mkeys = want; post({ cmd: 'mediakeys', on: want }); } }, 1000);
+  function onMediaKey(k) {
+    if (!local.active) return;
+    if (k === 'play') { eng().paused ? eng().play() : eng().pause(); setTimeout(markPlaying, 200); }
+    else if (k === 'next') localNext();
+    else if (k === 'prev') localPrev();
+  }
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.setActionHandler('play', () => local.active && eng().play());
+    navigator.mediaSession.setActionHandler('pause', () => local.active && eng().pause());
+  }
+
   // дополнительные вкладки медиатеки
   function renderExtraTab(body) {
     const tb = lib.tab;
@@ -6302,6 +6452,7 @@ registerProcessor('pulse-feed', Feed);`;
       render(dt * sim.slow);
       drawShards(dt);
       drawRain(dt);
+      drawSeason(dt);
     }
     const t1 = performance.now();
     if (!covered) drawLyrics(dt);
@@ -6419,6 +6570,16 @@ registerProcessor('pulse-feed', Feed);`;
     else if (m.on !== undefined && m.error === null) toast(m.on ? '🖥 Pulse теперь заставка Windows' : 'Заставка Pulse выключена');
   }
   if (native) post({ cmd: 'saver' });
+  seasonApply();
+  $('seasonSel').value = store.get('pulse-season', 'auto');
+  $('seasonSel').addEventListener('change', e => { store.set('pulse-season', e.target.value); seasonKey = seasonNow(); toast(season() ? season().name + ' включён' : 'Сезонные темы выключены'); });
+  $('ovlRow').hidden = !native;
+  $('ovlOn').value = ovl.on ? 'on' : 'off';
+  $('ovlOn').addEventListener('change', e => overlaySet(e.target.value === 'on'));
+  if (native && ovl.on) overlaySet(true);
+  $('telOn').value = telemetryOn() ? 'on' : 'off';
+  $('telOn').addEventListener('change', e => store.set('pulse-telemetry', e.target.value === 'on'));
+  $('instBtn').addEventListener('click', () => post({ cmd: appInfo.installed ? 'uninstall' : 'install' }));
   $('dFocus').addEventListener('click', () => (focus.on ? focusStop() : focusStart()));
   $('dPromo').hidden = !native;
   $('dPromo').addEventListener('click', e => {

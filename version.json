@@ -1,6 +1,6 @@
 {
-    "version":  "1.1.2",
+    "version":  "1.2.0",
     "url":  "https://interium-rus.github.io/pulse/Pulse.exe",
-    "sha256":  "DF5D0A92DF3DAD0D89E9787DF05953CB9DA403B35D0BE769BFFAA7D7F07C7519",
-    "notes":  "Статус в Discord и исправление запуска."
+    "sha256":  "4E099690BE3D1B75D61B60815941C8E07D5A23E4B277C70284D1FC5488F91EA8",
+    "notes":  "Хэллоуин 🎃, оверлей для стрима в OBS, установка с ярлыками, медиаклавиши и отчёты об ошибках."
 }
