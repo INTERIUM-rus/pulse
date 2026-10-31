@@ -1,0 +1,1 @@
+﻿Модель распознавания речи для голосовых команд Pulse: vosk-model-small-ru-0.22 от Alpha Cephei (https://alphacephei.com/vosk/models), лицензия Apache 2.0. Перепакована в ru.tar.gz (папка model/) для vosk-browser.
