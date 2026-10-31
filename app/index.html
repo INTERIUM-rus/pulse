@@ -325,6 +325,16 @@ body.lib-open .player { z-index: 7; opacity: 1 !important; }
 }
 /* ---------- телефон: всё крупнее под палец, плашки на всю ширину, отступы от выреза и полоски «домой» ---------- */
 @media (hover: none) { .tmore { opacity: 1; } .pbar { height: 6px; } }
+/* лёгкий режим телефона: размытие под стеклом и наложения на весь экран — самое дорогое для телефона */
+.lite *, .lite *::before, .lite *::after { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+.lite #grain { display: none; }
+.lite #fxo { mix-blend-mode: normal; }
+.lite .lib { background: rgb(8,6,18); animation: none; }
+.lite .lib::before { animation: none; inset: 0; }
+.lite .player, .lite .upnext, .lite .panel, .lite .modal, .lite .ctxmenu, .lite .ytwin { background-color: rgba(14,12,30,.96); }
+.lite .player { box-shadow: 0 10px 30px rgba(0,0,0,.45); }
+.lite .pshine, .lite .lib-wave::after { display: none; }
+.lite .brand b { filter: none; }
 @media (max-width: 600px) {
   :root { --sat: env(safe-area-inset-top, 0px); --sab: env(safe-area-inset-bottom, 0px); }
   .brand { top: calc(10px + var(--sat)); left: 12px; }
@@ -874,6 +884,9 @@ body.mini .pmini-lyr { display: block; font-style: normal; font: 700 12px var(--
   };
   // внутри приложения Pulse.exe страница общается с окном: звук Windows приходит сообщениями, трек и обложка — по /api
   const native = !!(window.chrome && window.chrome.webview);
+  // телефон: лёгкий режим — 30 кадров, обычное разрешение, без размытия стекла; пока открыта медиатека, сцена не рисуется
+  const lite = !native && (matchMedia('(pointer: coarse)').matches || innerWidth <= 600);
+  if (lite) document.documentElement.classList.add('lite');
   const helperHere = native || (location.protocol.startsWith('http') && /^(localhost|127\.0\.0\.1)$/.test(location.hostname));
   const API = native ? '/api' : '';
   const LRC = native ? '/api/lrclib' : 'https://lrclib.net/api';
@@ -888,7 +901,7 @@ body.mini .pmini-lyr { display: block; font-style: normal; font: 700 12px var(--
 
   let W = 0, H = 0, S = 0, DPR = 1, cx = 0, cy = 0, maxD = 600, stars = [];
   // автокачество: если кадров мало, визуализатор рисуется в меньшем разрешении (текст остаётся чётким)
-  const quality = { k: 1, frames: 0, t: 0, good: 0 };
+  const quality = { k: lite ? 0.8 : 1, frames: 0, t: 0, good: 0, min: lite ? 0.4 : 0.55, fps: lite ? 30 : 60 };
   function sizeMain() {
     const rs = DPR * quality.k;
     cv.width = Math.round(W * rs); cv.height = Math.round(H * rs);
@@ -900,14 +913,17 @@ body.mini .pmini-lyr { display: block; font-style: normal; font: 700 12px var(--
     const fps = quality.frames / quality.t;
     quality.frames = 0; quality.t = 0;
     if (document.hidden) return;
-    if (fps < 48 && quality.k > 0.55) { quality.k = Math.max(0.55, quality.k * 0.82); quality.good = 0; sizeMain(); }
-    else if (fps > 57 && quality.k < 1 && ++quality.good >= 5) { quality.k = Math.min(1, quality.k * 1.15); quality.good = 0; sizeMain(); }
+    const want = quality.fps;
+    if (fps < want * 0.8 && quality.k > quality.min) { quality.k = Math.max(quality.min, quality.k * 0.82); quality.good = 0; sizeMain(); }
+    else if (fps > want * 0.95 && quality.k < 1 && ++quality.good >= 5) { quality.k = Math.min(1, quality.k * 1.15); quality.good = 0; sizeMain(); }
   }
   function resize() {
-    DPR = Math.min(devicePixelRatio || 1, 2);
+    DPR = Math.min(devicePixelRatio || 1, lite ? 1 : 2);
     W = innerWidth; H = innerHeight;
     sizeMain();
-    lcv.width = Math.round(W * DPR); lcv.height = Math.round(H * DPR); lctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    // текст песни на телефоне чуть чётче сцены, но не в полное разрешение экрана
+    const tr = lite ? Math.min(devicePixelRatio || 1, 1.5) : DPR;
+    lcv.width = Math.round(W * tr); lcv.height = Math.round(H * tr); lctx.setTransform(tr, 0, 0, tr, 0, 0);
     S = Math.min(W * 0.62, H * 0.76);
     cx = W / 2; cy = H / 2;
     maxD = Math.hypot(W, H) / 2 + 30;
@@ -2534,7 +2550,8 @@ registerProcessor('pulse-feed', Feed);`;
   function makeBurn(G, pose, hueA, hueB) {
     const pad = Math.ceil(G.fs * 0.5), lw = G.w + pad * 2, lh = G.h + pad * 2;
     let bs = Math.min(DPR, 1) * 0.8;
-    if (lw * lh * bs * bs > 110000) bs = Math.sqrt(110000 / (lw * lh));
+    const maxPts = lite ? 40000 : 110000;
+    if (lw * lh * bs * bs > maxPts) bs = Math.sqrt(maxPts / (lw * lh));
     const w = Math.max(1, Math.ceil(lw * bs)), h = Math.max(1, Math.ceil(lh * bs));
     const sc = document.createElement('canvas'); sc.width = w; sc.height = h;
     const sg = sc.getContext('2d', { willReadFrequently: true });
@@ -4832,6 +4849,8 @@ registerProcessor('pulse-feed', Feed);`;
   const stats = { n: 0, scene: 0, lyr: 0, gap: 0 };
   let secT = 0;
   function frame(nowMs) {
+    // телефон: 30 кадров в секунду вместо 60
+    if (lite && nowMs - last < 30) { requestAnimationFrame(frame); return; }
     const gap = nowMs - last;
     if (gap < 1000) adaptQuality(gap);
     const dt = Math.min(Math.max(gap / 1000, 0), 1 / 30);
@@ -4870,17 +4889,23 @@ registerProcessor('pulse-feed', Feed);`;
     if (idleT > 3 && $('settings').hidden && $('lyrics').hidden && $('lib').hidden) document.body.classList.add('zen');
 
     const t0 = performance.now();
-    drawBg(dt);
-    render(dt * sim.slow);
-    drawShards(dt);
+    // на телефоне медиатека закрывает экран целиком — сцену под ней не рисуем
+    const covered = lite && !$('lib').hidden;
+    if (!covered) {
+      drawBg(dt);
+      render(dt * sim.slow);
+      drawShards(dt);
+    }
     const t1 = performance.now();
-    drawLyrics(dt);
+    if (!covered) drawLyrics(dt);
     recFrame();
     secT += dt;
     if (secT >= 1) { statTick(secT); sleepTick(); secT = 0; if (auto.last && auto.last.status === 'Playing') presence(auto.last); if (isMini()) { const l = lyr.on && lyr.lines[lyr.idx]; $('miniLyr').textContent = l && l.text ? l.text : ''; } }
     stats.n++; stats.scene += t1 - t0; stats.lyr += performance.now() - t1; stats.gap = Math.max(stats.gap, gap);
 
-    document.body.style.setProperty('--beat', music.beat.toFixed(2));
+    // --beat меняет стиль всей страницы, поэтому обновляем его, только когда значение заметно сдвинулось
+    const bv = music.beat.toFixed(2);
+    if (!covered && (!lite || Math.abs(bv - (frame.bv || 0)) >= 0.06)) { frame.bv = +bv; document.body.style.setProperty('--beat', bv); }
     uiT += dt;
     if (uiT > 0.25) {
       uiT = 0;
