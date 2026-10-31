@@ -6252,7 +6252,7 @@ registerProcessor('pulse-feed', Feed);`;
     if (store.get('pulse-ping-day', '') === day) return;
     // повторная отметка за день отклоняется как дубль (409) — это нормально
     fetch(`${SUPA.url}/rest/v1/pings`, { method: 'POST', headers: { apikey: SUPA.key, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-      body: JSON.stringify({ day, install_id: installId(), version: appInfo.version || 'web', platform: native ? 'win' : (lite ? 'phone' : 'web') }) })
+      body: JSON.stringify({ day, install_id: installId(), version: appInfo.version || (window.PulseAndroid ? ('apk ' + window.PulseAndroid.version()).slice(0, 20) : 'web'), platform: native ? 'win' : (lite ? 'phone' : 'web') }) })
       .then(r => { if (r.ok || r.status === 409) store.set('pulse-ping-day', day); }).catch(() => {});
   }
   setTimeout(dailyPing, native ? 6000 : 3000); setInterval(dailyPing, 3600 * 1000);
@@ -6639,11 +6639,31 @@ registerProcessor('pulse-feed', Feed);`;
     if (m.check && !m.on && store.get('pulse-dpi', false)) toast('Ускорение YouTube не запустилось. Возможно, антивирус заблокировал WinDivert.');
     else if (m.check && m.on) toast('⚡ YouTube ускорен — можно без VPN');
   }
-  $('dpiRow').hidden = $('dpiHint').hidden = !native;
-  $('ytHelpRow').hidden = native;
+  // Pulse для Android: обход встроен (byedpi через прокси), управляем им прямо отсюда
+  const droid = window.PulseAndroid || null;
+  $('dpiRow').hidden = $('dpiHint').hidden = !native && !droid;
+  $('ytHelpRow').hidden = native || !!droid;
+  if (droid) {
+    $('dpiMode').value = droid.isBypass() ? 'on' : 'off';
+    $('dpiHint').textContent = 'Встроено в Pulse: YouTube работает без VPN, остальные приложения телефона не затронуты. Если не грузится — нажми «Подобрать способ».';
+    const tb = el('button', '', '🔎 Подобрать способ под оператора'); tb.type = 'button';
+    tb.addEventListener('click', () => droid.openBypassTest());
+    $('dpiHint').after(tb);
+  }
+  // кнопка «Назад» на Android: сначала закрывает окна и медиатеку
+  window.pulseBack = () => {
+    const modal = document.querySelector('.modal-back, .ctxmenu');
+    if (modal) { modal.remove(); return true; }
+    if (!$('lib').hidden) { openLib(false); return true; }
+    return false;
+  };
   $('ytHelpBtn').addEventListener('click', () => ytHelp(false));
-  $('dpiMode').value = store.get('pulse-dpi', false) ? 'on' : 'off';
-  $('dpiMode').addEventListener('change', e => { const on = e.target.value === 'on'; store.set('pulse-dpi', on); post({ cmd: 'dpi', on }); if (!on) toast('Ускорение YouTube выключено'); });
+  if (!droid) $('dpiMode').value = store.get('pulse-dpi', false) ? 'on' : 'off';
+  $('dpiMode').addEventListener('change', e => {
+    const on = e.target.value === 'on';
+    if (droid) { droid.setBypass(on); toast(on ? '⚡ YouTube ускорен' : 'Ускорение YouTube выключено'); return; }
+    store.set('pulse-dpi', on); post({ cmd: 'dpi', on }); if (!on) toast('Ускорение YouTube выключено');
+  });
   if (native && store.get('pulse-dpi', false)) setTimeout(() => { if (!saverMode) post({ cmd: 'dpi', on: true }); }, 2500);
   setKaraoke(karaoke);
   renderAccount();
