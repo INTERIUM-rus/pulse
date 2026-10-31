@@ -3919,18 +3919,28 @@ registerProcessor('pulse-feed', Feed);`;
     try { store.set('pulse-ytcache', c); } catch (e) {}
   }
   const ytQuotaErr = e => ['quotaExceeded', 'dailyLimitExceeded', 'rateLimitExceeded'].includes(e && e.reason);
-  async function searchYT(q) {
-    if (ytCache[q]) return ytCache[q];
-    const disk = ytDiskGet(q);
-    if (disk) return (ytCache[q] = disk);
+  // сначала общий кэш Pulse на сервере: популярный запрос ищется в YouTube один раз для всех,
+  // а при исчерпанном лимите сервер отдаёт сохранённое; если сервер недоступен — ищем напрямую
+  async function ytVideos(q) {
+    try {
+      const r = await fetch(`${SUPA.url}/functions/v1/yt-search`, { method: 'POST', headers: { apikey: SUPA.key, 'Content-Type': 'application/json', 'x-yt-key': ytKey() }, body: JSON.stringify({ q }) });
+      const j = await r.json().catch(() => ({}));
+      if (r.ok && Array.isArray(j.items)) return j.items;
+      if (j.reason) throw Object.assign(new Error(j.error || 'youtube'), { reason: j.reason, server: true });
+    } catch (e) { if (e.server) throw e; }
     if (Date.now() - store.get('pulse-ytquota', 0) < 3600e3) throw Object.assign(new Error('quota'), { reason: 'quotaExceeded' });
     let s;
     try { s = await ytApi(`search?part=snippet&type=video&videoEmbeddable=true&videoCategoryId=10&maxResults=25&q=${encodeURIComponent(q)}`); }
     catch (e) { if (ytQuotaErr(e)) store.set('pulse-ytquota', Date.now()); throw e; }
     const ids = (s.items || []).map(i => i.id && i.id.videoId).filter(Boolean);
-    if (!ids.length) return (ytCache[q] = []);
-    const v = await ytApi(`videos?part=snippet,contentDetails&id=${ids.join(',')}`);
-    const list = (v.items || []).map(ytItem).filter(x => x.duration > 50 && x.duration < 1500);
+    if (!ids.length) return [];
+    return (await ytApi(`videos?part=snippet,contentDetails&id=${ids.join(',')}`)).items || [];
+  }
+  async function searchYT(q) {
+    if (ytCache[q]) return ytCache[q];
+    const disk = ytDiskGet(q);
+    if (disk) return (ytCache[q] = disk);
+    const list = (await ytVideos(q)).map(ytItem).filter(x => x.duration > 50 && x.duration < 1500);
     // клипы часто с интро, поэтому студийная аудиоверсия того же трека поднимается выше клипа
     const key = x => (x.artist + '|' + x.title).toLowerCase();
     const audio = new Set(list.filter(x => x.topic).map(key));
@@ -4483,6 +4493,16 @@ registerProcessor('pulse-feed', Feed);`;
         if (!tr || !tr.length) tr = await jamendoPopular().catch(() => []);
         if (!tr || !tr.length) tr = await searchArchive('collection:(netlabels)');
         if (ok()) pop.fill(tr.slice(0, 24));
+      });
+      // то, что сейчас слушают: тренды TikTok и русские новинки (через общий кэш — почти не тратят лимит YouTube)
+      [['🔥 Тренды TikTok', 'что звучит в видео', 'тренды тикток песни'], ['🇷🇺 Русские хиты', 'новинки и то, что на повторе', 'русские хиты новинки']].forEach(([t, sub, sq]) => {
+        const sh = shelf(t, sub); body.appendChild(sh.wrap); sh.loading();
+        guarded(body, async ok => {
+          let tr = [];
+          try { tr = await searchYT(sq); } catch (e) {}
+          if (!ok()) return;
+          if (tr.length) sh.fill(tr.slice(0, 20)); else sh.wrap.remove();
+        });
       });
       body.append(section('Настроение'), moodGrid());
       const recent = lib.played.filter(p => !p.live && !p.preview);
