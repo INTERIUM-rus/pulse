@@ -5891,7 +5891,7 @@ registerProcessor('pulse-feed', Feed);`;
     if (!m) return;
     const v = decodeURIComponent(m[2]).slice(0, 120);
     // ролик — сразу играет на экране визуала; запрос — открывает поиск
-    if (m[1] === 'v') { if (/^[\w-]{11}$/.test(v)) ytFromLink(v).then(it => playItem(it, [it])); return; }
+    if (m[1] === 'v') { if (/^[\w-]{11}$/.test(v)) { openLib(false); ytFromLink(v).then(it => playItem(it, [it])); } return; }
     lib.q = v; $('libQ').value = v; lib.tab = 'search'; openLib(true);
   }, 800);
 
