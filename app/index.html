@@ -700,6 +700,11 @@ body.mini .pmini-lyr { display: block; font-style: normal; font: 700 12px var(--
 .share-list { display: flex; flex-wrap: wrap; gap: 8px; max-height: 40vh; overflow-y: auto; }
 body.saver .brand, body.saver .dock, body.saver .player, body.saver .upnext, body.saver .hint, body.saver .ytwin, body.saver .updbar, body.saver .toast { display: none !important; }
 body.saver { cursor: none; }
+.yth { gap: 12px; }
+.yth-steps { margin: 0; padding-left: 22px; display: grid; gap: 10px; }
+.yth-steps b { display: block; font: 800 14px var(--body); }
+.yth-steps span { display: block; font-size: 13px; color: var(--dim); line-height: 1.45; }
+.yth-btn { display: block; text-align: center; text-decoration: none; padding: 14px; border-radius: 14px; font: 800 15px var(--body); color: #fff; background: linear-gradient(135deg, var(--accent), #8a5bff 55%, var(--accent2)); }
 .trk-more { padding: 14px; text-align: center; font-size: 12px; color: var(--faint); cursor: pointer; }
 .pl-filter { width: 100%; max-width: 520px; box-sizing: border-box; margin: 4px 0 12px; font: 600 15px var(--body); color: var(--ink); background: rgba(255,255,255,.06); border: 1px solid var(--line); border-radius: 14px; padding: 11px 14px; outline: none; }
 .pl-filter:focus { border-color: hsl(var(--lh),100%,70%); }
@@ -1003,6 +1008,7 @@ body.saver { cursor: none; }
   <p class="hint2" id="ovlUrl" hidden>В OBS: Источник → Браузер → адрес <b>http://localhost:53690/</b>, размер 1920×1080. Без текста песни: <b>?lyrics=0</b>, плашка справа: <b>?pos=right</b>.</p>
   <label class="ctl"><span>Анонимная статистика</span><select id="telOn"><option value="on">Отправлять</option><option value="off">Не отправлять</option></select><output></output></label>
   <div class="keyrow" id="instRow" hidden><button id="instBtn" type="button">📦 Установить Pulse</button><span class="hint2" id="instHint"></span></div>
+  <div class="keyrow" id="ytHelpRow" hidden><button id="ytHelpBtn" type="button">▶ YouTube без VPN — как включить</button></div>
   <p class="hint2" id="dpiHint">Если YouTube не открывается без VPN. Работает только для адресов YouTube через открытый zapret, Windows попросит права администратора. С включённым VPN не нужно.</p>
   <p class="hint2"><a href="https://interium-rus.github.io/pulse/" target="_blank">Сайт Pulse</a> · <a href="https://interium-rus.github.io/pulse/privacy.html" target="_blank">Конфиденциальность</a> · <a href="https://interium-rus.github.io/pulse/terms.html" target="_blank">Условия</a></p>
   <h3 class="set-h">Звук и текст</h3>
@@ -3702,7 +3708,7 @@ registerProcessor('pulse-feed', Feed);`;
           },
         });
       };
-      const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; s.onerror = () => { yt.loading = null; toast('YouTube не открылся: проверь интернет или VPN'); };
+      const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; s.onerror = () => { yt.loading = null; if (!native && lite) ytHelp(true); else toast('YouTube не открылся: проверь интернет или VPN'); };
       document.head.appendChild(s);
     });
   }
@@ -3743,6 +3749,8 @@ registerProcessor('pulse-feed', Feed);`;
       it.vid = it.vid || (it.id || '').replace(/^yt:/, '');
       yt.state = -1; yt.lastT = null; yt.vid = it.vid;
       yt.player.loadVideoById(it.vid); YE.apply();
+      // телефон: если ролик так и не заиграл за 15 секунд — скорее всего, YouTube замедлен провайдером
+      if (!native && lite) setTimeout(() => { if (local.item === it && yt.state !== 1 && yt.state !== 2) ytHelp(true); }, 15000);
     } else {
       showYT(false);
       local.audio.src = it.url; AE.apply(); AE.play();
@@ -6339,6 +6347,31 @@ registerProcessor('pulse-feed', Feed);`;
     navigator.mediaSession.setActionHandler('pause', () => local.active && eng().pause());
   }
 
+  // ===================== YouTube без VPN на телефоне =====================
+  // в приложении для Android обойти замедление нельзя, но это умеет бесплатное открытое ByeByeDPI (локальный VPN без чужого сервера)
+  const BYEDPI_PAGE = 'https://github.com/romanvht/ByeByeDPI/releases/latest';
+  let ytHelpShown = false;
+  function ytHelp(auto) {
+    if (auto && (ytHelpShown || store.get('pulse-ythelp-off', false))) return;
+    ytHelpShown = true;
+    const back = el('div', 'modal-back'), box = el('div', 'modal yth');
+    const dl = el('a', 'primary yth-btn', '⬇ Скачать ByeByeDPI'); dl.href = BYEDPI_PAGE; dl.target = '_blank'; dl.rel = 'noopener';
+    const steps = el('ol', 'yth-steps');
+    [
+      ['Скачай ByeByeDPI', 'Нажми кнопку ниже. На странице выбери файл ByeByeDPI-…-universal-release.apk и установи его (как Pulse).'],
+      ['Открой и нажми «Подключить»', 'Телефон спросит про VPN — нажми «ОК». Это не настоящий VPN: никакого чужого сервера, всё работает прямо на телефоне.'],
+      ['Возвращайся в Pulse', 'YouTube заиграет. Значок ключа вверху экрана — это ByeByeDPI, так и должно быть.'],
+    ].forEach(([b, s]) => { const li = el('li'); li.append(el('b', '', b), el('span', '', s)); steps.appendChild(li); });
+    const tip = el('p', 'hint2', 'Если всё равно не играет: в ByeByeDPI открой «Настройки» → «Подбор стратегии» — приложение само найдёт рабочий способ для твоего оператора.');
+    const row = el('div', 'modal-row'), no = el('button', '', 'Не показывать'), ok = el('button', '', 'Понятно');
+    no.type = ok.type = 'button'; row.append(no, ok);
+    box.append(el('h3', '', auto ? '▶ YouTube не загружается' : '▶ YouTube без VPN'), el('p', 'hint2', auto ? 'Похоже, оператор замедляет YouTube. Это можно обойти за минуту:' : 'Чтобы YouTube в Pulse работал без VPN:'), steps, dl, tip, row);
+    back.appendChild(box); document.body.appendChild(back);
+    no.addEventListener('click', () => { store.set('pulse-ythelp-off', true); back.remove(); });
+    ok.addEventListener('click', () => back.remove());
+    back.addEventListener('pointerdown', e => { if (e.target === back) back.remove(); });
+  }
+
   // дополнительные вкладки медиатеки
   function renderExtraTab(body) {
     const tb = lib.tab;
@@ -6607,6 +6640,8 @@ registerProcessor('pulse-feed', Feed);`;
     else if (m.check && m.on) toast('⚡ YouTube ускорен — можно без VPN');
   }
   $('dpiRow').hidden = $('dpiHint').hidden = !native;
+  $('ytHelpRow').hidden = native;
+  $('ytHelpBtn').addEventListener('click', () => ytHelp(false));
   $('dpiMode').value = store.get('pulse-dpi', false) ? 'on' : 'off';
   $('dpiMode').addEventListener('change', e => { const on = e.target.value === 'on'; store.set('pulse-dpi', on); post({ cmd: 'dpi', on }); if (!on) toast('Ускорение YouTube выключено'); });
   if (native && store.get('pulse-dpi', false)) setTimeout(() => { if (!saverMode) post({ cmd: 'dpi', on: true }); }, 2500);
