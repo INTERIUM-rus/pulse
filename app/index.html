@@ -989,6 +989,11 @@ button.primary:hover { box-shadow: 0 10px 30px rgba(255,79,216,.55); }
 .fxgrid button { border-color: rgba(255,255,255,.08); }
 .lib-body, .panel, .lib-side, .upnext { scrollbar-width: thin; scrollbar-color: rgba(255,79,216,.5) transparent; }
 .lite .panel, .lite .modal, .lite .ctxmenu, .lite .upnext, .lite .toast { background: rgb(18,12,34); }
+/* лимит YouTube в поиске и окно своего ключа */
+.yt-note { display: grid; gap: 10px; justify-items: start; }
+.yt-note button { font-size: 13px; padding: 10px 14px; }
+.modal.yt-key { width: min(520px, calc(100% - 32px)); }
+.modal.yt-key input { font-family: ui-monospace, Consolas, monospace; font-size: 14px; }
 /* Вайб: чат с ИИ */
 .ai-chat { display: grid; gap: 12px; max-width: 760px; }
 .ai-list { display: grid; gap: 10px; }
@@ -3802,7 +3807,7 @@ registerProcessor('pulse-feed', Feed);`;
     ccm: p => fetch((native ? '/api/ccm/' : 'https://ccmixter.org/api/') + p).then(r => r.json()),
     radio: p => fetch((native ? '/api/radio/' : 'https://de1.api.radio-browser.info/json/') + p).then(r => r.json()),
   };
-  const SRC = { archive: 'Архив', ccm: 'ccMixter', deezer: 'Deezer', radio: 'Радио' };
+  const SRC = { archive: 'Архив', ccm: 'ccMixter', ht: 'hearthis.at', itunes: 'Отрывок iTunes', deezer: 'Deezer', radio: 'Радио' };
   const one = v => Array.isArray(v) ? v[0] : v;
   const parseDur = v => { if (v == null) return 0; const s = String(v); return s.includes(':') ? s.split(':').reduce((a, x) => a * 60 + (parseFloat(x) || 0), 0) : parseFloat(s) || 0; };
   const hueOf = s => { let h = 0; for (const ch of String(s)) h = (h * 31 + ch.charCodeAt(0)) % 360; return h; };
@@ -3835,6 +3840,20 @@ registerProcessor('pulse-feed', Feed);`;
       const f = (x.files || []).find(f => /mp3/i.test((f.file_format_info || {})['default-ext'] || f.file_name));
       return f && { id: 'cc:' + f.file_id, src: 'ccm', title: x.upload_name, artist: x.user_real_name || x.user_name, url: f.download_url, duration: parseDur((f.file_format_info || {}).ps) };
     }).filter(Boolean);
+  }
+  // hearthis.at: бесплатная площадка, полные треки и ремиксы (фонк, электроника, хип-хоп); без ключа
+  async function searchHearthis(q) {
+    const r = await fetch(`https://api-v2.hearthis.at/search/?t=${encodeURIComponent(q)}&type=tracks&count=30`).then(r => r.json());
+    return (Array.isArray(r) ? r : []).filter(x => x.stream_url && +x.duration > 50 && +x.duration < 1200).map(x => ({
+      id: 'ht:' + x.id, src: 'ht', title: x.title, artist: (x.user && x.user.username) || 'hearthis.at',
+      cover: x.artwork_url || x.thumb || null, url: x.stream_url, duration: +x.duration }));
+  }
+  // каталог iTunes: вся популярная музыка, но только 30-секундные отрывки — для поиска, когда YouTube недоступен
+  async function searchItunes(q) {
+    const r = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&entity=song&limit=20&country=RU`).then(r => r.json());
+    return (r.results || []).filter(x => x.previewUrl).map(x => ({
+      id: 'it:' + x.trackId, src: 'itunes', title: x.trackName, artist: x.artistName,
+      cover: (x.artworkUrl100 || '').replace('100x100', '600x600') || null, url: x.previewUrl, duration: 30, preview: true }));
   }
   async function searchDeezerTracks(q) {
     const r = await deezer('search?limit=24&q=' + encodeURIComponent(q));
@@ -3917,6 +3936,51 @@ registerProcessor('pulse-feed', Feed);`;
     try { if (ytKey()) { const v = await ytApi('videos?part=snippet,contentDetails&id=' + id); if (v.items && v.items[0]) return ytItem(v.items[0]); } } catch (e) {}
     // без ключа название подставится из самого плеера, когда ролик загрузится
     return { id: 'yt:' + id, src: 'yt', vid: id, title: 'Загружаю…', artist: '', cover: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`, duration: 0, fromPlayer: true };
+  }
+  // сообщение «YouTube не ответил» в поиске; при лимите — кнопка подключить свой ключ (свои 100 поисков в день)
+  function ytNote(e) {
+    const box = el('div', 'empty-note yt-note'); box.appendChild(el('span', '', ytProblem(e)));
+    if (ytQuotaErr(e) || (e && /key/i.test(e.reason || ''))) {
+      const b = el('button', 'primary', store.get('pulse-ytkey', '') ? '🔑 Сменить свой ключ YouTube' : '🔑 Подключить свой ключ YouTube — бесплатно');
+      b.type = 'button'; b.addEventListener('click', ytKeyDialog); box.appendChild(b);
+    }
+    return box;
+  }
+  function ytKeyDialog() {
+    const back = el('div', 'modal-back'), box = el('div', 'modal yt-key');
+    const steps = el('ol', 'yth-steps');
+    [['Открой Google Cloud', 'console.cloud.google.com → войди своим Google-аккаунтом → создай проект (любое название).'],
+     ['Включи YouTube', 'В поиске сверху набери «YouTube Data API v3» → Enable (Включить).'],
+     ['Создай ключ', 'Credentials (Учётные данные) → Create credentials → API key → скопируй ключ.'],
+     ['Вставь его сюда', 'Ключ хранится только на этом устройстве. С ним у тебя свои ~100 поисков в день, не общие на всех.']]
+      .forEach(([b, s]) => { const li = el('li'); li.append(el('b', '', b), el('span', '', s)); steps.appendChild(li); });
+    const inp = el('input'); inp.placeholder = 'AIza…'; inp.value = store.get('pulse-ytkey', ''); inp.spellcheck = false; inp.autocomplete = 'off';
+    const row = el('div', 'modal-row'), cancel = el('button', '', 'Отмена'), del = el('button', 'danger', 'Убрать ключ'), ok = el('button', 'primary', 'Проверить и сохранить');
+    [cancel, del, ok].forEach(x => { x.type = 'button'; });
+    del.hidden = !store.get('pulse-ytkey', '');
+    row.append(del, cancel, ok);
+    const msg = el('div', 'mstatus');
+    box.append(el('h3', '', '🔑 Свой ключ YouTube'), steps, inp, msg, row); back.appendChild(box); document.body.appendChild(back);
+    const close = () => back.remove();
+    inp.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') close(); });
+    back.addEventListener('click', e => { if (e.target === back) close(); });
+    cancel.addEventListener('click', close);
+    del.addEventListener('click', () => { store.set('pulse-ytkey', ''); store.set('pulse-ytquota', 0); toast('Свой ключ убран'); close(); });
+    ok.addEventListener('click', async () => {
+      const k = inp.value.trim();
+      if (!/^[\w-]{30,60}$/.test(k)) { msg.textContent = 'Это не похоже на ключ: он начинается с AIza и длиной около 39 символов.'; msg.classList.add('err'); return; }
+      msg.classList.remove('err'); msg.textContent = 'Проверяю…'; ok.disabled = true;
+      try {
+        const r = await fetch('https://www.googleapis.com/youtube/v3/videos?part=id&chart=mostPopular&maxResults=1&key=' + encodeURIComponent(k));
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error((j.error && j.error.message) || 'http ' + r.status);
+        store.set('pulse-ytkey', k); store.set('pulse-ytquota', 0);
+        Object.keys(ytCache).forEach(x => delete ytCache[x]);
+        toast('✔ Ключ YouTube подключён — поиск снова работает'); close();
+        if (lib.tab === 'search') renderLib();
+      } catch (e) { msg.textContent = 'Google не принял ключ: ' + String(e.message).slice(0, 140) + '. Проверь, что YouTube Data API v3 включён.'; msg.classList.add('err'); ok.disabled = false; }
+    });
+    setTimeout(() => inp.focus(), 50);
   }
   function ytProblem(e) {
     if (ytQuotaErr(e)) return 'Поиск YouTube на сегодня исчерпан (у Google суточный лимит на всё приложение). Пока ищу в других каталогах, а ролики можно включать по ссылке. Завтра поиск снова заработает.';
@@ -4253,7 +4317,9 @@ registerProcessor('pulse-feed', Feed);`;
       const meta = el('div', 'tmeta'); meta.append(el('b', '', it.title), el('span', '', it.artist || ''));
       const more = el('button', 'tmore', '⋯'); more.type = 'button'; more.setAttribute('aria-label', 'Ещё');
       more.addEventListener('click', e => { e.stopPropagation(); const r = more.getBoundingClientRect(); openMenu(it, r.left, r.bottom + 4); });
-      const tail = el('div', 'tbad'); tail.appendChild(more);
+      const tail = el('div', 'tbad');
+      if (it.preview) tail.appendChild(el('span', 'badge pv', '30 сек'));
+      tail.appendChild(more);
       if (opts.onRemove) { const x = el('button', 'tmore', '✕'); x.type = 'button'; x.title = 'Убрать'; x.addEventListener('click', e => { e.stopPropagation(); opts.onRemove(i); }); tail.appendChild(x); }
       row.append(num, art(it, 'tart'), meta, tail, el('div', 'tdur', it.duration ? fmtTime(it.duration) : ''), favBtn(it));
       const go = () => opts.onPick ? opts.onPick(i) : playItem(it, items);
@@ -4419,12 +4485,15 @@ registerProcessor('pulse-feed', Feed);`;
       const sk = el('div', 'best sk-card'); top.append(sk, skeleton(4));
       body.append(section('Результаты', `«${q}»`), top, list);
       guarded(body, async ok => {
-        const [y, a, c] = await Promise.allSettled([searchYT(q), searchArchive(q), searchCcm(q)]);
+        const [y, h, a, c, it] = await Promise.allSettled([searchYT(q), searchHearthis(q), searchArchive(q), searchCcm(q), searchItunes(q)]);
         if (!ok()) return;
         top.innerHTML = '';
-        const Y = y.status === 'fulfilled' ? y.value : [], A = a.status === 'fulfilled' ? a.value : [], C = c.status === 'fulfilled' ? c.value : [], items = [...Y];
-        for (let i = 0; i < Math.max(A.length, C.length); i++) { if (A[i]) items.push(A[i]); if (C[i]) items.push(C[i]); }
-        if (y.status === 'rejected') body.insertBefore(el('div', 'empty-note', ytProblem(y.reason)), top);
+        const val = p => p.status === 'fulfilled' ? p.value : [];
+        const Y = val(y), H = val(h), A = val(a), C = val(c), items = [...Y];
+        // полные треки из бесплатных каталогов вперемешку; отрывки iTunes — только если YouTube не ответил, в конце
+        for (let i = 0; i < Math.max(H.length, A.length, C.length); i++) { if (H[i]) items.push(H[i]); if (A[i]) items.push(A[i]); if (C[i]) items.push(C[i]); }
+        if (!Y.length) items.push(...val(it));
+        if (y.status === 'rejected') body.insertBefore(ytNote(y.reason), top);
         if (!items.length) { top.appendChild(el('div', 'empty-note', 'Ничего не нашлось. Попробуй написать иначе.')); return; }
         // слева лучший результат, справа ещё четыре, ниже всё остальное
         const side = el('div', 'search-side'); side.append(el('h3', '', 'Треки'), trackList(items.slice(1, 5)));
@@ -7041,6 +7110,7 @@ registerProcessor('pulse-feed', Feed);`;
     try {
       let r = [];
       try { if (ytKey()) r = await searchYT(q); } catch (e) {}
+      if (!r.length) r = await searchHearthis(q).catch(() => []);
       if (!r.length) r = await searchArchive(q);
       if (!r.length) { toast('Ничего не нашёл по «' + q + '»'); return; }
       playItem(r[0], r);
