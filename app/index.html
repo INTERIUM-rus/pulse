@@ -3952,7 +3952,8 @@ registerProcessor('pulse-feed', Feed);`;
     if (!d.plain && sndFx()) route(d);
     if (SND.graph) SND.graph.c.resume().catch(() => {});
     d.el.playbackRate = SPEEDS[SND.speed][1];
-    d.el.src = it.url; AE.apply(); AE.play();
+    if (!x || d.el.getAttribute('src') !== it.url) d.el.src = it.url; // при переходе трек уже подгружен
+    AE.apply(); AE.play();
   }
   function deckError(d) {
     if (d.el !== local.audio || !local.active || eng() !== AE || !d.el.getAttribute('src')) return;
@@ -3972,11 +3973,20 @@ registerProcessor('pulse-feed', Feed);`;
     const n = +SND.xfade, el = deck.el;
     if (!n || local.xf || !local.active || eng() !== AE || deck.plain || el.paused || sleep.endOfTrack || local.repeat === 'one') return;
     const dur = el.duration;
-    if (!isFinite(dur) || dur < n * 3 || dur - el.currentTime > n) return;
+    if (!isFinite(dur) || dur < n * 3 || dur - el.currentTime > n + 25) return;
     const ni = local.idx < local.queue.length - 1 ? local.idx + 1 : local.repeat === 'all' && local.queue.length > 1 ? 0 : -1;
     const nx = local.queue[ni];
     if (!nx || !nx.url || nx.noFx || nx.album || nx.live || ['yt', 'q', 'radio'].includes(nx.src)) return;
     const old = deck, nd = old === decks[0] ? decks[1] : decks[0];
+    // за полминуты до перехода следующий трек заранее подгружается на вторую деку — сервер может отвечать медленно
+    if (nd.el.getAttribute('src') !== nx.url) {
+      if (sndFx()) route(nd);
+      nd.el.playbackRate = SPEEDS[SND.speed][1]; deckVol(nd, 0);
+      nd.el.src = nx.url; nd.el.load();
+    }
+    if (dur - el.currentTime > n) return;
+    // подгрузка не удалась (сайт не дал обработку звука) — без перехода, трек сыграет как обычно
+    if (nd.el.error) { nx.noFx = true; stopDeck(nd); return; }
     local.xf = true; old.fading = true; local.xk = 0;
     local.xfDeck = nd; local.idx = ni; startLocal();
     const t0 = performance.now();
