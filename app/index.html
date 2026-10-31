@@ -1388,6 +1388,7 @@ registerProcessor('pulse-feed', Feed);`;
         else if (m.type === 'app') onAppInfo(m);
         else if (m.type === 'overlay') onOverlay(m);
         else if (m.type === 'mediakey') onMediaKey(m.key);
+        else if (m.type === 'download') onDownload(m);
         else if (m.type === 'install' && !m.ok) toast('Не получилось установить: ' + m.error);
         else if (m.type === 'selftest-yt') ytSelfTest();
         else if (m.type === 'wallpaper') { wallOn = !!m.on; $('dWall').classList.toggle('on', wallOn); document.body.classList.toggle('wall', wallOn); if (m.error) toast('Не получилось встать под значки рабочего стола'); }
@@ -4303,6 +4304,50 @@ registerProcessor('pulse-feed', Feed);`;
     menuEl = m;
   }
   addEventListener('pointerdown', e => { if (menuEl && !menuEl.contains(e.target)) closeMenu(); }, true);
+  // ===================== скачивание =====================
+  // только треки со свободной лицензией: Архив интернета и ccMixter (YouTube и превью Deezer качать нельзя)
+  const canDownload = it => !!it && (it.src === 'archive' || it.src === 'ccm') && !!(it.url || it.album);
+  const dlName = t => ((t.artist ? t.artist + ' - ' : '') + (t.title || 'track')).replace(/[\\/:*?"<>|]+/g, '_').slice(0, 120) +
+    '.' + ((String(t.url).match(/\.(mp3|ogg|flac|m4a)(?:$|\?)/i) || [0, 'mp3'])[1].toLowerCase());
+  async function downloadItem(it) {
+    let list = [it];
+    if (it.album) {
+      toast('Открываю альбом…');
+      try { list = await expandArchive(it); } catch (e) { toast('Не получилось: проверь интернет'); return; }
+    }
+    list = list.filter(t => t.url);
+    if (!list.length) { toast('Здесь нечего скачать'); return; }
+    const many = list.length > 1 ? ` ${list.length} треков` : '';
+    if (native) {
+      post({ cmd: 'download', items: list.map(t => ({ url: t.url, title: t.title, artist: t.artist })) });
+      toast(`⬇ Скачиваю${many} в «Музыка\\Pulse»`);
+      return;
+    }
+    const pa = window.PulseAndroid;
+    if (pa && pa.download) {
+      list.forEach(t => pa.download(t.url, dlName(t)));
+      toast(`⬇ Скачиваю${many} в «Музыка/Pulse» — ход видно в уведомлениях`);
+      return;
+    }
+    // браузер: забираем файл и сохраняем; если сайт не отдал — открываем прямую ссылку
+    toast(`⬇ Скачиваю${many}…`);
+    for (const t of list.slice(0, 40)) {
+      const a = document.createElement('a');
+      try {
+        const b = await fetch(t.url).then(r => { if (!r.ok) throw new Error(r.status); return r.blob(); });
+        a.href = URL.createObjectURL(b); a.download = dlName(t);
+        setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+      } catch (e) { a.href = t.url; a.target = '_blank'; a.rel = 'noopener'; }
+      document.body.appendChild(a); a.click(); a.remove();
+    }
+  }
+  function onDownload(m) {
+    if (m.error) toast(m.error);
+    else if (m.finished) {
+      toast(m.failed ? `Скачано: ${m.done}, не получилось: ${m.failed}` : `✔ Скачано: ${m.done}. Всё уже в «Мои файлы»`);
+      loadFiles().then(() => { if (lib.tab === 'files') renderLib(); }).catch(() => {});
+    }
+  }
   function openMenu(it, x, y) {
     showMenu([
       ['▶', 'Играть сейчас', () => playItem(it, [it])],
@@ -4312,6 +4357,7 @@ registerProcessor('pulse-feed', Feed);`;
       '-',
       [isFav(it) ? '♥' : '♡', isFav(it) ? 'Убрать из «Моё»' : 'Добавить в «Моё»', () => toggleFav(it)],
       ['🌊', 'Волна по этому треку', async () => { toast('🌊 Ищу похожее…'); try { const tr = await waveTracks(it); playItem(it, [it, ...tr.filter(x => x.id !== it.id)]); } catch (e) { toast('Не получилось'); } }],
+      ...(canDownload(it) ? [['⬇', it.album ? 'Скачать альбом' : 'Скачать', () => downloadItem(it)]] : []),
     ], x, y);
   }
   function askText(title, value, okLabel, cb) {
