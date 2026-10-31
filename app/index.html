@@ -6523,7 +6523,8 @@ registerProcessor('pulse-feed', Feed);`;
   $('dSearch').addEventListener('click', () => { openLib(true); setTimeout(() => $('libQ').focus(), 80); });
   $('dSet').addEventListener('click', () => { lib.tab = 'settings'; openLib(true); });
 
-  // дополнительные вкладки медиатеки  function renderExtraTab(body) {
+  // дополнительные вкладки медиатеки
+  function renderExtraTab(body) {
     const tb = lib.tab;
     if (tb === 'queue') { renderQueue(body); return true; }
     if (tb === 'playlists') { renderPlaylists(body); return true; }
