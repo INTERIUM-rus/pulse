@@ -989,6 +989,28 @@ button.primary:hover { box-shadow: 0 10px 30px rgba(255,79,216,.55); }
 .fxgrid button { border-color: rgba(255,255,255,.08); }
 .lib-body, .panel, .lib-side, .upnext { scrollbar-width: thin; scrollbar-color: rgba(255,79,216,.5) transparent; }
 .lite .panel, .lite .modal, .lite .ctxmenu, .lite .upnext, .lite .toast { background: rgb(18,12,34); }
+/* Вайб: чат с ИИ */
+.ai-chat { display: grid; gap: 12px; max-width: 760px; }
+.ai-list { display: grid; gap: 10px; }
+.ai-msg { max-width: 85%; padding: 11px 14px; border-radius: 18px; font-size: 14.5px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; -webkit-user-select: text; user-select: text; animation: fadeUp .35s both; }
+.ai-msg.me { justify-self: end; background: var(--ngrad); color: #fff; border-bottom-right-radius: 6px; }
+.ai-msg.bot { justify-self: start; background: rgba(20,14,36,.85); border: 1px solid var(--nline); border-bottom-left-radius: 6px; }
+.ai-msg.sys { border-color: rgba(255,255,255,.12); color: var(--dim); }
+.ai-msg .who { display: block; margin-bottom: 3px; font: 800 10.5px var(--body); letter-spacing: .16em; color: var(--neon-b); }
+.ai-acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; white-space: normal; }
+.ai-acts button { border-radius: 999px; padding: 7px 12px; font-size: 12.5px; background: rgba(255,79,216,.14); border-color: rgba(255,79,216,.4); }
+.ai-msg.typing { display: flex; gap: 5px; padding: 14px 16px; }
+.ai-msg.typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--neon-b); animation: aiDot 1s ease-in-out infinite; }
+.ai-msg.typing i:nth-child(2) { animation-delay: .15s; } .ai-msg.typing i:nth-child(3) { animation-delay: .3s; }
+@keyframes aiDot { 50% { transform: translateY(-5px); opacity: .4; } }
+.ai-hints { margin-top: 0; }
+.ai-form { display: flex; gap: 8px; align-items: flex-end; }
+.ai-form textarea { flex: 1; min-width: 0; resize: none; max-height: 140px; box-sizing: border-box; font: 500 15px var(--body); color: var(--ink); background: rgba(255,255,255,.05); border: 1px solid rgba(79,240,255,.25); border-radius: 16px; padding: 12px 14px; outline: none; -webkit-user-select: text; user-select: text; }
+.ai-form textarea:focus { border-color: rgba(79,240,255,.7); box-shadow: 0 0 18px rgba(79,240,255,.25); }
+.ai-form button { width: 48px; height: 46px; padding: 0; font-size: 18px; flex: none; }
+.ai-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 30px; }
+.ai-meta { font-size: 12px; color: var(--faint); }
+.ai-foot button { padding: 6px 12px; font-size: 12px; }
 /* подборка под время суток — широкая плитка на главной */
 .mood.smart { display: grid; align-content: center; gap: 2px; width: 100%; height: 110px; margin: 14px 0 4px; box-sizing: border-box; }
 .mood.smart small { position: relative; z-index: 1; font: 800 11px var(--body); letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.85); }
@@ -1058,6 +1080,7 @@ button.primary:hover { box-shadow: 0 10px 30px rgba(255,79,216,.55); }
   <button class="rail-nav" data-go="home" type="button"><i>✦</i>Главная</button>
   <button class="rail-nav" data-go="search" type="button"><i>⌕</i>Поиск</button>
   <button class="rail-wave" data-go="wave" type="button"><i>🌊</i><span><b>Моя волна</b><small>бесконечный поток под тебя</small></span></button>
+  <button class="rail-nav" data-go="ai" type="button"><i>🤖</i>Вайб · ИИ</button>
   <button class="rail-nav" data-go="playlists" type="button"><i>♫</i>Плейлисты</button>
   <button class="rail-nav" data-go="fav" type="button"><i>♥</i>Моё</button>
   <button class="rail-nav" data-go="friends" type="button"><i>👥</i>Друзья</button>
@@ -1118,6 +1141,7 @@ button.primary:hover { box-shadow: 0 10px 30px rgba(255,79,216,.55); }
     <button class="lib-nav on" data-tab="home" type="button"><i>✦</i>Главная</button>
     <button class="lib-nav" data-tab="search" type="button"><i>⌕</i>Поиск</button>
     <button class="lib-wave" id="libWave" type="button"><i>🌊</i><span><b>Моя волна</b><small>бесконечный поток под тебя</small></span></button>
+    <button class="lib-nav" data-tab="ai" type="button"><i>🤖</i>Вайб · ИИ</button>
     <button class="lib-nav" data-tab="queue" type="button"><i>☰</i>Очередь</button>
     <button class="lib-nav" data-tab="playlists" type="button"><i>♫</i>Плейлисты</button>
     <button class="lib-nav" data-tab="friends" type="button"><i>👥</i>Друзья<b class="nbadge" id="frBadge" hidden></b></button>
@@ -4071,8 +4095,6 @@ registerProcessor('pulse-feed', Feed);`;
             onStateChange: e => {
               yt.state = e.data;
               if (e.data === 1) local.errors = 0;
-              // субтитры, включённые в аккаунте YouTube, выключаем — иначе два текста сразу
-              if (e.data === 1) try { yt.player.unloadModule('captions'); yt.player.unloadModule('cc'); } catch (x) {}
               // ролик по ссылке без ключа: название и автора берём из самого плеера
               if (e.data === 1 && local.item && local.item.fromPlayer) {
                 const d = yt.player.getVideoData() || {};
@@ -6880,7 +6902,7 @@ registerProcessor('pulse-feed', Feed);`;
     body.appendChild(accBox);
     const unread = Object.values(chat.unread || {}).reduce((s, n) => s + n, 0);
     const items = [
-      ['♥', 'Моё', 'fav'], ['☰', 'Очередь', 'queue'], ['💬', 'Сообщения' + (unread ? ` · ${unread}` : ''), 'chats'], ['📰', 'Лента', 'feed'],
+      ['🤖', 'Вайб · ИИ', 'ai'], ['♥', 'Моё', 'fav'], ['☰', 'Очередь', 'queue'], ['💬', 'Сообщения' + (unread ? ` · ${unread}` : ''), 'chats'], ['📰', 'Лента', 'feed'],
       ['🎧', 'Вместе', 'room'], ['🎮', 'Угадай мелодию', 'game'], ['↺', 'История', 'history'], ['📊', 'Статистика', 'stats'],
       ['🌙', 'Таймер сна', () => $('pSleep').click()], ['⚙', 'Настройки', 'settings'],
     ];
@@ -7050,6 +7072,92 @@ registerProcessor('pulse-feed', Feed);`;
   $('pVoice').addEventListener('click', voice);
   $('dVoice').addEventListener('click', voice);
 
+  // ===================== Вайб: ИИ-собеседник =====================
+  // Разговор идёт через функцию ai-chat на сервере Pulse: там ключ ИИ, характер и правила, их не видно и не подменить.
+  // История чата хранится только на этом устройстве.
+  const ai = { hist: store.get('pulse-ai', []), busy: false, left: null, draw: null };
+  const AI_HINTS = ['Подбери музыку под моё настроение', 'Что похоже на то, что сейчас играет?', 'Хочу что-нибудь для учёбы', 'Как сделать slowed + reverb?'];
+  const AI_SPEED = { slowed: '🐢 Slowed + reverb', speed: '⚡ Speed up', normal: '1× Обычная скорость' };
+  const aiSave = () => { ai.hist = ai.hist.slice(-40); store.set('pulse-ai', ai.hist); };
+  function aiAction(a) {
+    if (a.type === 'play') voicePlay(a.arg);
+    else if (a.type === 'wave') { toast('🌊 Ищу похожее…'); waveTracks({ artist: a.arg }).then(tr => tr.length ? playItem(tr[0], tr) : toast('Ничего похожего не нашёл')).catch(() => toast('Не получилось')); }
+    else if (a.type === 'speed' && SPEEDS[a.arg]) { setSpeed(a.arg); $('spdSel').value = a.arg; }
+    else if (a.type === 'eq' && EQ_PRESETS[a.arg]) { setEq(EQ_PRESETS[a.arg][1], a.arg); renderEq(); toast('🎚 Эквалайзер: ' + EQ_PRESETS[a.arg][0]); }
+  }
+  const aiLabel = a => a.type === 'play' ? '▶ ' + a.arg : a.type === 'wave' ? '🌊 Волна: ' + a.arg : a.type === 'speed' ? AI_SPEED[a.arg] : '🎚 ' + ((EQ_PRESETS[a.arg] || [])[0] || a.arg);
+  function aiBubble(m) {
+    const b = el('div', 'ai-msg ' + (m.role === 'user' ? 'me' : 'bot') + (m.sys ? ' sys' : ''));
+    if (m.role !== 'user') b.appendChild(el('b', 'who', 'ВАЙБ'));
+    b.appendChild(el('span', '', m.content));
+    if (m.actions && m.actions.length) {
+      const row = el('div', 'ai-acts');
+      m.actions.forEach(a => { const x = el('button', '', aiLabel(a)); x.type = 'button'; x.addEventListener('click', () => aiAction(a)); row.appendChild(x); });
+      b.appendChild(row);
+    }
+    return b;
+  }
+  async function aiSend(text) {
+    text = String(text || '').trim().slice(0, 600);
+    if (!text || ai.busy) return;
+    ai.busy = true;
+    ai.hist.push({ role: 'user', content: text }); aiSave(); if (ai.draw) ai.draw();
+    const say = (content, extra = {}) => { ai.hist.push({ role: 'assistant', content, ...extra }); aiSave(); };
+    try {
+      const tk = await accessToken();
+      const it = local.active && local.item ? local.item : auto.last;
+      const now = it && it.title ? it.title + (it.artist ? ' — ' + it.artist : '') : '';
+      const time = new Date().toLocaleString('ru-RU', { weekday: 'long', hour: '2-digit', minute: '2-digit' });
+      const r = await fetch(`${SUPA.url}/functions/v1/ai-chat`, {
+        method: 'POST', headers: { apikey: SUPA.key, Authorization: 'Bearer ' + tk, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: ai.hist.filter(m => !m.sys).slice(-12).map(m => ({ role: m.role, content: m.content })), ctx: { now, time } }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (r.ok) { say(j.text, { actions: j.actions || [] }); ai.left = j.left; }
+      else if (r.status === 429) { say('На сегодня лимит сообщений закончился — завтра продолжим 🙂', { sys: true }); ai.left = 0; }
+      else if (r.status === 401) say('Чтобы болтать со мной, войди в аккаунт Pulse.', { sys: true });
+      else if (r.status === 503) say('Я ещё не подключён — скоро заработаю.', { sys: true });
+      else say('Что-то я задумался и не ответил. Попробуй ещё раз.', { sys: true });
+    } catch (e) { say('Не достучался до сервера. Проверь интернет и попробуй ещё раз.', { sys: true }); }
+    ai.busy = false;
+    if (ai.draw) ai.draw();
+  }
+  function renderAI(body) {
+    body.appendChild(section('Вайб', 'ИИ-друг, который шарит в музыке'));
+    if (!acc.session) {
+      body.appendChild(el('div', 'empty-note', 'Вайб подберёт музыку под настроение, посоветует похожих артистов и сам включит трек. Чтобы с ним поговорить, войди в аккаунт.'));
+      const b = el('button', 'acc-login big', '👤 Войти или создать аккаунт'); b.type = 'button'; b.addEventListener('click', login); body.appendChild(b);
+      return;
+    }
+    const box = el('div', 'ai-chat'), list = el('div', 'ai-list'), hints = el('div', 'qchips ai-hints'), meta = el('div', 'ai-meta');
+    const form = el('div', 'ai-form'), inp = el('textarea'), send = el('button', 'primary', '➤'), clear = el('button', '', 'Очистить');
+    inp.rows = 1; inp.maxLength = 600; inp.placeholder = 'Напиши Вайбу…';
+    send.type = 'button'; send.setAttribute('aria-label', 'Отправить'); clear.type = 'button';
+    AI_HINTS.forEach((h, i) => { const c = el('button', '', h); c.type = 'button'; c.style.setProperty('--h', 280 + i * 40); c.addEventListener('click', () => aiSend(h)); hints.appendChild(c); });
+    const go = () => { const t = inp.value; inp.value = ''; aiSend(t); };
+    send.addEventListener('click', go);
+    inp.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); go(); } });
+    clear.addEventListener('click', () => { ai.hist = []; aiSave(); ai.draw(); });
+    form.append(inp, send);
+    ai.draw = () => {
+      if (!list.isConnected) { ai.draw = null; return; }
+      list.innerHTML = '';
+      list.appendChild(aiBubble({ role: 'assistant', content: 'Йо! Я Вайб 🎧 Расскажи, какое настроение или чем занят — подберу музыку и сам её включу. Могу посоветовать похожих артистов или настроить звук.' }));
+      ai.hist.forEach(m => list.appendChild(aiBubble(m)));
+      if (ai.busy) { const t = el('div', 'ai-msg bot typing'); t.append(el('i'), el('i'), el('i')); list.appendChild(t); }
+      hints.hidden = ai.hist.length > 0;
+      meta.textContent = ai.left != null ? `Сегодня осталось сообщений: ${ai.left}` : '';
+      clear.hidden = !ai.hist.length;
+      send.disabled = ai.busy;
+      list.lastElementChild.scrollIntoView({ block: 'end' });
+    };
+    const foot = el('div', 'ai-foot'); foot.append(meta, clear);
+    box.append(list, hints, form, foot);
+    body.appendChild(box);
+    ai.draw();
+    setTimeout(() => inp.focus(), 60);
+  }
+
   // дополнительные вкладки медиатеки
   function renderExtraTab(body) {
     const tb = lib.tab;
@@ -7067,6 +7175,7 @@ registerProcessor('pulse-feed', Feed);`;
     if (tb === 'game') { renderGame(body); return true; }
     if (tb === 'feed') { renderFeed(body); return true; }
     if (tb === 'more') { renderMore(body); return true; }
+    if (tb === 'ai') { renderAI(body); return true; }
     return false;
   }
 
