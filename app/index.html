@@ -363,9 +363,13 @@ body.lib-open .player { z-index: 7; opacity: 1 !important; }
   .hint { bottom: calc(160px + var(--sab)); border-radius: 18px; }
   .panel { top: calc(60px + var(--sat)); left: 8px; right: 8px; width: auto; max-height: calc(100% - 80px - var(--sat)); }
   .ctl { grid-template-columns: 1fr 1.2fr 42px; }
-  .ytwin { left: 8px; right: 8px; width: auto !important; bottom: calc(160px + var(--sab)); }
-  .ytwin.small { left: auto; width: 200px !important; }
-  .ytbox { min-height: 0; }
+  /* видео на телефоне — полоса 16:9 сверху под логотипом, без чёрных полей (YouTube требует не меньше 200 точек в высоту) */
+  .ytwin, .ytwin.small, .ytwin.big { left: 8px; right: 8px; width: auto !important; top: calc(58px + var(--sat)); bottom: auto; }
+  .ytwin .ytbar { padding: 3px 6px 3px 12px; }
+  .ytwin .ytbar button { width: 26px; height: 26px; }
+  .ytwin #ytBig { display: none; }
+  .ytwin .ytbox, .ytwin.small .ytbox { aspect-ratio: auto; min-height: 0; height: max(200px, calc((100vw - 16px) * 9 / 16)); }
+  .ptime em { display: none; }
   .lib-side { padding: calc(10px + var(--sat)) 10px 10px; gap: 6px; align-items: center; }
   .lib-acc .acc-login { padding: 9px 12px; white-space: nowrap; }
   .hero2 { padding: 20px 18px; border-radius: 22px; }
@@ -1545,7 +1549,9 @@ registerProcessor('pulse-feed', Feed);`;
   const mood = { v: 0.6 };
   function fxI() {
     if (chaos.on) return 1;
-    return (FX_BASE[fx.level] ?? 0.6) * (fx.moodOn ? 0.35 + 0.65 * mood.v : 1);
+    // на телефоне «Обычно» спокойнее: маленький экран быстро превращается в кашу из лазеров и молний
+    const base = lite && fx.level === 'normal' ? 0.42 : (FX_BASE[fx.level] ?? 0.6);
+    return base * (fx.moodOn ? 0.35 + 0.65 * mood.v : 1);
   }
   function moodUpdate(dt) {
     if (!music.on || music.kind === 'auto' || !fx.moodOn) { mood.v += (0.6 - mood.v) * Math.min(1, dt / 3); sadK = Math.max(0, sadK - dt / 3); return; }
@@ -2756,9 +2762,20 @@ registerProcessor('pulse-feed', Feed);`;
     const y = clamp(cy + (s - 0.5) * H * 0.42, yMin, Math.max(yMin, yMax));
     return { side, x, y, rot: (s2 * 2 - 1) * 0.055 - side * 0.03 };
   }
+  // вертикальный телефон: по бокам от колец места нет — строки по центру над плеером, следующая под текущей
+  const portrait = () => W < 700 && H > W;
+  function bottomUiTop() {
+    let top = H - 16;
+    for (const id of ['upnext', 'player']) { const e = $(id); if (!e.hidden) top = Math.min(top, e.getBoundingClientRect().top); }
+    return top;
+  }
   function layoutSide(i, asNext) {
     const l = lyr.lines[i];
     if (!l || !l.text) return null;
+    if (portrait() && !karaoke) {
+      const G = layoutLine(l.text, 'center', W * 0.88), pt = bottomUiTop();
+      return { i, G, pose: { side: 0, x: W / 2, y: asNext ? pt - 18 - G.h / 2 : pt - Math.max(H * 0.13, 70) - G.h / 2 - 24, rot: 0 } };
+    }
     if (karaoke) {
       const G = layoutLine(l.text, 'center', Math.min(W * 0.84, 1150), 1.5);
       return { i, G, pose: { side: 0, x: cx, y: asNext ? cy + H * 0.2 : cy - H * 0.04, rot: 0 } };
@@ -3684,12 +3701,15 @@ registerProcessor('pulse-feed', Feed);`;
       window.onYouTubeIframeAPIReady = () => {
         yt.player = new YT.Player('ytFrame', {
           width: '100%', height: '100%',
-          playerVars: { autoplay: 1, playsinline: 1, rel: 0, modestbranding: 1, origin: location.origin },
+          // без субтитров и аннотаций YouTube: текст песни Pulse показывает сам
+          playerVars: { autoplay: 1, playsinline: 1, rel: 0, modestbranding: 1, origin: location.origin, cc_load_policy: 0, iv_load_policy: 3 },
           events: {
             onReady: () => { yt.ready = true; YE.apply(); res(); },
             onStateChange: e => {
               yt.state = e.data;
               if (e.data === 1) local.errors = 0;
+              // субтитры, включённые в аккаунте YouTube, выключаем — иначе два текста сразу
+              if (e.data === 1) try { yt.player.unloadModule('captions'); yt.player.unloadModule('cc'); } catch (x) {}
               // ролик по ссылке без ключа: название и автора берём из самого плеера
               if (e.data === 1 && local.item && local.item.fromPlayer) {
                 const d = yt.player.getVideoData() || {};
@@ -6530,6 +6550,7 @@ registerProcessor('pulse-feed', Feed);`;
     const now = nowMs / 1000;
     analyse(dt, now);
     moodUpdate(dt);
+    if (frame.cyT) cy += (frame.cyT - cy) * Math.min(1, dt * 3);
     if (music.on && music.raw > 0.02) music.lastSound = now;
     const silent = !music.on || now - (music.lastSound || -99) > 2.5;
     updateCam(dt);
@@ -6586,6 +6607,12 @@ registerProcessor('pulse-feed', Feed);`;
     if (uiT > 0.25) {
       uiT = 0;
       tickPlayer();
+      // вертикальный телефон: кольца — в свободной зоне между окном видео и текстом песни
+      if (portrait()) {
+        const yw = $('ytwin'), top = yw.hidden ? H * 0.1 : yw.getBoundingClientRect().bottom;
+        const bot = (lyr.on ? bottomUiTop() - Math.max(H * 0.13, 70) - 90 : bottomUiTop() - 20);
+        frame.cyT = clamp((top + bot) / 2, H * 0.28, H * 0.55);
+      } else frame.cyT = H / 2;
       // настроение: ниже середины краски блекнут и уходят в холодный синий
       if (!lite) {
         const sad = sadK;
