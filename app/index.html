@@ -700,6 +700,9 @@ body.mini .pmini-lyr { display: block; font-style: normal; font: 700 12px var(--
 .share-list { display: flex; flex-wrap: wrap; gap: 8px; max-height: 40vh; overflow-y: auto; }
 body.saver .brand, body.saver .dock, body.saver .player, body.saver .upnext, body.saver .hint, body.saver .ytwin, body.saver .updbar, body.saver .toast { display: none !important; }
 body.saver { cursor: none; }
+.trk-more { padding: 14px; text-align: center; font-size: 12px; color: var(--faint); cursor: pointer; }
+.pl-filter { width: 100%; max-width: 520px; box-sizing: border-box; margin: 4px 0 12px; font: 600 15px var(--body); color: var(--ink); background: rgba(255,255,255,.06); border: 1px solid var(--line); border-radius: 14px; padding: 11px 14px; outline: none; }
+.pl-filter:focus { border-color: hsl(var(--lh),100%,70%); }
 #instRow { align-items: center; }
 #instRow .hint2 { flex: 1 1 240px; }
 #ovlUrl b { color: var(--ink); -webkit-user-select: text; user-select: text; }
@@ -3773,11 +3776,29 @@ registerProcessor('pulse-feed', Feed);`;
     return b;
   }
   // список треков. opts: onRemove(i) — крестик, onMove(from, to) — перетаскивание, onPick(i) — свой обработчик клика
+  // длинные списки (плейлист на тысячу треков) рисуются порциями по 60: следующая — когда до конца списка остаётся немного прокрутки
+  const TRK_CHUNK = 60;
   function trackList(items, opts = {}) {
     const box = el('div', 'tracks');
-    let dragFrom = -1;
-    items.forEach((it, i) => {
-      const row = el('div', 'trk'); row.tabIndex = 0; row.dataset.id = it.id; if (it.aid) row.dataset.aid = it.aid; row.style.setProperty('--i', Math.min(i, 20));
+    let dragFrom = -1, shown = 0;
+    const playingId = local.active && local.item && local.item.id;
+    const sentinel = el('div', 'trk-more');
+    const io = 'IntersectionObserver' in window ? new IntersectionObserver(es => {
+      if (!box.isConnected) { io.disconnect(); return; }
+      if (es.some(e => e.isIntersecting)) more();
+    }, { rootMargin: '800px 0px' }) : null;
+    const more = () => {
+      const end = Math.min(items.length, shown + TRK_CHUNK), frag = document.createDocumentFragment();
+      for (; shown < end; shown++) frag.appendChild(mkRow(items[shown], shown));
+      box.insertBefore(frag, sentinel.isConnected ? sentinel : null);
+      if (shown < items.length) { if (!sentinel.isConnected) box.appendChild(sentinel); sentinel.textContent = `Ещё ${items.length - shown}…`; }
+      else { sentinel.remove(); if (io) io.disconnect(); }
+    };
+    if (io) io.observe(sentinel);
+    sentinel.addEventListener('click', more);
+    const mkRow = (it, i) => {
+      const row = el('div', 'trk'); row.tabIndex = 0; row.dataset.id = it.id; if (it.aid) row.dataset.aid = it.aid; row.style.setProperty('--i', i < 20 ? i : 0);
+      if (playingId && it.id === playingId) row.classList.add('playing');
       const num = el('div', 'tnum'); num.append(el('span', '', i + 1), el('em', '', '▶'));
       const eq = el('i', 'eqi'); eq.append(el('b'), el('b'), el('b')); num.appendChild(eq);
       const meta = el('div', 'tmeta'); meta.append(el('b', '', it.title), el('span', '', it.artist || ''));
@@ -3797,8 +3818,9 @@ registerProcessor('pulse-feed', Feed);`;
         row.addEventListener('dragover', e => { e.preventDefault(); box.querySelectorAll('.drop-to').forEach(r => r.classList.remove('drop-to')); row.classList.add('drop-to'); });
         row.addEventListener('drop', e => { e.preventDefault(); if (dragFrom >= 0 && dragFrom !== i) opts.onMove(dragFrom, i); dragFrom = -1; });
       }
-      box.appendChild(row);
-    });
+      return row;
+    };
+    more();
     return box;
   }  function section(title, sub) { const h = el('h2', '', title); if (sub) h.appendChild(el('small', '', sub)); return h; }
   const skeleton = n => { const f = document.createDocumentFragment(); for (let i = 0; i < n; i++) f.appendChild(el('div', 'sk')); return f; };
@@ -4235,11 +4257,31 @@ registerProcessor('pulse-feed', Feed);`;
     head.append(mosaic(p, 'big'), info);
     body.appendChild(head);
     if (!p.items.length) { body.appendChild(el('div', 'empty-note', 'Пока пусто. Нажми ⋯ у любого трека → «Добавить в плейлист».')); return; }
-    body.appendChild(el('p', 'hint2', 'Перетаскивай треки, чтобы поменять порядок.'));
-    body.appendChild(trackList(p.items, {
+    // в большом плейлисте — поиск по названию и артисту
+    const listBox = el('div');
+    const full = () => trackList(p.items, {
       onMove: (a, b) => { const [x] = p.items.splice(a, 1); p.items.splice(b, 0, x); savePlaylists(); renderLib(); },
       onRemove: i => { p.items.splice(i, 1); savePlaylists(); renderLib(); },
-    }));
+    });
+    if (p.items.length > 40) {
+      const f = el('input', 'pl-filter'); f.type = 'search'; f.placeholder = `Найти среди ${tracksN(p.items.length)}`;
+      let ft = null;
+      f.addEventListener('keydown', e => e.stopPropagation());
+      f.addEventListener('input', () => {
+        clearTimeout(ft);
+        ft = setTimeout(() => {
+          const q = f.value.trim().toLowerCase();
+          listBox.innerHTML = '';
+          if (!q) { listBox.appendChild(full()); markPlaying(); return; }
+          const hits = p.items.filter(x => (x.title + ' ' + (x.artist || '')).toLowerCase().includes(q));
+          if (!hits.length) { listBox.appendChild(el('div', 'empty-note', 'Ничего не нашлось')); return; }
+          listBox.appendChild(trackList(hits, { onPick: i => playItem(hits[i], p.items) }));
+        }, 200);
+      });
+      body.appendChild(f);
+    } else body.appendChild(el('p', 'hint2', 'Перетаскивай треки, чтобы поменять порядок.'));
+    listBox.appendChild(full());
+    body.appendChild(listBox);
     markPlaying();
   }
 
