@@ -6605,14 +6605,35 @@ registerProcessor('pulse-feed', Feed);`;
   }
 
   // ===================== угадай мелодию =====================
-  // 5 раундов: 10 секунд из популярного трека (отрывки Deezer) и 4 варианта ответа
+  // 5 раундов: 10 секунд из русского хита или песни из TikTok (отрывки Deezer) и 4 варианта ответа
   const game = { audio: new Audio(), tracks: [], round: 0, score: 0, ans: null, opts: [], stopT: null, busy: false, picked: null };
   game.audio.preload = 'auto';
+  // треки для игры: русские хиты и песни из TikTok из популярных плейлистов Deezer (отрывки по 30 секунд);
+  // если не нашлось — мировой чарт Deezer
+  async function gameTracks() {
+    const seen = new Set(), out = [];
+    const add = list => list.forEach(t => {
+      if (!t.preview || !t.artist) return;
+      const k = (t.artist.name + '|' + (t.title_short || t.title)).toLowerCase();
+      if (seen.has(k)) return; seen.add(k);
+      out.push({ title: t.title_short || t.title, artist: t.artist.name, url: t.preview, cover: t.album && t.album.cover_medium });
+    });
+    try {
+      const found = await Promise.all(['Russian Tiktok Songs 2026', 'Хиты 2026 Русские'].map(q => deezer('search/playlist?limit=3&q=' + encodeURIComponent(q)).catch(() => ({}))));
+      const ids = found.flatMap(r => (r.data || []).filter(p => p.nb_tracks >= 30).slice(0, 2).map(p => p.id));
+      const lists = await Promise.all(ids.map(id => deezer(`playlist/${id}/tracks?limit=100`).catch(() => ({}))));
+      lists.forEach(r => add(r.data || []));
+    } catch (e) {}
+    // русские вперёд: в игре должно быть то, что знают
+    const ru = out.filter(t => /[а-яё]/i.test(t.title + ' ' + t.artist));
+    let pick = ru.length >= 20 ? ru : out;
+    if (pick.length < 20) { const r = await deezer('chart/0/tracks?limit=80'); add(r.data || []); pick = out; }
+    return shuffleArr(pick);
+  }
   async function gameNew() {
     game.busy = true; renderLib();
     try {
-      const r = await deezer('chart/0/tracks?limit=80');
-      game.tracks = shuffleArr((r.data || []).filter(t => t.preview).map(t => ({ title: t.title_short || t.title, artist: t.artist && t.artist.name, url: t.preview, cover: t.album && t.album.cover_medium })));
+      game.tracks = await gameTracks();
       if (game.tracks.length < 8) throw 0;
       game.round = 0; game.score = 0; game.busy = false; gameRound();
     } catch (e) { game.busy = false; game.tracks = []; toast('Не получилось загрузить треки для игры'); renderLib(); }
@@ -7060,8 +7081,7 @@ registerProcessor('pulse-feed', Feed);`;
   async function mpStart() {
     if (!room.host) return;
     try {
-      const r = await deezer('chart/0/tracks?limit=80');
-      mp.hostTracks = shuffleArr((r.data || []).filter(t => t.preview).map(t => ({ t: t.title_short || t.title, a: t.artist && t.artist.name, u: t.preview, c: t.album && t.album.cover_medium })));
+      mp.hostTracks = (await gameTracks()).map(t => ({ t: t.title, a: t.artist, u: t.url, c: t.cover }));
       if (mp.hostTracks.length < 20) throw 0;
       if (local.active && !eng().paused) eng().pause();
       mp.answers = []; mpRoundHost(1);
