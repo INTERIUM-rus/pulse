@@ -1270,9 +1270,16 @@ button { transition: transform .28s cubic-bezier(.2,1.5,.4,1), background .25s, 
   body:not(.mini):not(.wall):not(.saver) .rail { display: flex; }
   .rail-nav { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; background: transparent; border-color: transparent; padding: 11px 14px; font: 700 14px var(--body); color: var(--dim); backdrop-filter: none; }
   .rail-nav:hover { background: rgba(255,255,255,.05); color: var(--ink); border-color: transparent; box-shadow: none; }
-  .rail-nav i { font-style: normal; width: 22px; text-align: center; }
+  .rail-nav i { font-style: normal; width: 22px; display: grid; place-items: center; }
+  /* тонкие иконки меню в одном стиле; у открытого раздела — неоновая */
+  .rail-nav svg, .rail-wave svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .rail-nav svg .f { fill: currentColor; }
+  .rail-nav.on svg { color: #ff7be5; filter: drop-shadow(0 0 5px rgba(255,79,216,.7)); }
+  .rail-wave i { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 11px; background: rgba(255,255,255,.12); }
+  .rail-wave svg { width: 22px; height: 22px; stroke-width: 2; }
   .rail-wave { display: flex; align-items: center; gap: 12px; margin: 6px 0 8px; padding: 12px 14px; border-radius: 16px; text-align: left; border: 0; color: #fff; }
-  .rail-wave i { font-style: normal; font-size: 22px; animation: wave 2s ease-in-out infinite; }
+  .rail-wave i { font-style: normal; flex: none; }
+  .rail-wave i svg { animation: wave 2s ease-in-out infinite; }
   .rail-wave b { display: block; font: 800 14px var(--display); }
   .rail-wave small { display: block; font-size: 11px; color: rgba(255,255,255,.85); }
   /* быстрые кнопки внизу: одна стеклянная панель с тонкими иконками, включённая — мягкое свечение и точка */
@@ -1322,16 +1329,16 @@ button { transition: transform .28s cubic-bezier(.2,1.5,.4,1), background .25s, 
 </div>
 
 <nav class="rail" id="rail" aria-label="Разделы Pulse">
-  <button class="rail-nav on" data-go="visual" type="button"><i>◉</i>Визуал</button>
-  <button class="rail-nav" data-go="home" type="button"><i>✦</i>Главная</button>
-  <button class="rail-nav" data-go="search" type="button"><i>⌕</i>Поиск</button>
-  <button class="rail-wave" data-go="wave" type="button"><i>🌊</i><span><b>Моя волна</b><small>бесконечный поток под тебя</small></span></button>
-  <button class="rail-nav" data-go="ai" type="button"><i>🤖</i>Вайб · ИИ</button>
-  <button class="rail-nav" data-go="playlists" type="button"><i>♫</i>Плейлисты</button>
-  <button class="rail-nav" data-go="fav" type="button"><i>♥</i>Моё</button>
-  <button class="rail-nav" data-go="friends" type="button"><i>👥</i>Друзья</button>
-  <button class="rail-nav" data-go="room" type="button"><i>🎧</i>Вместе</button>
-  <button class="rail-nav" data-go="settings" type="button"><i>⚙</i>Настройки</button>
+  <button class="rail-nav on" data-go="visual" type="button"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" class="f"/></svg></i>Визуал</button>
+  <button class="rail-nav" data-go="home" type="button"><i><svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/></svg></i>Главная</button>
+  <button class="rail-nav" data-go="search" type="button"><i><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></i>Поиск</button>
+  <button class="rail-wave" data-go="wave" type="button"><i><svg viewBox="0 0 24 24"><path d="M3 9c2.2 0 2.2-2.5 4.5-2.5S9.8 9 12 9s2.2-2.5 4.5-2.5S18.8 9 21 9M3 15c2.2 0 2.2-2.5 4.5-2.5S9.8 15 12 15s2.2-2.5 4.5-2.5S18.8 15 21 15"/></svg></i><span><b>Моя волна</b><small>бесконечный поток под тебя</small></span></button>
+  <button class="rail-nav" data-go="ai" type="button"><i><svg viewBox="0 0 24 24"><path d="M12 3.5l1.6 4.3 4.4 1.7-4.4 1.7L12 15.5l-1.6-4.3L6 9.5l4.4-1.7z"/><path d="M18.5 15l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></svg></i>Вайб · ИИ</button>
+  <button class="rail-nav" data-go="playlists" type="button"><i><svg viewBox="0 0 24 24"><path d="M4 6h10M4 11h10M4 16h6"/><circle cx="16.5" cy="17" r="2.5"/><path d="M19 17V6l2 .8"/></svg></i>Плейлисты</button>
+  <button class="rail-nav" data-go="fav" type="button"><i><svg viewBox="0 0 24 24"><path d="M12 19.5s-7.5-4.4-7.5-10A4.2 4.2 0 0 1 12 7a4.2 4.2 0 0 1 7.5 2.5c0 5.6-7.5 10-7.5 10z"/></svg></i>Моё</button>
+  <button class="rail-nav" data-go="friends" type="button"><i><svg viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="16.5" cy="9" r="2.5"/><path d="M16 13.6a4.5 4.5 0 0 1 4.8 4.4"/></svg></i>Друзья</button>
+  <button class="rail-nav" data-go="room" type="button"><i><svg viewBox="0 0 24 24"><path d="M4.5 15v-3a7.5 7.5 0 0 1 15 0v3"/><rect x="3.5" y="14" width="4" height="6" rx="1.5"/><rect x="16.5" y="14" width="4" height="6" rx="1.5"/></svg></i>Вместе</button>
+  <button class="rail-nav" data-go="settings" type="button"><i><svg viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></i>Настройки</button>
   <div class="rail-fx">
     <button data-go="voice" type="button" title="Голосовая команда (J)" aria-label="Голосовая команда"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></button>
     <button data-go="lyrics" type="button" title="Текст песни (L)" aria-label="Текст песни"><svg viewBox="0 0 24 24"><path d="M4 6h11M4 11h8M4 16h6"/><circle cx="17" cy="17" r="2.5"/><path d="M19.5 17V7l2 1"/></svg></button>
