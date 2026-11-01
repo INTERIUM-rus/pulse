@@ -1054,6 +1054,13 @@ button.primary:hover { box-shadow: 0 10px 30px rgba(255,79,216,.55); }
 .ai-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 30px; }
 .ai-meta { font-size: 12px; color: var(--faint); }
 .ai-foot button { padding: 6px 12px; font-size: 12px; }
+/* живая обложка: медленно «дышит» и плывёт, на бите вспыхивает светом */
+.pcover img, .lib-np .vin img { animation: coverLive 9s ease-in-out infinite alternate; transform-origin: 50% 50%; }
+.pcover::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; mix-blend-mode: screen;
+  background: radial-gradient(circle at 30% 25%, rgba(255,255,255,calc(var(--beat, 0) * .35)), transparent 60%); }
+@keyframes coverLive { 0% { transform: scale(1.04) translate(-2%, 1%) rotate(-1.2deg); } 50% { transform: scale(1.12) translate(1.5%, -1.5%) rotate(.8deg); } 100% { transform: scale(1.07) translate(2%, 2%) rotate(1.5deg); } }
+@media (prefers-reduced-motion: reduce) { .pcover img { animation: none; } }
+.lite .pcover img { animation-duration: 14s; }
 /* плитки и большие кнопки — приглушённые: тёмное стекло, цвет только лёгким отливом, полоской снизу и свечением при наведении */
 .htile, .mood { background: var(--tbg, linear-gradient(135deg, hsl(var(--h),88%,52%), hsl(calc(var(--h) + 55),90%,38%))); border: 1px solid rgba(255,255,255,.1); box-shadow: none; }
 .htile::before, .mood::before { content: ""; position: absolute; inset: 0; background: linear-gradient(160deg, rgba(16,11,30,.62), rgba(16,11,30,.86)); pointer-events: none; }
@@ -1071,6 +1078,16 @@ button.primary:hover { box-shadow: 0 10px 30px rgba(255,79,216,.55); }
 .lib-more { display: grid; gap: 2px; padding-left: 10px; margin-left: 14px; border-left: 1px solid rgba(255,255,255,.08); }
 .lib-more .lib-nav { padding: 8px 12px; font-size: 13px; }
 .lib-next { display: none !important; }
+/* загадка дня */
+.mood.smart.daily { margin-top: 8px; }
+.daily { display: grid; gap: 14px; max-width: 620px; }
+.daily-emoji { font-size: clamp(44px, 8vw, 72px); letter-spacing: .12em; line-height: 1.2; padding: 22px; border-radius: 22px; text-align: center;
+  background: rgba(20,14,36,.8); border: 1px solid var(--nline); box-shadow: 0 0 calc(10px + var(--beat, 0) * 24px) rgba(255,79,216,.25); }
+.daily-hints { display: grid; gap: 6px; color: var(--dim); font-size: 14px; }
+.daily .ai-form input { flex: 1; min-width: 0; font: 600 16px var(--body); color: var(--ink); background: rgba(255,255,255,.05); border: 1px solid rgba(79,240,255,.25); border-radius: 14px; padding: 12px 14px; outline: none; }
+.daily .ai-form button { width: auto; padding: 0 18px; font-size: 14px; }
+.daily-res { display: grid; gap: 10px; justify-items: start; }
+.daily-res b { font: 900 22px var(--display); }
 /* подборка под время суток — широкая плитка на главной */
 .mood.smart { display: grid; align-content: center; gap: 2px; width: 100%; height: 110px; margin: 14px 0 4px; box-sizing: border-box; }
 .mood.smart small { position: relative; z-index: 1; font: 800 11px var(--body); letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.85); }
@@ -1212,6 +1229,7 @@ button.primary:hover { box-shadow: 0 10px 30px rgba(255,79,216,.55); }
       <button class="lib-nav" data-tab="room" type="button"><i>🎧</i>Вместе<b class="nbadge live" id="roomBadge" hidden>●</b></button>
       <button class="lib-nav" data-tab="queue" type="button"><i>☰</i>Очередь</button>
       <button class="lib-nav" data-tab="feed" type="button"><i>📰</i>Лента</button>
+      <button class="lib-nav" data-tab="daily" type="button"><i>🧩</i>Загадка дня</button>
       <button class="lib-nav" data-tab="game" type="button"><i>🎮</i>Угадай мелодию</button>
       <button class="lib-nav" data-tab="files" type="button"><i>📁</i>Мои файлы</button>
       <button class="lib-nav" data-tab="history" type="button"><i>↺</i>История</button>
@@ -1255,6 +1273,7 @@ button.primary:hover { box-shadow: 0 10px 30px rgba(255,79,216,.55); }
     <button id="dBg" type="button"><i>🎨</i><b>Сменить фон</b><small>следующий · N</small></button>
     <button id="dChaos" class="chaos" type="button"><i>🔥</i><b>Безумие</b><small>вкл / выкл · X</small></button>
     <button id="dHole" type="button"><i>🕳</i><b>Чёрная дыра</b><small>прямо сейчас · B</small></button>
+    <button id="dVinyl" type="button"><i>📀</i><b>Пластинка</b><small>винил вместо колец · Y</small></button>
     <button id="dDrop" type="button"><i>💥</i><b>Дроп</b><small>прямо сейчас · D</small></button>
     <button id="dWall" type="button" hidden><i>🖼</i><b>Живые обои</b><small>на рабочий стол · W</small></button>
     <button id="dFull" type="button"><i>⛶</i><b>Во весь экран</b><small>F11 или двойной клик</small></button>
@@ -1278,6 +1297,8 @@ button.primary:hover { box-shadow: 0 10px 30px rgba(255,79,216,.55); }
   <p class="hint2" id="perfHint"></p>
   <label class="ctl"><span>Сезонные темы</span>
     <select id="seasonSel"><option value="auto">Сами по датам</option><option value="halloween">🎃 Хэллоуин</option><option value="newyear">🎄 Новый год</option><option value="off">Выключены</option></select><output></output></label>
+  <div class="keyrow"><input id="wCity" maxlength="60" placeholder="🌦 Погода в визуале: твой город"><button id="wSave" type="button">Включить</button></div>
+  <p class="hint2" id="wHint"></p>
   <label class="ctl"><span>Перевод текста</span>
     <select id="trOn"><option value="off">Выключен</option><option value="on">На русский</option></select><output></output></label>
   <h3 class="set-h">Звук</h3>
@@ -1285,9 +1306,13 @@ button.primary:hover { box-shadow: 0 10px 30px rgba(255,79,216,.55); }
   <div class="eq" id="eqBands"></div>
   <label class="ctl"><span>Скорость</span>
     <select id="spdSel"><option value="normal">Обычно</option><option value="slowed">🐢 Slowed + reverb</option><option value="speed">⚡ Speed up</option></select><output></output></label>
+  <label class="ctl"><span>8D-звук</span>
+    <select id="d8Sel"><option value="off">Выключен</option><option value="on">🎧 Звук ходит вокруг головы</option></select><output></output></label>
+  <label class="ctl"><span>Ночной режим</span>
+    <select id="nightSel"><option value="off">Выключен</option><option value="on">🌙 Выровнять громкость</option></select><output></output></label>
   <label class="ctl"><span>Плавный переход</span>
     <select id="xfSel"><option value="0">Выключен</option><option value="3">3 секунды</option><option value="6">6 секунд</option><option value="10">10 секунд</option></select><output></output></label>
-  <p class="hint2">Эквалайзер, эхо и плавный переход работают для треков из медиатеки (кроме YouTube). На YouTube меняется только скорость.</p>
+  <p class="hint2">Эквалайзер, эхо, 8D, ночной режим и плавный переход работают для треков из медиатеки (кроме YouTube). На YouTube меняется только скорость.</p>
   <h3 class="set-h">Своя тема</h3>
   <label class="ctl"><span>Цвет</span><input id="thHue" type="range" min="0" max="359" value="290" class="huebar"><output></output></label>
   <div class="keyrow"><input id="thName" maxlength="24" placeholder="Название темы"><button id="thSave" type="button" class="primary">Сохранить тему</button></div>
@@ -1786,6 +1811,9 @@ registerProcessor('pulse-feed', Feed);`;
   let seasonKey = seasonNow();
   let sadK = 0;
   const cover = { hues: null, key: '' };
+  // погода в визуале (город задаётся в настройках): солнце — тёплые тона, дождь и снег — капли и снежинки
+  const weather = { city: store.get('pulse-wcity', ''), kind: null, day: true, temp: null, name: '' };
+  const W_HUES = { sun: [38, 18, 52], cloud: [228, 250, 205], rain: [205, 220, 190], snow: [195, 210, 230], storm: [265, 285, 220], night: [235, 262, 200] };
   const mixHue = (a, b, t) => { const d = ((b - a + 540) % 360) - 180; return ((a + d * t) % 360 + 360) % 360; };
   const HS = h => {
     let x = ((h + sim.hueShift) % 360 + 360) % 360;
@@ -1794,6 +1822,7 @@ registerProcessor('pulse-feed', Feed);`;
       x = mixHue(x, cover.hues[k], 0.7);
     }
     if (seasonKey) { const sh = SEASONS[seasonKey].hues, k = Math.floor((((h - sim.hue0) % 360 + 360) % 360) / 120) % sh.length; x = mixHue(x, sh[k], 0.75); }
+    if (weather.kind) { const wh = W_HUES[!weather.day && weather.kind === 'sun' ? 'night' : weather.kind], k = Math.floor((((h - sim.hue0) % 360 + 360) % 360) / 120) % wh.length; x = mixHue(x, wh[k], 0.35); }
     if (sadK > 0.01) x = mixHue(x, 195 + x / 360 * 70, sadK * 0.85);
     return x;
   };
@@ -1806,12 +1835,13 @@ registerProcessor('pulse-feed', Feed);`;
       try {
         const c = document.createElement('canvas'); c.width = c.height = 24;
         const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0, 24, 24);
-        const d = g.getImageData(0, 0, 24, 24).data, bins = new Array(36).fill(0);
+        const d = g.getImageData(0, 0, 24, 24).data, bins = new Array(36).fill(0), rgb = bins.map(() => [0, 0, 0]);
         for (let i = 0; i < d.length; i += 4) {
           const r = d[i] / 255, gg = d[i + 1] / 255, b = d[i + 2] / 255, mx = Math.max(r, gg, b), mn = Math.min(r, gg, b), s = mx ? (mx - mn) / mx : 0;
           if (s < 0.2 || mx < 0.15) continue;
           let hh = mx === r ? (gg - b) / (mx - mn) : mx === gg ? 2 + (b - r) / (mx - mn) : 4 + (r - gg) / (mx - mn);
-          hh = (hh * 60 + 360) % 360; bins[Math.floor(hh / 10)] += s * mx;
+          hh = (hh * 60 + 360) % 360; const bi = Math.floor(hh / 10), wgt = s * mx; bins[bi] += wgt;
+          rgb[bi][0] += d[i] * wgt; rgb[bi][1] += d[i + 1] * wgt; rgb[bi][2] += d[i + 2] * wgt;
         }
         const picks = [];
         for (let n = 0; n < 3; n++) {
@@ -1819,9 +1849,11 @@ registerProcessor('pulse-feed', Feed);`;
           if (best < 0) break; picks.push(best);
         }
         cover.hues = picks.length ? picks.map(i => i * 10 + 5) : null;
-      } catch (e) { cover.hues = null; }
+        // настоящие цвета обложки (средние по главным оттенкам) — ими подкрашивается фон сцены
+        cover.cols = picks.length ? picks.slice(0, 2).map(i => rgb[i].map(v => Math.round(v / bins[i]))) : null;
+      } catch (e) { cover.hues = null; cover.cols = null; }
     };
-    img.onerror = () => { cover.hues = null; };
+    img.onerror = () => { cover.hues = null; cover.cols = null; };
     img.src = url;
   }
   // дождь на грустной музыке: тонкие косые капли, сколько — зависит от грусти
@@ -2721,8 +2753,88 @@ registerProcessor('pulse-feed', Feed);`;
     } else bgx.drawImage(drawOne(BG.cur), 0, 0);
     // на бите фон чуть вспыхивает цветом сцены
     if (music.beat > 0.05) { bgx.globalCompositeOperation = 'lighter'; bgx.fillStyle = `hsla(${A.h},100%,50%,${music.beat * 0.06})`; bgx.fillRect(0, 0, w, h); bgx.globalCompositeOperation = 'source-over'; }
+    // визуал по обложке: фон мягко подкрашен её настоящими цветами (по углам), цвет плавно перетекает при смене трека
+    const want = fx.coverOn && cover.cols && cover.hues ? cover.cols : null;
+    if (want || BG.wash) {
+      BG.wash = BG.wash || [[0, 0, 0], [0, 0, 0]];
+      const k = Math.min(1, dt * 1.5);
+      BG.wash.forEach((c, i) => { const t = want ? want[i] || want[0] : [0, 0, 0]; for (let j = 0; j < 3; j++) c[j] += (t[j] - c[j]) * k; });
+      bgx.globalCompositeOperation = 'lighter';
+      [[0.15, 0.2, BG.wash[0]], [0.85, 0.85, BG.wash[1]]].forEach(([fx0, fy0, c]) => {
+        const gr = bgx.createRadialGradient(w * fx0, h * fy0, 0, w * fx0, h * fy0, Math.max(w, h) * 0.6);
+        gr.addColorStop(0, `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${0.16 + music.bass * 0.1})`); gr.addColorStop(1, 'rgba(0,0,0,0)');
+        bgx.fillStyle = gr; bgx.fillRect(0, 0, w, h);
+      });
+      bgx.globalCompositeOperation = 'source-over';
+    }
     // пока трек не известен, фоны листаются сами
     if (!auto.key) { BG.idleT += dt; if (BG.idleT > 45) bgNext(true); }
+  }
+
+  // ---------- режим «Пластинка»: вместо колец крутится винил с обложкой-этикеткой ----------
+  const vinyl = { on: store.get('pulse-vinyl', false), a: 0, arm: 0, crackle: null, crackOn: false };
+  function vinylPlaying() { return local.active ? !eng().paused : !!(auto.last && auto.last.status === 'Playing'); }
+  // тихий треск иглы — отдельный звук, только пока пластинка крутится
+  function vinylCrackle(on) {
+    if (on === vinyl.crackOn) return;
+    vinyl.crackOn = on;
+    try {
+      if (on && !vinyl.crackle) {
+        const c = new (window.AudioContext || window.webkitAudioContext)(), n = c.sampleRate * 3, b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0);
+        for (let i = 0; i < n; i++) d[i] = Math.random() < 0.0007 ? (Math.random() * 2 - 1) * 0.8 : (Math.random() * 2 - 1) * 0.012;
+        const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+        s.buffer = b; s.loop = true; f.type = 'highpass'; f.frequency.value = 1200; g.gain.value = 0;
+        s.connect(f); f.connect(g); g.connect(c.destination); s.start();
+        vinyl.crackle = { c, g };
+      }
+      if (vinyl.crackle) { vinyl.crackle.c.resume().catch(() => {}); vinyl.crackle.g.gain.setTargetAtTime(on ? 0.18 : 0, vinyl.crackle.c.currentTime, 0.3); }
+    } catch (e) {}
+  }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) vinylCrackle(false); });
+  function setVinyl(on) {
+    vinyl.on = on; store.set('pulse-vinyl', on);
+    $('dVinyl').classList.toggle('on', on);
+    if (!on) vinylCrackle(false); else bump('vinyl');
+    toast(on ? '📀 Пластинка' : 'Снова кольца');
+  }
+  function drawVinyl(dt) {
+    const playing = vinylPlaying(), h = HS(sim.hue0);
+    vinylCrackle(playing && !document.hidden);
+    vinyl.a += dt * (playing ? 3.49 : 0) * sim.slow;          // 33⅓ оборота в минуту
+    vinyl.arm += ((playing ? 1 : 0) - vinyl.arm) * Math.min(1, dt * 2.5);
+    const R = S * 0.46 * (1 + music.beat * 0.015);
+    ctx.globalCompositeOperation = 'source-over';
+    // свечение по краю под бит
+    const glow = ctx.createRadialGradient(0, 0, R * 0.92, 0, 0, R * 1.3);
+    glow.addColorStop(0, `hsla(${h},100%,60%,${0.22 + music.beat * 0.45})`); glow.addColorStop(1, `hsla(${h},100%,60%,0)`);
+    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(0, 0, R * 1.3, 0, TAU); ctx.fill();
+    ctx.save(); ctx.rotate(vinyl.a);
+    ctx.fillStyle = '#0c0b10'; ctx.beginPath(); ctx.arc(0, 0, R, 0, TAU); ctx.fill();
+    // бороздки
+    ctx.lineWidth = 1;
+    for (let r = R * 0.4; r < R * 0.98; r += 3) { ctx.strokeStyle = `rgba(255,255,255,${0.03 + 0.025 * Math.sin(r * 0.9)})`; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.stroke(); }
+    // промежутки между дорожками светятся на басу
+    [0.55, 0.7, 0.86].forEach((k, i) => { ctx.strokeStyle = `hsla(${HS(sim.hue0 + i * 60)},90%,65%,${0.08 + music.bass * 0.4})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, R * k, 0, TAU); ctx.stroke(); });
+    // этикетка — обложка трека
+    const img = $('pCover'), lr = R * 0.36;
+    ctx.save(); ctx.beginPath(); ctx.arc(0, 0, lr, 0, TAU); ctx.clip();
+    if (img && img.complete && img.naturalWidth && !$('player').hidden) ctx.drawImage(img, -lr, -lr, lr * 2, lr * 2);
+    else { ctx.fillStyle = `hsl(${h},70%,45%)`; ctx.fillRect(-lr, -lr, lr * 2, lr * 2); }
+    ctx.restore();
+    ctx.restore();
+    // блики на виниле стоят на месте, пока диск крутится
+    ctx.globalCompositeOperation = 'lighter';
+    for (const s of [-0.9, 2.25]) { ctx.fillStyle = 'rgba(255,255,255,0.045)'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, R * 0.98, s, s + 0.4); ctx.closePath(); ctx.fill(); }
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = '#050407'; ctx.beginPath(); ctx.arc(0, 0, R * 0.025, 0, TAU); ctx.fill();
+    // тонарм: опускается на пластинку, когда музыка играет
+    const px = R * 1.08, py = -R * 0.98, ang = 2.02 - vinyl.arm * 0.32, len = R * 1.35;
+    const ex = px + Math.cos(ang) * len, ey = py + Math.sin(ang) * len;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(px + 6, py + 8); ctx.lineTo(ex + 6, ey + 8); ctx.stroke();
+    ctx.strokeStyle = '#c9c6d4'; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.fillStyle = '#e8e6f0'; ctx.beginPath(); ctx.arc(px, py, 13, 0, TAU); ctx.fill();
+    ctx.save(); ctx.translate(ex, ey); ctx.rotate(ang); ctx.fillStyle = '#2a2833'; ctx.fillRect(-4, -9, 26, 18); ctx.fillStyle = `hsl(${h},90%,60%)`; ctx.fillRect(16, -9, 6, 18); ctx.restore();
   }
 
   // ---------- отрисовка сцены ----------
@@ -2959,13 +3071,16 @@ registerProcessor('pulse-feed', Feed);`;
     sim.zoom += (zoomT - sim.zoom) * Math.min(1, dt * 14 + 0.05);
     ctx.scale(sim.zoom, sim.zoom);
     if (music.on) ctx.rotate(Math.sin(sim.t * 0.3) * 0.03 + music.beat * 0.012);
-    ctx.globalCompositeOperation = 'lighter';
-    drawCore();
-    drawSpectrum();
-    drawBeatFx(dt);
-    drawRings();
-    drawGlints();
-    drawFlare();
+    if (vinyl.on) { drawVinyl(dt); ctx.globalCompositeOperation = 'lighter'; drawBeatFx(dt); }
+    else {
+      ctx.globalCompositeOperation = 'lighter';
+      drawCore();
+      drawSpectrum();
+      drawBeatFx(dt);
+      drawRings();
+      drawGlints();
+      drawFlare();
+    }
     drawFx(dt);
     ctx.globalCompositeOperation = 'source-over';
     drawBlackHole();
@@ -4086,8 +4201,9 @@ registerProcessor('pulse-feed', Feed);`;
     club: ['Клуб', [6, 3, -1, 2, 4]], rock: ['Рок', [4, 2, -2, 3, 5]], night: ['Ночь', [2, 1, 0, -4, -6]],
   };
   const SPEEDS = { normal: ['Обычно', 1, 0], slowed: ['Slowed + reverb', 0.82, 0.4], speed: ['Speed up', 1.25, 0] };
-  const SND = { eq: store.get('pulse-eq', [0, 0, 0, 0, 0]), preset: store.get('pulse-eqp', 'flat'), speed: store.get('pulse-speed', 'normal'), xfade: store.get('pulse-xfade', 0), graph: null };
-  const sndFx = () => SND.eq.some(x => x) || SPEEDS[SND.speed][2] > 0;
+  const SND = { eq: store.get('pulse-eq', [0, 0, 0, 0, 0]), preset: store.get('pulse-eqp', 'flat'), speed: store.get('pulse-speed', 'normal'), xfade: store.get('pulse-xfade', 0),
+    d8: store.get('pulse-8d', false), night: store.get('pulse-night', false), graph: null };
+  const sndFx = () => SND.eq.some(x => x) || SPEEDS[SND.speed][2] > 0 || SND.d8 || SND.night;
   function reverbIR(c, sec, decay) {
     const n = Math.floor(c.sampleRate * sec), b = c.createBuffer(2, n, c.sampleRate);
     for (let ch = 0; ch < 2; ch++) { const d = b.getChannelData(ch); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, decay); }
@@ -4102,11 +4218,39 @@ registerProcessor('pulse-feed', Feed);`;
     bands.reduce((a, b) => { a.connect(b); return b; }, input);
     const dry = c.createGain(), wet = c.createGain(), verb = c.createConvolver(), out = c.createGain();
     verb.buffer = reverbIR(c, 2.6, 2.4);
-    bands[4].connect(dry); bands[4].connect(verb); verb.connect(wet); dry.connect(out); wet.connect(out); out.connect(c.destination);
-    SND.graph = { c, input, bands, dry, wet };
+    bands[4].connect(dry); bands[4].connect(verb); verb.connect(wet); dry.connect(out); wet.connect(out);
+    // ночной режим: компрессор выравнивает громкость (тихое громче, громкое тише)
+    const comp = c.createDynamicsCompressor(), lift = c.createGain();
+    comp.threshold.value = -32; comp.knee.value = 18; comp.ratio.value = 8; comp.attack.value = 0.004; comp.release.value = 0.3;
+    lift.gain.value = 1.6; comp.connect(lift);
+    // 8D: звук медленно ходит по кругу вокруг головы (объёмный панорамер HRTF, лучше всего в наушниках)
+    const pan = c.createPanner();
+    pan.panningModel = 'HRTF'; pan.distanceModel = 'inverse'; pan.refDistance = 1;
+    SND.graph = { c, input, bands, dry, wet, out, comp, lift, pan, chain: null };
+    sndRoute();
     sndApply();
     return SND.graph;
   }
+  // out → [компрессор] → [8D] → колонки; переключается без пересоздания эквалайзера
+  function sndRoute() {
+    const g = SND.graph; if (!g) return;
+    const key = (SND.night ? 'n' : '') + (SND.d8 ? '8' : '');
+    if (g.chain === key) return;
+    [g.out, g.lift, g.pan].forEach(n => { try { n.disconnect(); } catch (e) {} });
+    let tail = g.out;
+    if (SND.night) { tail.connect(g.comp); tail = g.lift; }
+    if (SND.d8) { tail.connect(g.pan); tail = g.pan; }
+    tail.connect(g.c.destination);
+    g.chain = key;
+  }
+  // круг 8D: один оборот за 8 секунд
+  setInterval(() => {
+    const g = SND.graph; if (!g || !SND.d8) return;
+    const a = (performance.now() / 8000) * TAU, t = g.c.currentTime;
+    g.pan.positionX.setTargetAtTime(Math.sin(a) * 1.6, t, 0.08);
+    g.pan.positionZ.setTargetAtTime(-Math.cos(a) * 1.6, t, 0.08);
+    g.pan.positionY.setTargetAtTime(Math.sin(a * 2) * 0.25, t, 0.08);
+  }, 60);
   function mkDeck(plain) {
     const el = new Audio(), d = { el, plain, gain: null, fading: false };
     el.preload = 'auto';
@@ -4200,6 +4344,7 @@ registerProcessor('pulse-feed', Feed);`;
       g.bands.forEach((b, i) => b.gain.setTargetAtTime(SND.eq[i] || 0, t, 0.05));
       g.wet.gain.setTargetAtTime(sp[2], t, 0.1); g.dry.gain.setTargetAtTime(sp[2] ? 0.8 : 1, t, 0.1);
     }
+    sndRoute();
     if (sndFx() && local.active && eng() === AE) try { route(deck); } catch (e) {}
     for (const d of [...decks, plainDeck]) d.el.playbackRate = sp[1];
     // YouTube умеет только скорость (высота тона там сохраняется); допустимые шаги — 0.75 и 1.25
@@ -4208,6 +4353,8 @@ registerProcessor('pulse-feed', Feed);`;
     if (b) { b.textContent = { normal: '1×', slowed: '🐢', speed: '⚡' }[SND.speed]; b.classList.toggle('on', SND.speed !== 'normal'); }
   }
   function setSpeed(s) { SND.speed = s; store.set('pulse-speed', s); sndApply(); toast({ normal: 'Обычная скорость', slowed: '🐢 Slowed + reverb', speed: '⚡ Speed up' }[s]); }
+  function set8D(on) { SND.d8 = on; store.set('pulse-8d', on); sndApply(); if (on) bump('d8'); toast(on ? '🎧 8D-звук: надень наушники' : '8D выключен'); }
+  function setNight(on) { SND.night = on; store.set('pulse-night', on); sndApply(); toast(on ? '🌙 Ночной режим: громкость выровнена' : 'Ночной режим выключен'); }
   function setEq(arr, preset) { SND.eq = arr.slice(); SND.preset = preset; store.set('pulse-eq', SND.eq); store.set('pulse-eqp', preset); sndApply(); }
 
   const AE = {
@@ -4356,6 +4503,15 @@ registerProcessor('pulse-feed', Feed);`;
   function addPlayed(it) {
     lib.played = [slim(it), ...lib.played.filter(p => p.id !== it.id)].slice(0, 60);
     store.set('pulse-played', lib.played); syncMark('played');
+    // для ачивок «открытий»: когда впервые услышал артиста, треки ночью, треки по дням
+    const disc = store.get('pulse-disc', { seen: {}, night: 0, days: {} }), now = new Date();
+    const a = (it.artist || '').split(/,|&| feat\.? | ft\.? /i)[0].trim().toLowerCase();
+    if (a && !/неизвестн|unknown/.test(a) && !disc.seen[a]) disc.seen[a] = Date.now();
+    if (now.getHours() < 5) disc.night++;
+    const d = now.toISOString().slice(0, 10); disc.days[d] = (disc.days[d] || 0) + 1;
+    Object.keys(disc.days).sort().slice(0, -14).forEach(k => delete disc.days[k]);
+    const seen = Object.entries(disc.seen); if (seen.length > 3000) disc.seen = Object.fromEntries(seen.sort((x, y) => y[1] - x[1]).slice(0, 2500));
+    store.set('pulse-disc', disc);
   }
 
   // отрисовка
@@ -4553,6 +4709,7 @@ registerProcessor('pulse-feed', Feed);`;
       smb.append(el('small', '', '🕒 Сейчас для тебя'), el('b', '', smT), el('span', '', smSub), el('i', '', smE));
       smb.addEventListener('click', () => { lib.q = smQ; $('libQ').value = smQ; lib.tab = 'search'; renderLib(); });
       body.appendChild(smb);
+      body.appendChild(dailyTile());
       // русские хиты и песни из TikTok — первыми; поиск идёт через общий кэш, лимит YouTube почти не тратится
       [['📱 Хиты из TikTok', 'что звучит в роликах', ['песни из тик тока 2026', 'тренды тикток русские песни']],
        ['🎤 Русские хиты', 'новинки и то, что на повторе', ['русские хиты 2026', 'новые русские песни 2026']]].forEach(([t, sub, qs]) => {
@@ -6750,6 +6907,15 @@ registerProcessor('pulse-feed', Feed);`;
     ['focus4', '🎯', '4 помидора фокуса', () => counters.pomos >= 4],
     ['kara80', '🎤', 'Караоке на 80+', () => counters.kara >= 80],
     ['pl5', '♫', '5 плейлистов', () => playlists.length >= 5],
+    // открытия
+    ['new10', '🔭', '10 новых артистов за неделю', () => Object.values(store.get('pulse-disc', { seen: {} }).seen).filter(t => Date.now() - t < 7 * 864e5).length >= 10],
+    ['night50', '🌙', '50 треков после полуночи', () => store.get('pulse-disc', { night: 0 }).night >= 50],
+    ['week100', '💿', 'Меломан недели: 100 треков за 7 дней', () => { const d = store.get('pulse-disc', { days: {} }).days; return Object.keys(d).filter(k => k >= new Date(Date.now() - 6 * 864e5).toISOString().slice(0, 10)).reduce((s, k) => s + d[k], 0) >= 100; }],
+    ['daily1', '🧩', 'Разгадал загадку дня', () => Object.values(store.get('pulse-daily', { days: {} }).days).some(x => x.ok)],
+    ['daily3', '🔥', 'Загадка дня: 3 дня подряд', () => store.get('pulse-daily', { streak: 0 }).streak >= 3],
+    ['daily7', '👑', 'Загадка дня: 7 дней подряд', () => store.get('pulse-daily', { streak: 0 }).streak >= 7],
+    ['d8', '🎧', 'Послушал в 8D', () => counters.d8 >= 1],
+    ['vinyl', '📀', 'Поставил пластинку', () => counters.vinyl >= 1],
   ];
   let myBadges = new Set(store.get('pulse-badges', []));
   function badgesCheck() {
@@ -6997,6 +7163,9 @@ registerProcessor('pulse-feed', Feed);`;
     if (seasonFlyers.length > 24) seasonFlyers.shift();
   }
   function drawSeason(dt) {
+    // погода за окном: дождь и гроза — капли, снег — снежинки
+    if (weather.kind === 'rain' || weather.kind === 'storm') { rainBoost.snow = false; rainBoost.t = Math.max(rainBoost.t, 0.75); }
+    else if (weather.kind === 'snow') { rainBoost.snow = true; rainBoost.t = Math.max(rainBoost.t, 0.75); }
     const s = season(); if (!s) { seasonFlyers.length = 0; return; }
     if (s.fly === 'snow') { rainBoost.snow = true; rainBoost.t = Math.max(rainBoost.t, 0.6); }
     if (!seasonFlyers.length) return;
@@ -7013,6 +7182,31 @@ registerProcessor('pulse-feed', Feed);`;
       ctx.restore();
     }
     ctx.restore();
+  }
+  // погода: Open-Meteo (бесплатно, без ключа) — по названию города координаты, раз в 30 минут текущая погода
+  const W_NAMES = { sun: '☀️ ясно', cloud: '☁️ облачно', rain: '🌧 дождь', snow: '❄️ снег', storm: '⛈ гроза' };
+  async function weatherFetch() {
+    if (!weather.city) { weather.kind = null; return null; }
+    try {
+      let geo = store.get('pulse-wgeo', null);
+      if (!geo || geo.city !== weather.city) {
+        const g = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(weather.city)}&count=1&language=ru`).then(r => r.json());
+        const p = g.results && g.results[0];
+        if (!p) { weather.kind = null; return 'notfound'; }
+        geo = { city: weather.city, lat: p.latitude, lon: p.longitude, name: p.name }; store.set('pulse-wgeo', geo);
+      }
+      const w = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${geo.lat}&longitude=${geo.lon}&current=weather_code,is_day,temperature_2m`).then(r => r.json());
+      const c = w.current || {}, code = +c.weather_code;
+      weather.day = c.is_day !== 0; weather.temp = c.temperature_2m; weather.name = geo.name;
+      weather.kind = code >= 95 ? 'storm' : (code >= 71 && code <= 77) || code === 85 || code === 86 ? 'snow'
+        : (code >= 51 && code <= 67) || (code >= 80 && code <= 82) ? 'rain' : code >= 2 ? 'cloud' : 'sun';
+      return weather.kind;
+    } catch (e) { return null; }
+  }
+  setTimeout(weatherFetch, 3000); setInterval(weatherFetch, 30 * 60000);
+  function weatherHint() {
+    $('wHint').textContent = !weather.city ? 'Pulse подстроит визуал под погоду в твоём городе: дождь, снег, солнце, ночь. Город уходит только в Open-Meteo.'
+      : weather.kind ? `${weather.name}: ${W_NAMES[weather.kind]}${weather.temp != null ? ', ' + Math.round(weather.temp) + '°' : ''}${!weather.day ? ', ночь' : ''} — визуал подстроен` : 'Узнаю погоду…';
   }
   function seasonApply() {
     seasonKey = seasonNow();
@@ -7108,7 +7302,7 @@ registerProcessor('pulse-feed', Feed);`;
     body.appendChild(accBox);
     const unread = Object.values(chat.unread || {}).reduce((s, n) => s + n, 0);
     const items = [
-      ['🤖', 'Вайб · ИИ', 'ai'], ['♥', 'Моё', 'fav'], ['☰', 'Очередь', 'queue'], ['💬', 'Сообщения' + (unread ? ` · ${unread}` : ''), 'chats'], ['📰', 'Лента', 'feed'],
+      ['🤖', 'Вайб · ИИ', 'ai'], ['🧩', 'Загадка дня', 'daily'], ['♥', 'Моё', 'fav'], ['☰', 'Очередь', 'queue'], ['💬', 'Сообщения' + (unread ? ` · ${unread}` : ''), 'chats'], ['📰', 'Лента', 'feed'],
       ['🎧', 'Вместе', 'room'], ['🎮', 'Угадай мелодию', 'game'], ['↺', 'История', 'history'], ['📊', 'Статистика', 'stats'],
       ['🌙', 'Таймер сна', () => $('pSleep').click()], ['⚙', 'Настройки', 'settings'],
     ];
@@ -7176,6 +7370,8 @@ registerProcessor('pulse-feed', Feed);`;
   $('xfSel').value = String(SND.xfade);
   $('xfSel').addEventListener('change', e => { SND.xfade = +e.target.value; store.set('pulse-xfade', SND.xfade); toast(SND.xfade ? `Плавный переход: ${SND.xfade} с` : 'Плавный переход выключен'); });
   $('pSpeed').addEventListener('click', () => { const s = { normal: 'slowed', slowed: 'speed', speed: 'normal' }[SND.speed]; setSpeed(s); $('spdSel').value = s; });
+  $('d8Sel').value = SND.d8 ? 'on' : 'off'; $('d8Sel').addEventListener('change', e => set8D(e.target.value === 'on'));
+  $('nightSel').value = SND.night ? 'on' : 'off'; $('nightSel').addEventListener('change', e => setNight(e.target.value === 'on'));
   sndApply();
 
   // ---------- голосовые команды ----------
@@ -7433,8 +7629,90 @@ registerProcessor('pulse-feed', Feed);`;
     setTimeout(() => inp.focus(), 60);
   }
 
+  // ===================== Загадка дня =====================
+  // одна песня на всех в день, название зашифровано эмодзи (готовит функция daily на сервере);
+  // три попытки, после ошибок — подсказки; серия дней хранится на устройстве
+  const daily = { p: null };
+  function mskDay(off = 0) { return new Date(Date.now() + 3 * 3600e3 + off * 864e5).toISOString().slice(0, 10); }
+  function dailyState() { return store.get('pulse-daily', { last: '', streak: 0, days: {} }); }
+  const normT = s => String(s).toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-я0-9]+/g, ' ').trim();
+  function lev(a, b) {
+    const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...new Array(b.length).fill(0)]);
+    for (let j = 1; j <= b.length; j++) d[0][j] = j;
+    for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    return d[a.length][b.length];
+  }
+  async function dailyGet() {
+    if (daily.p && daily.p.day === mskDay()) return daily.p;
+    const r = await fetch(`${SUPA.url}/functions/v1/daily`, { headers: { apikey: SUPA.key } });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || j.error) throw new Error(j.error || 'daily');
+    return (daily.p = j);
+  }
+  function dailyTile() {
+    const mine = dailyState().days[mskDay()], st = dailyState();
+    const b = el('button', 'mood smart daily'); b.type = 'button'; b.style.setProperty('--h', 300); b.style.setProperty('--i', 1);
+    b.append(el('small', '', '🧩 Загадка дня'), el('b', '', mine && mine.done ? (mine.ok ? 'Разгадана ✓' : 'Завтра новая') : 'Угадай песню по эмодзи'),
+      el('span', '', st.streak ? `серия: ${st.streak} дн. подряд 🔥` : 'новая загадка каждый день'), el('i', '', '🧩'));
+    b.addEventListener('click', () => { lib.tab = 'daily'; renderLib(); });
+    return b;
+  }
+  function renderDaily(body) {
+    body.appendChild(section('🧩 Загадка дня', 'угадай песню по эмодзи · новая каждый день'));
+    const box = el('div', 'daily'); body.appendChild(box);
+    box.appendChild(el('div', 'empty-note', 'Загружаю загадку…'));
+    guarded(body, async ok => {
+      const p = await dailyGet();
+      if (!ok()) return;
+      box.innerHTML = '';
+      const mine = dailyState().days[p.day] || { tries: 0, ok: false, done: false };
+      box.appendChild(el('div', 'daily-emoji', p.emoji || '❓'));
+      const hints = el('div', 'daily-hints'), res = el('div', 'daily-res');
+      const form = el('div', 'ai-form'), inp = el('input'), go = el('button', 'primary', 'Ответить');
+      inp.placeholder = 'Название песни'; inp.maxLength = 60; go.type = 'button'; form.append(inp, go);
+      const showHints = () => {
+        hints.innerHTML = '';
+        hints.appendChild(el('div', '', `Попыток осталось: ${Math.max(0, 3 - mine.tries)}`));
+        if (mine.tries >= 1 || !p.emoji) hints.appendChild(el('div', '', `👤 Исполнитель: ${p.artist}`));
+        if (mine.tries >= 2) hints.appendChild(el('div', '', `🔤 ${p.title.replace(/\s/g, '').length} букв, начинается на «${p.title[0].toUpperCase()}»`));
+      };
+      const finish = () => {
+        form.hidden = true; hints.hidden = true; res.innerHTML = '';
+        res.append(el('b', '', mine.ok ? (mine.tries ? `🎉 Угадал с ${mine.tries + 1}-й попытки!` : '🎉 С первой попытки!') : '😅 В этот раз не вышло'),
+          el('div', '', `Это «${p.title}» — ${p.artist}`));
+        const play = el('button', 'primary', '▶ Включить песню'); play.type = 'button';
+        play.addEventListener('click', () => ytFromLink(p.vid).then(it => playItem(it, [it])));
+        res.append(play, el('div', 'hint2', `Серия: ${dailyState().streak} дн. подряд · завтра новая загадка`));
+      };
+      const check = () => {
+        const g = normT(inp.value), t = normT(p.title);
+        if (!g || mine.done) return;
+        const right = g === t || lev(g, t) <= Math.max(1, Math.floor(t.length / 6)) || (g.length >= t.length * 0.7 && t.includes(g));
+        if (right) { mine.ok = true; mine.done = true; }
+        else { mine.tries++; toast('Не то 🙃'); if (mine.tries >= 3) mine.done = true; }
+        const s = dailyState();
+        s.days[p.day] = mine;
+        if (mine.done) {
+          if (mine.ok) { s.streak = s.last === mskDay(-1) ? s.streak + 1 : 1; s.last = p.day; }
+          else s.streak = 0;
+          Object.keys(s.days).filter(d => d < mskDay(-40)).forEach(d => delete s.days[d]);
+        }
+        store.set('pulse-daily', s);
+        inp.value = '';
+        showHints();
+        if (mine.done) { finish(); badgesCheck(); }
+      };
+      go.addEventListener('click', check);
+      inp.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') check(); });
+      box.append(hints, form, res);
+      showHints();
+      if (mine.done) finish(); else setTimeout(() => inp.focus(), 60);
+    });
+  }
+
   // дополнительные вкладки медиатеки
   function renderExtraTab(body) {
+    if (lib.tab === 'daily') { renderDaily(body); return true; }
     const tb = lib.tab;
     if (tb === 'queue') { renderQueue(body); return true; }
     if (tb === 'playlists') { renderPlaylists(body); return true; }
@@ -7475,6 +7753,8 @@ registerProcessor('pulse-feed', Feed);`;
   $('dBg').addEventListener('click', andShow(() => bgSwitch(BG.cur + 1)));
   $('d3').addEventListener('click', () => setD3(!cam.user));
   $('dChaos').addEventListener('click', () => setChaos(!chaos.on));
+  $('dVinyl').addEventListener('click', andShow(() => setVinyl(!vinyl.on)));
+  $('dVinyl').classList.toggle('on', vinyl.on);
   $('dHole').addEventListener('click', andShow(() => beatFx.blackhole()));
   $('dDrop').addEventListener('click', andShow(() => beatFx.drop()));
   $('dFull').addEventListener('click', toggleFull);
@@ -7510,6 +7790,7 @@ registerProcessor('pulse-feed', Feed);`;
     else if (k === 'KeyP') setMini(!isMini());
     else if (k === 'KeyQ') { lib.tab = 'queue'; openLib(true); }
     else if (k === 'KeyJ') voice();
+    else if (k === 'KeyY') setVinyl(!vinyl.on);
     else if (k === 'KeyS') { lib.tab = 'settings'; openLib(true); }
     else if (k === 'KeyW' && native) toggleWallpaper();
     else if ((k === 'ArrowUp' || k === 'ArrowDown') && !$('player').hidden) { e.preventDefault(); setVol(vol.level + (k === 'ArrowUp' ? 0.05 : -0.05)); }
@@ -7759,7 +8040,16 @@ registerProcessor('pulse-feed', Feed);`;
     t.n = (t.n || 'Тема друга').slice(0, 24); myThemes.unshift(t); store.set('pulse-mythemes', myThemes);
     $('thCode').value = ''; themesRender(); themeApply(t); toast(`🎨 Тема «${t.n}» добавлена`);
   });
-  ['thName', 'thCode'].forEach(id => $(id).addEventListener('keydown', e => e.stopPropagation()));
+  ['thName', 'thCode', 'wCity'].forEach(id => $(id).addEventListener('keydown', e => e.stopPropagation()));
+  // погода в визуале: пустое поле — выключить
+  $('wCity').value = weather.city; $('wSave').textContent = weather.city ? 'Обновить' : 'Включить'; weatherHint();
+  $('wSave').addEventListener('click', async () => {
+    weather.city = $('wCity').value.trim(); store.set('pulse-wcity', weather.city); weather.kind = null; weatherHint();
+    if (!weather.city) { $('wSave').textContent = 'Включить'; toast('Погода в визуале выключена'); return; }
+    const k = await weatherFetch(); weatherHint(); $('wSave').textContent = 'Обновить';
+    if (k === 'notfound') toast('Не нашёл такой город'); else if (k) toast(`🌦 ${weather.name}: ${W_NAMES[k]}`);
+  });
+  setInterval(() => { if (!$('settings').hidden) weatherHint(); }, 30000);
   themesRender();
   $('trOn').value = tr.on ? 'on' : 'off';
   $('trOn').addEventListener('change', e => { tr.on = e.target.value === 'on'; store.set('pulse-tr', tr.on); trShow(); });
