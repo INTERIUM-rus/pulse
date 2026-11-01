@@ -4555,7 +4555,7 @@ registerProcessor('pulse-feed', Feed);`;
       body.appendChild(smb);
       // русские хиты и песни из TikTok — первыми; поиск идёт через общий кэш, лимит YouTube почти не тратится
       [['📱 Хиты из TikTok', 'что звучит в роликах', ['песни из тик тока 2026', 'тренды тикток русские песни']],
-       ['🇷🇺 Русские хиты', 'новинки и то, что на повторе', ['русские хиты 2026', 'новые русские песни 2026']]].forEach(([t, sub, qs]) => {
+       ['🎤 Русские хиты', 'новинки и то, что на повторе', ['русские хиты 2026', 'новые русские песни 2026']]].forEach(([t, sub, qs]) => {
         const sh = shelf(t, sub); body.appendChild(sh.wrap); sh.loading();
         guarded(body, async ok => {
           const lists = await Promise.all(qs.map(q => searchYT(q).catch(() => [])));
