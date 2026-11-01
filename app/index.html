@@ -1119,9 +1119,7 @@ body.vx-idle .hint { display: none !important; }
 .vx-quick button { border-radius: 999px; padding: 12px 18px; font-size: 14px; animation: fadeUp .5s both; animation-delay: calc(var(--i) * 70ms); }
 .vx-quick button:hover { transform: translateY(-3px); }
 /* BPM */
-.vx-bpm { gap: 6px; }
-.vx-bpm i { background: #ff4f8b; box-shadow: 0 0 10px #ff4f8b; animation: vxBeat var(--per, .5s) ease-out infinite; transform: none; }
-.vx-bpm b { color: var(--ink); }
+.pill.vx-bpm i { animation: vxBeat var(--per, .5s) ease-out infinite; }
 @keyframes vxBeat { 0% { transform: scale(1.6); } 30% { transform: scale(.8); } 45% { transform: scale(1.25); } 100% { transform: scale(.8); } }
 /* следующий трек */
 .vx-next { right: 22px; bottom: 116px; display: flex; gap: 10px; align-items: center; padding: 8px 14px 8px 8px; border-radius: 16px; max-width: 300px;
@@ -1142,11 +1140,10 @@ body.vx-noedge .vx-edge, .lite .vx-edge { display: none; }
 .vx-fog { inset: 0; opacity: 0; transition: opacity 1.2s; background: radial-gradient(60% 50% at 50% 55%, rgba(200,200,240,.1), rgba(10,8,22,.35)); }
 body.vx-paused .vx-fog { opacity: 1; }
 body:not(.lite).vx-paused .vx-fog { -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
-.vx-retro { inset: 0; display: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,.28) 0 1px, transparent 1px 3px), radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.55));
-  animation: vxFlicker .12s steps(2) infinite; mix-blend-mode: multiply; }
+/* ретро-ТВ: только полупрозрачные полосы развёртки и виньетка поверх — без смешивания слоёв и фильтров холстов
+   (смешивание с холстами сцены роняло отрисовку в приложении для Windows) */
+.vx-retro { inset: 0; display: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,.2) 0 1px, transparent 1px 3px), radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.45)); }
 body.vx-retro .vx-retro { display: block; }
-body.vx-retro #bgcv, body.vx-retro #lcv { filter: contrast(1.15) saturate(1.5) hue-rotate(-10deg); }
-@keyframes vxFlicker { 50% { opacity: .92; } }
 /* друзья на орбите */
 .vx-friends { left: var(--mx); top: 50%; width: 0; height: 0; }
 .vx-orbit { position: absolute; left: 0; top: 0; animation: vxSpin 40s linear infinite; animation-delay: calc(var(--i) / var(--n) * -40s); }
@@ -1179,6 +1176,69 @@ body.ceiling { cursor: none; }
   .vx-quick { bottom: 30vh; }
   .vx-quick button { padding: 10px 14px; font-size: 13px; }
 }
+/* ===== анимации везде ===== */
+/* кнопки: мягкий подъём при наведении, пружинка при нажатии, волна от места клика */
+button { transition: transform .28s cubic-bezier(.2,1.5,.4,1), background .25s, border-color .25s, box-shadow .3s, color .2s, opacity .25s; }
+/* :where — нулевой вес: у кнопок со своим движением (карточки с наклоном, друзья на орбите) остаётся их анимация */
+:where(button:not(:disabled):not(.vx-friend):not(.vx-note):hover) { transform: translateY(-1px); }
+:where(button:not(:disabled):not(.vx-friend):not(.vx-note):active) { transform: scale(.94); transition-duration: .08s; }
+.rpl-wrap { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; z-index: 0; }
+.rpl { position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: rgba(255,255,255,.35); transform: scale(0); animation: rpl .6s ease-out forwards; }
+@keyframes rpl { to { transform: scale(40); opacity: 0; } }
+/* появление при прокрутке: блоки медиатеки выплывают снизу */
+.rv { opacity: 0; transform: translateY(26px) scale(.98); transition: opacity .6s ease, transform .7s cubic-bezier(.2,1.1,.3,1); }
+.rv.in { opacity: 1; transform: none; }
+/* строки треков: обложка увеличивается, строка чуть сдвигается */
+.trk { transition: background .2s, transform .3s cubic-bezier(.2,1.4,.4,1), box-shadow .25s; }
+.trk:hover { transform: translateX(4px); }
+.trk .tart { transition: transform .35s cubic-bezier(.2,1.6,.4,1), box-shadow .3s; }
+.trk:hover .tart { transform: scale(1.08) rotate(-2deg); box-shadow: 0 8px 24px hsla(var(--h),90%,50%,.5); }
+.tfav.on { animation: favPop .5s cubic-bezier(.2,1.8,.4,1); }
+@keyframes favPop { 40% { transform: scale(1.5); } }
+/* кнопка «играть» дышит в такт, пока музыка идёт */
+.pbtns #pPlay { position: relative; }
+.pbtns #pPlay::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid rgba(255,79,216,.6); opacity: calc(var(--beat, 0) * 1.4); transform: scale(calc(1 + var(--beat, 0) * .35)); pointer-events: none; }
+.player { transition: opacity .8s, box-shadow .08s, transform .4s cubic-bezier(.2,1.4,.4,1); }
+.player:hover { transform: translateY(-2px); }
+/* боковая панель и пункты меню выезжают при запуске */
+.rail > *, .lib-side > * { animation: railIn .6s cubic-bezier(.2,1.2,.4,1) both; }
+.rail > *:nth-child(n) { animation-delay: calc(var(--ri, 0) * 45ms); }
+@keyframes railIn { from { opacity: 0; transform: translateX(-18px); } }
+.rail-nav, .lib-nav { transition: background .3s, color .25s, box-shadow .35s, transform .3s cubic-bezier(.2,1.4,.4,1); }
+.rail-nav:hover, .lib-nav:hover { transform: translateX(4px); }
+.rail-nav i, .lib-nav i { transition: transform .4s cubic-bezier(.2,1.8,.4,1); }
+.rail-nav:hover i, .lib-nav:hover i { transform: scale(1.25) rotate(-8deg); }
+.rail-nav.on i, .lib-nav.on i { animation: navPop .5s cubic-bezier(.2,1.8,.4,1); }
+@keyframes navPop { 40% { transform: scale(1.4); } }
+/* медиатека закрывается плавно */
+.lib.lib-out { animation: libOut .25s ease-in forwards; }
+@keyframes libOut { to { opacity: 0; transform: scale(1.02); filter: blur(6px); } }
+/* всплывающие окна, меню и подсказки — с пружинкой */
+.toast { animation: toastIn 2.2s cubic-bezier(.2,1.4,.4,1) forwards; }
+@keyframes toastIn { 0% { opacity: 0; transform: translate(-50%, 18px) scale(.85); } 10%, 82% { opacity: 1; transform: translate(-50%, 0) scale(1); } 100% { opacity: 0; transform: translate(-50%, -8px) scale(.96); } }
+.ctxmenu button { animation: fadeUp .3s both; }
+.ctxmenu button:nth-child(2) { animation-delay: .03s; } .ctxmenu button:nth-child(3) { animation-delay: .06s; } .ctxmenu button:nth-child(4) { animation-delay: .09s; } .ctxmenu button:nth-child(n+5) { animation-delay: .12s; }
+.modal { animation: modalIn .45s cubic-bezier(.2,1.4,.4,1); }
+@keyframes modalIn { from { opacity: 0; transform: translateY(20px) scale(.92); filter: blur(4px); } }
+/* переключатели и чипы: щелчок с отскоком */
+.chip input:checked, .lib-chips button.on, .eq-presets button.on, .qchips button:focus { animation: chipPop .4s cubic-bezier(.2,1.8,.4,1); }
+@keyframes chipPop { 40% { transform: scale(1.12); } }
+.fxgrid button.on i { animation: navPop .5s cubic-bezier(.2,1.8,.4,1); }
+/* поле поиска чуть растёт при фокусе */
+.lib-search { transition: transform .35s cubic-bezier(.2,1.4,.4,1); }
+.lib-search:focus-within { transform: scale(1.01); }
+/* логотип переливается на старте */
+.brand b { animation: sheen 7s linear infinite, logoIn 1s cubic-bezier(.2,1.4,.4,1) both; }
+@keyframes logoIn { from { opacity: 0; letter-spacing: .6em; filter: blur(8px); } }
+/* плитки на главной — блик при наведении */
+.htile::after { transition: height .3s; }
+.htile:hover::after { height: 6px; }
+.htile i, .mood i { transition: transform .45s cubic-bezier(.2,1.6,.4,1); }
+.htile:hover i { transform: scale(1.2) rotate(-10deg); }
+/* сообщения Вайба печатаются плавно */
+.ai-msg.bot > span { animation: fadeIn .5s both .1s; }
+@media (prefers-reduced-motion: reduce) { .rv { opacity: 1; transform: none; } .rail > *, .lib-side > * { animation: none; } }
+.lite .rv { transition-duration: .3s; }
 /* загадка дня */
 .mood.smart.daily { margin-top: 8px; }
 .daily { display: grid; gap: 14px; max-width: 620px; }
@@ -4915,6 +4975,17 @@ registerProcessor('pulse-feed', Feed);`;
     const c = e.target.closest && e.target.closest('.cardx, .best, .mood');
     if (c && !c.contains(e.relatedTarget)) { c.style.removeProperty('--rx'); c.style.removeProperty('--ry'); }
   });  function openLib(on = $('lib').hidden) {
+    // закрытие — с короткой анимацией растворения
+    if (!on && !$('lib').hidden && !reduceMotion) {
+      if ($('lib').classList.contains('lib-out')) return;
+      $('lib').classList.add('lib-out');
+      setTimeout(() => { $('lib').classList.remove('lib-out'); openLib.real(false); }, 230);
+      return;
+    }
+    openLib.real(on);
+  }
+  openLib.real = on => {
+    $('lib').classList.remove('lib-out');
     $('lib').hidden = !on;
     document.body.classList.toggle('lib-open', on);
     $('dLib').classList.toggle('on', on);
@@ -7357,7 +7428,15 @@ registerProcessor('pulse-feed', Feed);`;
     ring: true, fog: true, drop: true, genre: true, guests: true, stars: true, burst: true, friends: true, hitday: true,
     thoughts: false, words: false, mirror: false, retro: false, concert: false };
   const VX = Object.assign({}, VX_DEF, store.get('pulse-vx', {}));
-  const VX_NAMES = { buddy: '🧸 Вайб в углу', clock: '🕒 Часы и погода', quick: '⚡ Быстрый старт', bpm: '💓 BPM', next: '⏭ Следующий трек', horizon: '🌆 Эквалайзер-горизонт',
+  // старый ретро-режим мог оставить чёрный экран — после обновления он выключен;
+  // безопасный запуск (#safe, после сбоя отрисовки) выключает все тяжёлые режимы
+  if (store.get('pulse-vx-ver', 0) < 2 || location.hash === '#safe') {
+    VX.retro = false; VX.mirror = false; VX.concert = false;
+    if (location.hash === '#safe') { store.set('pulse-vinyl', false); try { vinyl.on = false; } catch (e) {} setTimeout(() => toast('Pulse перезапущен в безопасном режиме: тяжёлые эффекты выключены'), 1500); }
+    store.set('pulse-vx-ver', 2); store.set('pulse-vx', VX);
+  }
+  VX.retro = false; // ретро-ТВ включается только до перезапуска
+  const VX_NAMES = { buddy: '🧸 Вайб в углу', clock: '🕒 Часы и погода', quick: '⚡ Быстрый старт', bpm: '💓 Точка BPM в такт', next: '⏭ Следующий трек', horizon: '🌆 Эквалайзер-горизонт',
     room: '🌅 Свет по времени суток', ticker: '🔤 Название, пока нет текста', heart: '❤️ Ядро-сердце', edge: '🔆 Подсветка краёв', ring: '⭕ Прогресс по кругу',
     fog: '🌫 Туман на паузе', drop: '💥 Отсчёт перед дропом', genre: '🎨 Цвет по жанру', guests: '🦋 Сезонные гости', stars: '✨ Созвездия артистов',
     burst: '🎆 Обложка рассыпается', friends: '🪐 Друзья на орбите', hitday: '🎵 Хит дня', thoughts: '💭 Факты о треке от Вайба', words: '☁️ Облако слов' };
@@ -7622,9 +7701,10 @@ registerProcessor('pulse-feed', Feed);`;
       if (VX.hitday) { vxHitDay(); if (vx.hit) { hit.hidden = false; hit.textContent = `🎵 Хит дня: ${vx.hit.title} — ${vx.hit.artist} ▶`; } } else hit.hidden = true;
       ck.classList.add('on');
     } else ck.classList.remove('on');
-    // 6. BPM
-    const bp = vx.el.bpm;
-    if (VX.bpm && playing && music.bpm) { bp.hidden = false; bp.querySelector('b').textContent = music.bpm; bp.style.setProperty('--per', (60 / music.bpm).toFixed(3) + 's'); } else bp.hidden = true;
+    // 6. BPM: точка индикатора у логотипа пульсирует в темп трека
+    const bp = vx.el.bpm, beatOn = VX.bpm && playing && music.bpm;
+    bp.classList.toggle('vx-bpm', !!beatOn);
+    if (beatOn) bp.style.setProperty('--per', (60 / music.bpm).toFixed(3) + 's');
     // 7. следующий трек за 20 секунд до конца
     const nx = vx.el.next, nxt = now && now.local && local.queue[local.idx + 1];
     if (VX.next && nxt && now.dur > 30 && now.dur - now.pos < 20) { nx.querySelector('b').textContent = nxt.title; nx.querySelector('span').textContent = nxt.artist || ''; nx.querySelector('img').src = nxt.cover || ''; nx.classList.add('on'); } else nx.classList.remove('on');
@@ -7697,8 +7777,8 @@ registerProcessor('pulse-feed', Feed);`;
     const qk = vxEl('vxQuick', 'vx-ui vx-quick');
     [['🌊 Моя волна', () => startWave()], ['🔥 Хиты TikTok', () => { lib.tab = 'home'; openLib(true); }], ['🧩 Загадка дня', () => { lib.tab = 'daily'; openLib(true); }],
      ['🎤 Сказать Вайбу', () => voice()], ['🎮 Поймай ноты', () => vxGame()]].forEach(([t, fn], i) => { const b = el('button', '', t); b.type = 'button'; b.style.setProperty('--i', i); b.addEventListener('click', fn); qk.appendChild(b); });
-    // BPM рядом с логотипом
-    vx.el.bpm = el('div', 'pill vx-bpm'); vx.el.bpm.innerHTML = '<i></i><b></b> BPM'; vx.el.bpm.hidden = true; document.querySelector('.brand').appendChild(vx.el.bpm);
+    // BPM уже показывает индикатор у логотипа — его точка теперь бьётся точно в темп
+    vx.el.bpm = $('pill');
     // следующий трек
     vx.el.next = vxEl('vxNext', 'vx-ui vx-next', '<img alt=""><div><small>Дальше</small><b></b><span></span></div>');
     // голосовая волна, подсветка краёв, туман, ретро, друзья, слова
@@ -7717,6 +7797,27 @@ registerProcessor('pulse-feed', Feed);`;
     document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && document.body.classList.contains('ceiling')) vxCeiling(false); });
     vxSync();
     setInterval(visxTick, 250);
+    vxMotion();
+  }
+  // анимации везде: волна от клика по кнопкам, блоки выплывают при прокрутке, меню выезжает лесенкой
+  function vxMotion() {
+    if (reduceMotion) return;
+    [...document.querySelectorAll('.rail > *, .lib-side > *')].forEach((e, i) => e.style.setProperty('--ri', i % 14));
+    document.addEventListener('pointerdown', e => {
+      const b = e.target.closest && e.target.closest('button');
+      if (!b || b.disabled || b.closest('.vx-game')) return;
+      if (getComputedStyle(b).position === 'static') b.style.position = 'relative';
+      let w = b.querySelector(':scope > .rpl-wrap');
+      if (!w) { w = document.createElement('span'); w.className = 'rpl-wrap'; b.appendChild(w); }
+      const r = b.getBoundingClientRect(), s = document.createElement('span');
+      s.className = 'rpl'; s.style.left = (e.clientX - r.left) + 'px'; s.style.top = (e.clientY - r.top) + 'px';
+      w.appendChild(s); setTimeout(() => s.remove(), 650);
+    }, true);
+    // появление при прокрутке для крупных блоков медиатеки
+    const io = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(x => { if (x.isIntersecting) { x.target.classList.add('in'); io.unobserve(x.target); } }), { rootMargin: '0px 0px -40px 0px' }) : null;
+    const watch = root => { if (!io) return; root.querySelectorAll('.shelf-wrap, .moods, .plgrid, .stations, .acc-card, .hero2, .htiles, .daily, .more-grid, .fxgrid').forEach(n => { if (!n.classList.contains('rv')) { n.classList.add('rv'); io.observe(n); } }); };
+    new MutationObserver(() => watch($('libBody'))).observe($('libBody'), { childList: true, subtree: true });
+    watch($('libBody'));
   }
 
   // ===================== оверлей для стрима (OBS) =====================

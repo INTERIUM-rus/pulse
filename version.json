@@ -1,6 +1,1 @@
-{
-    "version":  "1.7.1",
-    "url":  "https://interium-rus.github.io/pulse/Pulse.exe",
-    "sha256":  "204514782926879C8CA38E33E7131A6A084566433C5FFC12FDAE31FF3315C6A0",
-    "notes":  "«Угадай мелодию» теперь на русских хитах и песнях из TikTok."
-}
+{"version":"1.7.2","url":"https://interium-rus.github.io/pulse/Pulse.exe","sha256":"02c56fbd3fe1a23058bca8aed1644e43ea8a704856e7b1c0de8751efcd34b744","notes":"Исправлен чёрный экран после «Ретро-ТВ»; анимации по всему приложению; убран лишний индикатор BPM"}

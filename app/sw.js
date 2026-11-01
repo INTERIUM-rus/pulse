@@ -1,6 +1,6 @@
-// Pulse: оболочка приложения работает без сети. Свои файлы — сначала из сети (чтобы обновления приходили сразу),
-// при отсутствии сети — из кэша. Чужие запросы (YouTube, Supabase, тексты песен) не трогаем.
-const CACHE = 'pulse-v43';
+// Pulse: РѕР±РѕР»РѕС‡РєР° РїСЂРёР»РѕР¶РµРЅРёСЏ СЂР°Р±РѕС‚Р°РµС‚ Р±РµР· СЃРµС‚Рё. РЎРІРѕРё С„Р°Р№Р»С‹ вЂ” СЃРЅР°С‡Р°Р»Р° РёР· СЃРµС‚Рё (С‡С‚РѕР±С‹ РѕР±РЅРѕРІР»РµРЅРёСЏ РїСЂРёС…РѕРґРёР»Рё СЃСЂР°Р·Сѓ),
+// РїСЂРё РѕС‚СЃСѓС‚СЃС‚РІРёРё СЃРµС‚Рё вЂ” РёР· РєСЌС€Р°. Р§СѓР¶РёРµ Р·Р°РїСЂРѕСЃС‹ (YouTube, Supabase, С‚РµРєСЃС‚С‹ РїРµСЃРµРЅ) РЅРµ С‚СЂРѕРіР°РµРј.
+const CACHE = 'pulse-v44';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png',
   'fonts/unbounded-cyrillic.woff2', 'fonts/unbounded-latin.woff2', 'fonts/manrope-cyrillic.woff2', 'fonts/manrope-latin.woff2',
   'fonts/montserrat-cyrillic.woff2', 'fonts/montserrat-latin.woff2'];
