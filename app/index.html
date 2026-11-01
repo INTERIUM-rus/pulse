@@ -1259,7 +1259,7 @@ button { transition: transform .28s cubic-bezier(.2,1.5,.4,1), background .25s, 
 .eq { display: grid; gap: 6px; }
 .eq .ctl { grid-template-columns: 150px 1fr 60px; }
 #pSpeed { min-width: 34px; font-weight: 800; }
-#pVoice.on, #dVoice.on, .rail-fx [data-go="voice"].on { background: var(--ngrad); border-color: transparent; animation: chaosPulse .6s ease-in-out infinite alternate; }
+#pVoice.on, #dVoice.on { background: var(--ngrad); border-color: transparent; animation: chaosPulse .6s ease-in-out infinite alternate; }
 .resbar { top: 70px; }
 .resbar button:not(.primary) { width: 34px; height: 34px; padding: 0; border-radius: 50%; }
 /* компьютер: постоянная боковая панель слева, сцена и плеер — справа от неё */
@@ -1275,9 +1275,18 @@ button { transition: transform .28s cubic-bezier(.2,1.5,.4,1), background .25s, 
   .rail-wave i { font-style: normal; font-size: 22px; animation: wave 2s ease-in-out infinite; }
   .rail-wave b { display: block; font: 800 14px var(--display); }
   .rail-wave small { display: block; font-size: 11px; color: rgba(255,255,255,.85); }
-  .rail-fx { margin-top: auto; padding-top: 12px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; border-top: 1px solid rgba(255,255,255,.07); }
-  .rail-fx button { height: 42px; padding: 0; font-size: 16px; display: grid; place-items: center; }
-  .rail-fx button.on { background: var(--ngrad); border-color: transparent; box-shadow: 0 0 16px rgba(255,79,216,.45); }
+  /* быстрые кнопки внизу: одна стеклянная панель с тонкими иконками, включённая — мягкое свечение и точка */
+  .rail-fx { margin-top: auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; padding: 5px;
+    border-radius: 16px; background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.06); }
+  .rail-fx button { position: relative; height: 38px; padding: 0; display: grid; place-items: center; border: 0; border-radius: 11px;
+    background: transparent; color: rgba(225,220,255,.55); box-shadow: none; transition: color .2s, background .2s; }
+  .rail-fx button svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; transition: transform .25s cubic-bezier(.2,1.4,.4,1); }
+  .rail-fx button:hover { color: #fff; background: rgba(255,255,255,.06); transform: none; }
+  .rail-fx button:hover svg { transform: scale(1.12); }
+  .rail-fx button.on { color: #fff; background: linear-gradient(180deg, rgba(255,79,216,.22), rgba(122,92,255,.16)); box-shadow: inset 0 0 0 1px rgba(255,79,216,.28); }
+  .rail-fx button.on svg { filter: drop-shadow(0 0 6px rgba(255,79,216,.8)); }
+  .rail-fx button.on::after { content: ''; position: absolute; bottom: 4px; left: 50%; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: #ff4fd8; box-shadow: 0 0 6px #ff4fd8; }
+  .rail-fx [data-go="voice"].on svg { animation: chaosPulse .6s ease-in-out infinite alternate; }
   body:not(.mini):not(.wall):not(.saver) .brand { left: 28px; top: 24px; z-index: 5; }
   body:not(.mini):not(.wall):not(.saver) .dock { display: none; }
   body.zen .rail { opacity: 0; transform: translateX(-16px); pointer-events: none; }
@@ -1324,11 +1333,11 @@ button { transition: transform .28s cubic-bezier(.2,1.5,.4,1), background .25s, 
   <button class="rail-nav" data-go="room" type="button"><i>🎧</i>Вместе</button>
   <button class="rail-nav" data-go="settings" type="button"><i>⚙</i>Настройки</button>
   <div class="rail-fx">
-    <button data-go="voice" type="button" title="Голосовая команда (J)" aria-label="Голосовая команда">🎙</button>
-    <button data-go="lyrics" type="button" title="Текст песни (L)" aria-label="Текст песни">🎤</button>
-    <button data-go="3d" type="button" title="Объёмная воронка (V)" aria-label="Объёмная воронка">🌀</button>
-    <button data-go="bg" type="button" title="Сменить фон (N)" aria-label="Сменить фон">🎨</button>
-    <button data-go="full" type="button" title="Во весь экран (F11)" aria-label="Во весь экран">⛶</button>
+    <button data-go="voice" type="button" title="Голосовая команда (J)" aria-label="Голосовая команда"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></button>
+    <button data-go="lyrics" type="button" title="Текст песни (L)" aria-label="Текст песни"><svg viewBox="0 0 24 24"><path d="M4 6h11M4 11h8M4 16h6"/><circle cx="17" cy="17" r="2.5"/><path d="M19.5 17V7l2 1"/></svg></button>
+    <button data-go="3d" type="button" title="Объёмная воронка (V)" aria-label="Объёмная воронка"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="2.6"/><ellipse cx="12" cy="12" rx="5" ry="1.8"/><ellipse cx="12" cy="17.5" rx="2.2" ry=".9"/><path d="M4 6l7 13M20 6l-7 13"/></svg></button>
+    <button data-go="bg" type="button" title="Сменить фон (N)" aria-label="Сменить фон"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M3.5 17l5-4.5 4 3.5 3-2.5 5 4"/></svg></button>
+    <button data-go="full" type="button" title="Во весь экран (F11)" aria-label="Во весь экран"><svg viewBox="0 0 24 24"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/></svg></button>
   </div>
 </nav>
 
