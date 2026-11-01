@@ -1096,8 +1096,8 @@ button.primary:hover { box-shadow: 0 10px 30px rgba(255,79,216,.55); }
 /* ===== экран визуала: слои поверх сцены ===== */
 .vx { position: fixed; z-index: 3; pointer-events: none; --mx: calc((100vw + var(--railw, 0px)) / 2); }
 body.lib-open .vx, body.mini .vx, body.saver .vx, body.wall .vx-ui { display: none !important; }
-body.zen .vx-ui { opacity: .35; transition: opacity .8s; }
-body.zen .vx-ui:hover { opacity: 1; }
+body.zen .vx-buddy, body.zen .vx-quick { opacity: .45; transition: opacity .8s; }
+body.zen .vx-buddy:hover, body.zen .vx-quick:hover { opacity: 1; }
 /* Вайб в углу */
 .vx-buddy { right: 22px; top: 76px; display: flex; align-items: flex-start; gap: 8px; pointer-events: auto; }
 .vx-buddy .vibe-buddy { transform-origin: top right; }
