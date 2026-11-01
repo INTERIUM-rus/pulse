@@ -994,6 +994,44 @@ button.primary:hover { box-shadow: 0 10px 30px rgba(255,79,216,.55); }
 .yt-note button { font-size: 13px; padding: 10px 14px; }
 .modal.yt-key { width: min(520px, calc(100% - 32px)); }
 .modal.yt-key input { font-family: ui-monospace, Consolas, monospace; font-size: 14px; }
+/* Вайб: персонаж — мягкий шарик в наушниках */
+.ai-head { display: flex; align-items: center; gap: 18px; margin: 18px 0 14px; }
+.ai-head h2 { margin: 0; font: 900 26px var(--display); }
+.ai-head span { color: var(--dim); font-size: 14px; }
+.vibe-buddy { position: relative; flex: none; width: 86px; height: 80px; cursor: pointer; animation: vbFloat 3.2s ease-in-out infinite; }
+.vb-face { position: absolute; inset: 8px 4px 0; border-radius: 50% 50% 46% 46% / 56% 56% 44% 44%;
+  background: radial-gradient(circle at 34% 28%, #ffd1f4 0 10%, #ff7fe2 32%, #c45bff 70%, #8a5bff);
+  box-shadow: inset -6px -8px 14px rgba(70,20,140,.45), 0 0 calc(12px + var(--beat, 0) * 26px) rgba(255,79,216,.55);
+  transform: scale(calc(1 + var(--beat, 0) * .07), calc(1 - var(--beat, 0) * .04)); transform-origin: 50% 100%; transition: transform .08s; }
+.vb-eye { position: absolute; top: 36%; width: 12px; height: 15px; border-radius: 50%; background: #1b0f2e; animation: vbBlink 4.5s infinite; }
+.vb-eye::after { content: ""; position: absolute; left: 2px; top: 2px; width: 5px; height: 5px; border-radius: 50%; background: #fff; }
+.vb-eye:first-child { left: 28%; } .vb-eye:nth-child(2) { right: 28%; }
+.vb-mouth { position: absolute; left: 50%; top: 60%; width: 14px; height: 7px; margin-left: -7px; border: 3px solid #1b0f2e; border-top: 0; border-radius: 0 0 14px 14px; box-sizing: border-box; }
+.vb-cheek { position: absolute; top: 56%; width: 11px; height: 6px; border-radius: 50%; background: rgba(255,90,140,.7); }
+.vb-cheek.l { left: 17%; } .vb-cheek.r { right: 17%; }
+.vb-band { position: absolute; left: 6px; right: 6px; top: 0; height: 40px; border: 5px solid #2a1f45; border-bottom: 0; border-radius: 40px 40px 0 0; z-index: 2; }
+.vb-ear { position: absolute; top: 30px; width: 14px; height: 24px; border-radius: 8px; background: linear-gradient(#4ff0ff, #2b6cff); box-shadow: 0 0 8px rgba(79,240,255,.6); z-index: 2; }
+.vb-ear.l { left: -2px; } .vb-ear.r { right: -2px; }
+.vb-dots { position: absolute; right: -16px; top: -6px; opacity: 0; font: 900 18px var(--display); color: var(--neon-b); }
+.vb-dots::before { content: "…"; }
+/* думает: глаза вверх, над головой многоточие */
+.vibe-buddy.think .vb-eye { top: 30%; animation: none; }
+.vibe-buddy.think .vb-mouth { width: 9px; margin-left: -4px; height: 4px; border-radius: 4px; }
+.vibe-buddy.think .vb-dots { opacity: 1; animation: vbDots 1s ease-in-out infinite; }
+/* говорит: рот открывается */
+.vibe-buddy.talk .vb-mouth { height: 10px; animation: vbTalk .22s ease-in-out infinite alternate; background: #1b0f2e; }
+/* радуется, если потыкать: прыжок и глаза-дуги */
+.vibe-buddy.happy { animation: vbJump .9s cubic-bezier(.2,1.6,.4,1); }
+.vibe-buddy.happy .vb-eye { height: 7px; background: none; border: 3px solid #1b0f2e; border-bottom: 0; border-radius: 10px 10px 0 0; animation: none; }
+.vibe-buddy.happy .vb-eye::after { display: none; }
+@keyframes vbFloat { 50% { transform: translateY(-5px) rotate(-2deg); } }
+@keyframes vbBlink { 0%, 94%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.1); } }
+@keyframes vbDots { 50% { transform: translateY(-4px); } }
+@keyframes vbTalk { from { height: 4px; } to { height: 12px; } }
+@keyframes vbJump { 30% { transform: translateY(-18px) scale(1.06, .94); } 60% { transform: translateY(0) scale(.94, 1.06); } }
+@media (prefers-reduced-motion: reduce) { .vibe-buddy, .vb-eye { animation: none !important; } }
+.ai-fbtns { display: flex; gap: 6px; }
+.ai-fbtns button.on { border-color: rgba(79,240,255,.6); }
 /* Вайб: чат с ИИ */
 .ai-chat { display: grid; gap: 12px; max-width: 760px; }
 .ai-list { display: grid; gap: 10px; }
@@ -7210,6 +7248,57 @@ registerProcessor('pulse-feed', Feed);`;
   const AI_HINTS = ['Подбери музыку под моё настроение', 'Что похоже на то, что сейчас играет?', 'Хочу что-нибудь для учёбы', 'Как сделать slowed + reverb?'];
   const AI_SPEED = { slowed: '🐢 Slowed + reverb', speed: '⚡ Speed up', normal: '1× Обычная скорость' };
   const aiSave = () => { ai.hist = ai.hist.slice(-40); store.set('pulse-ai', ai.hist); };
+  // персонаж Вайба: мягкий шарик в наушниках, качается под бит, думает, говорит и радуется, если его потыкать
+  function aiBuddy() {
+    const b = el('div', 'vibe-buddy'), f = el('div', 'vb-face');
+    f.append(el('i', 'vb-eye'), el('i', 'vb-eye'), el('i', 'vb-mouth'), el('i', 'vb-cheek l'), el('i', 'vb-cheek r'));
+    b.append(el('i', 'vb-band'), el('i', 'vb-ear l'), el('i', 'vb-ear r'), f, el('i', 'vb-dots'));
+    b.title = 'Это Вайб. Можно потыкать 🙂';
+    b.addEventListener('click', () => { b.classList.remove('happy'); void b.offsetWidth; b.classList.add('happy'); setTimeout(() => b.classList.remove('happy'), 900); });
+    return b;
+  }
+  // что Вайб помнит о вкусах: любимые исполнители из «Моё» и истории (избранное весит вдвое) и последние треки
+  function aiTastes() {
+    const cnt = {};
+    [...lib.fav, ...lib.fav, ...lib.played].forEach(x => {
+      const a = (x.artist || '').split(/,|&| feat\.? | ft\.? /i)[0].trim();
+      if (a && !x.live && !/неизвестн|unknown|радио/i.test(a)) cnt[a] = (cnt[a] || 0) + 1;
+    });
+    const likes = Object.entries(cnt).sort((a, b) => b[1] - a[1]).slice(0, 10).map(x => x[0]).join(', ');
+    const recent = lib.played.filter(x => !x.live).slice(0, 5).map(x => x.title + (x.artist ? ' — ' + x.artist : '')).join('; ');
+    return { likes, recent };
+  }
+  // голос Вайба: озвучка браузера/Windows по-русски, на Android — синтез речи телефона; музыка на это время тише
+  const aiVoiceOn = () => store.get('pulse-ai-voice', true);
+  const aiPlain = t => String(t).replace(/\*\*/g, '').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]/gu, '').replace(/\s+/g, ' ').trim();
+  function aiTalk(on) {
+    if (ai.buddy) ai.buddy.classList.toggle('talk', on);
+    if (on && ai.duck == null) { ai.duck = local.fade ?? 1; local.fade = ai.duck * 0.35; }
+    else if (!on && ai.duck != null) { local.fade = ai.duck; ai.duck = null; }
+    if (local.active) eng().apply();
+  }
+  window.pulseSpeechEnd = () => aiTalk(false);
+  function aiHush() {
+    try { speechSynthesis.cancel(); } catch (e) {}
+    const pa = window.PulseAndroid; if (pa && pa.stopSpeak) pa.stopSpeak();
+    aiTalk(false);
+  }
+  function aiSpeak(text) {
+    if (!aiVoiceOn()) return;
+    const t = aiPlain(text).slice(0, 600);
+    if (!t) return;
+    const pa = window.PulseAndroid;
+    if (pa && pa.speak) { aiTalk(true); pa.speak(t); return; }
+    if (!('speechSynthesis' in window)) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(t);
+    u.lang = 'ru-RU'; u.rate = 1.05; u.pitch = 1.2;
+    const v = speechSynthesis.getVoices().find(v => /^ru/i.test(v.lang));
+    if (v) u.voice = v;
+    u.onend = u.onerror = () => aiTalk(false);
+    aiTalk(true);
+    speechSynthesis.speak(u);
+  }
   function aiAction(a) {
     if (a.type === 'play') voicePlay(a.arg);
     else if (a.type === 'wave') { toast('🌊 Ищу похожее…'); waveTracks({ artist: a.arg }).then(tr => tr.length ? playItem(tr[0], tr) : toast('Ничего похожего не нашёл')).catch(() => toast('Не получилось')); }
@@ -7244,10 +7333,16 @@ registerProcessor('pulse-feed', Feed);`;
       const time = new Date().toLocaleString('ru-RU', { weekday: 'long', hour: '2-digit', minute: '2-digit' });
       const r = await fetch(`${SUPA.url}/functions/v1/ai-chat`, {
         method: 'POST', headers: { apikey: SUPA.key, Authorization: 'Bearer ' + tk, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: ai.hist.filter(m => !m.sys).slice(-12).map(m => ({ role: m.role, content: m.content })), ctx: { now, time } }),
+        body: JSON.stringify({ messages: ai.hist.filter(m => !m.sys).slice(-12).map(m => ({ role: m.role, content: m.content })), ctx: { now, time, ...aiTastes() } }),
       });
       const j = await r.json().catch(() => ({}));
-      if (r.ok) { say(j.text, { actions: j.actions || [] }); ai.left = j.left; }
+      if (r.ok) {
+        say(j.text, { actions: j.actions || [] }); ai.left = j.left;
+        // попросили включить — Вайб включает сам, не дожидаясь нажатия кнопки
+        const act = (j.actions || []).find(a => a.type === 'play' || a.type === 'wave');
+        if (act && /(включ|постав|запуст|сыграй|хочу послушать|давай.{0,20}(трек|песн|музык))/i.test(text)) aiAction(act);
+        aiSpeak(j.text);
+      }
       else if (r.status === 429) { say('На сегодня лимит сообщений закончился — завтра продолжим 🙂', { sys: true }); ai.left = 0; }
       else if (r.status === 401) say('Чтобы болтать со мной, войди в аккаунт Pulse.', { sys: true });
       else if (r.status === 503) say('Я ещё не подключён — скоро заработаю.', { sys: true });
@@ -7257,7 +7352,9 @@ registerProcessor('pulse-feed', Feed);`;
     if (ai.draw) ai.draw();
   }
   function renderAI(body) {
-    body.appendChild(section('Вайб', 'ИИ-друг, который шарит в музыке'));
+    const head = el('div', 'ai-head'), buddy = aiBuddy(), htx = el('div');
+    htx.append(el('h2', '', 'Вайб'), el('span', '', 'ИИ-друг, который шарит в музыке'));
+    head.append(buddy, htx); body.appendChild(head); ai.buddy = buddy;
     if (!acc.session) {
       body.appendChild(el('div', 'empty-note', 'Вайб подберёт музыку под настроение, посоветует похожих артистов и сам включит трек. Чтобы с ним поговорить, войди в аккаунт.'));
       const b = el('button', 'acc-login big', '👤 Войти или создать аккаунт'); b.type = 'button'; b.addEventListener('click', login); body.appendChild(b);
@@ -7272,6 +7369,10 @@ registerProcessor('pulse-feed', Feed);`;
     send.addEventListener('click', go);
     inp.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); go(); } });
     clear.addEventListener('click', () => { ai.hist = []; aiSave(); ai.draw(); });
+    const vbtn = el('button', ''); vbtn.type = 'button';
+    const vlabel = () => { vbtn.textContent = aiVoiceOn() ? '🔊 Голос' : '🔈 Без голоса'; vbtn.classList.toggle('on', aiVoiceOn()); };
+    vbtn.addEventListener('click', () => { store.set('pulse-ai-voice', !aiVoiceOn()); if (!aiVoiceOn()) aiHush(); vlabel(); });
+    vlabel();
     form.append(inp, send);
     ai.draw = () => {
       if (!list.isConnected) { ai.draw = null; return; }
@@ -7283,9 +7384,10 @@ registerProcessor('pulse-feed', Feed);`;
       meta.textContent = ai.left != null ? `Сегодня осталось сообщений: ${ai.left}` : '';
       clear.hidden = !ai.hist.length;
       send.disabled = ai.busy;
+      buddy.classList.toggle('think', ai.busy);
       list.lastElementChild.scrollIntoView({ block: 'end' });
     };
-    const foot = el('div', 'ai-foot'); foot.append(meta, clear);
+    const foot = el('div', 'ai-foot'), fbtn = el('div', 'ai-fbtns'); fbtn.append(vbtn, clear); foot.append(meta, fbtn);
     box.append(list, hints, form, foot);
     body.appendChild(box);
     ai.draw();
