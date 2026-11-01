@@ -1054,6 +1054,23 @@ button.primary:hover { box-shadow: 0 10px 30px rgba(255,79,216,.55); }
 .ai-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 30px; }
 .ai-meta { font-size: 12px; color: var(--faint); }
 .ai-foot button { padding: 6px 12px; font-size: 12px; }
+/* плитки и большие кнопки — приглушённые: тёмное стекло, цвет только лёгким отливом, полоской снизу и свечением при наведении */
+.htile, .mood { background: var(--tbg, linear-gradient(135deg, hsl(var(--h),88%,52%), hsl(calc(var(--h) + 55),90%,38%))); border: 1px solid rgba(255,255,255,.1); box-shadow: none; }
+.htile::before, .mood::before { content: ""; position: absolute; inset: 0; background: linear-gradient(160deg, rgba(16,11,30,.62), rgba(16,11,30,.86)); pointer-events: none; }
+.htile::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--tbg); opacity: .9; }
+.htile > *, .mood > b, .mood > small, .mood > span { position: relative; z-index: 1; }
+.htile i, .mood i { z-index: 1; }
+.mood i { opacity: .85; }
+.htile:hover, .mood:hover { box-shadow: 0 10px 30px rgba(0,0,0,.4), 0 0 0 1px rgba(255,255,255,.18); }
+.lib-wave, .rail-wave { background: linear-gradient(120deg, rgba(255,79,216,.32), rgba(138,91,255,.26)); border: 1px solid rgba(255,79,216,.45); box-shadow: 0 0 18px rgba(255,79,216,.18); }
+.lib-wave:hover, .rail-wave:hover { background: linear-gradient(120deg, rgba(255,79,216,.45), rgba(138,91,255,.38)); }
+/* боковая панель: «Ещё» со свёрнутыми разделами; список «Дальше» убран — очередь есть в «Ещё» */
+.lib-more-t em { margin-left: auto; font-style: normal; opacity: .6; transition: transform .2s; }
+.lib-more-t.open em { transform: rotate(180deg); }
+.lib-more-t .nbadge { margin-left: 6px; }
+.lib-more { display: grid; gap: 2px; padding-left: 10px; margin-left: 14px; border-left: 1px solid rgba(255,255,255,.08); }
+.lib-more .lib-nav { padding: 8px 12px; font-size: 13px; }
+.lib-next { display: none !important; }
 /* подборка под время суток — широкая плитка на главной */
 .mood.smart { display: grid; align-content: center; gap: 2px; width: 100%; height: 110px; margin: 14px 0 4px; box-sizing: border-box; }
 .mood.smart small { position: relative; z-index: 1; font: 800 11px var(--body); letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.85); }
@@ -1185,17 +1202,21 @@ button.primary:hover { box-shadow: 0 10px 30px rgba(255,79,216,.55); }
     <button class="lib-nav" data-tab="search" type="button"><i>⌕</i>Поиск</button>
     <button class="lib-wave" id="libWave" type="button"><i>🌊</i><span><b>Моя волна</b><small>бесконечный поток под тебя</small></span></button>
     <button class="lib-nav" data-tab="ai" type="button"><i>🤖</i>Вайб · ИИ</button>
-    <button class="lib-nav" data-tab="queue" type="button"><i>☰</i>Очередь</button>
     <button class="lib-nav" data-tab="playlists" type="button"><i>♫</i>Плейлисты</button>
-    <button class="lib-nav" data-tab="friends" type="button"><i>👥</i>Друзья<b class="nbadge" id="frBadge" hidden></b></button>
-    <button class="lib-nav" data-tab="chats" type="button"><i>💬</i>Сообщения<b class="nbadge" id="msgBadge" hidden></b></button>
-    <button class="lib-nav" data-tab="feed" type="button"><i>📰</i>Лента</button>
-    <button class="lib-nav" data-tab="room" type="button"><i>🎧</i>Вместе<b class="nbadge live" id="roomBadge" hidden>●</b></button>
-    <button class="lib-nav" data-tab="game" type="button"><i>🎮</i>Угадай мелодию</button>
     <button class="lib-nav" data-tab="fav" type="button"><i>♥</i>Моё</button>
-    <button class="lib-nav" data-tab="files" type="button"><i>📁</i>Мои файлы</button>
-    <button class="lib-nav" data-tab="history" type="button"><i>↺</i>История</button>
-    <button class="lib-nav" data-tab="stats" type="button"><i>📊</i>Статистика</button>
+    <button class="lib-nav" data-tab="friends" type="button"><i>👥</i>Друзья<b class="nbadge" id="frBadge" hidden></b></button>
+    <!-- редкие разделы свёрнуты в «Ещё», чтобы панель не тянулась на весь экран -->
+    <button class="lib-nav lib-more-t" id="libMoreT" type="button" aria-expanded="false"><i>⋯</i>Ещё<b class="nbadge" id="libMoreBadge" hidden></b><em>▾</em></button>
+    <div class="lib-more" id="libMore" hidden>
+      <button class="lib-nav" data-tab="chats" type="button"><i>💬</i>Сообщения<b class="nbadge" id="msgBadge" hidden></b></button>
+      <button class="lib-nav" data-tab="room" type="button"><i>🎧</i>Вместе<b class="nbadge live" id="roomBadge" hidden>●</b></button>
+      <button class="lib-nav" data-tab="queue" type="button"><i>☰</i>Очередь</button>
+      <button class="lib-nav" data-tab="feed" type="button"><i>📰</i>Лента</button>
+      <button class="lib-nav" data-tab="game" type="button"><i>🎮</i>Угадай мелодию</button>
+      <button class="lib-nav" data-tab="files" type="button"><i>📁</i>Мои файлы</button>
+      <button class="lib-nav" data-tab="history" type="button"><i>↺</i>История</button>
+      <button class="lib-nav" data-tab="stats" type="button"><i>📊</i>Статистика</button>
+    </div>
     <button class="lib-nav" data-tab="settings" type="button"><i>⚙</i>Настройки</button>
     <div class="lib-np" id="libNp" hidden><div class="vin"><img id="libNpImg" alt=""></div><div><small>Сейчас играет</small><b id="libNpT"></b><span id="libNpA"></span></div>
       <div class="np-btns"><button id="npPrev" type="button" aria-label="Предыдущий трек">⏮</button><button id="npPlay" type="button" aria-label="Пауза или продолжить">⏯</button><button id="npNext" type="button" aria-label="Следующий трек">⏭</button></div>
@@ -4472,6 +4493,14 @@ registerProcessor('pulse-feed', Feed);`;
     head.appendChild(nav); wrap.append(head, row);
     return { wrap, fill(items) { row.innerHTML = ''; items.forEach((it, i) => { const c = trackCard(it, items); c.style.setProperty('--i', Math.min(i, 14)); row.appendChild(c); }); markPlaying(); }, loading(n = 6) { row.innerHTML = ''; for (let i = 0; i < n; i++) row.appendChild(el('div', 'cardx sk-card')); } };
   }
+  // фильтры для полок с хитами: только песни (без часовых подборок) и без хитов соседних стран
+  const notSongRe = /плейлист|подборк|сборник|компиляц|лучшие треки|самые (лучшие|популярные)|популярные треки|top \d+|топ \d+|\bmix\b|микс|\bhour\b|час(а|ов)?\b|реакци|reaction|танцуй|dance challenge|#shorts/i;
+  const isSong = x => x.duration >= 90 && x.duration <= 420 && !notSongRe.test(x.title);
+  const hasCyr = x => /[а-яё]/i.test((x.title || '') + ' ' + (x.artist || ''));
+  // буквы казахского, таджикского, узбекского (кириллица), армянское и грузинское письмо, узбекская латиница с апострофом
+  const foreignRe = /[ӘәҒғҚқҢңӨөҰұҮүҺһІіҶҷӮӯҲҳЎў]|[԰-֏Ⴀ-ჿ]|[oOgG][ʻ'’`][a-z]|\b(uz|uzb|uzbek|o'zbek|tajik|qazaq|kazakh|armenian|armenians\d*|azeri|kyrgyz|yurak\w*|sevgi\w*|sevaman|jonim|yorim|nima|deyman|qiz\w*|dilnoz|mirjalol|nematov|ozoda|shahzoda)\b/i;
+  const ruChart = x => !foreignRe.test((x.title || '') + ' ' + (x.artist || ''));
+  const ruHit = x => hasCyr(x) && ruChart(x);
   // умная подборка: утром бодрое, днём для дела, вечером вайб, ночью тихое; в выходные — своё
   function smartPick() {
     const d = new Date(), h = d.getHours(), we = d.getDay() === 0 || d.getDay() === 6;
@@ -4524,31 +4553,29 @@ registerProcessor('pulse-feed', Feed);`;
       smb.append(el('small', '', '🕒 Сейчас для тебя'), el('b', '', smT), el('span', '', smSub), el('i', '', smE));
       smb.addEventListener('click', () => { lib.q = smQ; $('libQ').value = smQ; lib.tab = 'search'; renderLib(); });
       body.appendChild(smb);
+      // русские хиты и песни из TikTok — первыми; поиск идёт через общий кэш, лимит YouTube почти не тратится
+      [['📱 Хиты из TikTok', 'что звучит в роликах', ['песни из тик тока 2026', 'тренды тикток русские песни']],
+       ['🇷🇺 Русские хиты', 'новинки и то, что на повторе', ['русские хиты 2026', 'новые русские песни 2026']]].forEach(([t, sub, qs]) => {
+        const sh = shelf(t, sub); body.appendChild(sh.wrap); sh.loading();
+        guarded(body, async ok => {
+          const lists = await Promise.all(qs.map(q => searchYT(q).catch(() => [])));
+          if (!ok()) return;
+          const seen = new Set(), tr = [];
+          // по очереди из каждого запроса, без повторов; только песни на русском
+          for (let i = 0; i < 25; i++) for (const l of lists) { const x = l[i]; if (x && !seen.has(x.id) && isSong(x) && ruHit(x)) { seen.add(x.id); tr.push(x); } }
+          if (tr.length >= 4) sh.fill(tr.slice(0, 24)); else sh.wrap.remove();
+        });
+      });
       const pop = shelf('Популярное сейчас', 'топ музыки в России'); body.appendChild(pop.wrap); pop.loading();
-      const trend = shelf('🔥 В тренде', 'ещё из чарта YouTube по России'); body.appendChild(trend.wrap); trend.loading();
       guarded(body, async ok => {
         let tr = null;
         try { tr = await ytPopular(); } catch (e) { toast(ytProblem(e)); }
-        const chart = tr && tr.length >= 30;
+        // в чарте YouTube по России много хитов соседних стран — оставляем русское и англоязычное, русское вперёд
+        if (tr && tr.length) { const ru = tr.filter(ruChart); tr = [...ru.filter(hasCyr), ...ru.filter(x => !hasCyr(x))]; }
         if (!tr || !tr.length) tr = await jamendoPopular().catch(() => []);
         if (!tr || !tr.length) tr = await searchArchive('collection:(netlabels)');
         if (!ok()) return;
-        pop.fill(tr.slice(0, 25));
-        // вторая половина чарта YouTube по России — то, что сейчас набирает (в том числе из TikTok)
-        if (chart) trend.fill(tr.slice(25, 50)); else trend.wrap.remove();
-      });
-      // русские новинки — через общий кэш поиска, почти не тратят лимит YouTube
-      [['🇷🇺 Русские хиты', 'новинки и то, что на повторе', 'русские хиты новинки']].forEach(([t, sub, sq]) => {
-        const sh = shelf(t, sub); body.appendChild(sh.wrap); sh.loading();
-        guarded(body, async ok => {
-          let tr = [];
-          try { tr = await searchYT(sq); } catch (e) {}
-          if (!ok()) return;
-          // только песни: без часовых подборок и «плейлистов» в одном ролике
-          const notSong = /плейлист|подборк|сборник|компиляц|лучшие треки|самые (лучшие|популярные)|популярные треки|top \d+|топ \d+|mix|микс|\bhour\b|час/i;
-          tr = tr.filter(x => x.duration >= 90 && x.duration <= 420 && !notSong.test(x.title));
-          if (tr.length) sh.fill(tr.slice(0, 20)); else sh.wrap.remove();
-        });
+        pop.fill(tr.slice(0, 30));
       });
       body.append(section('Настроение'), moodGrid());
       const recent = lib.played.filter(p => !p.live && !p.preview);
@@ -4624,7 +4651,19 @@ registerProcessor('pulse-feed', Feed);`;
     $('dLib').classList.toggle('on', on);
     if (on) { closePanels(); renderLib(); setTimeout(() => $('libQ').focus(), 60); }
   }
-  document.querySelectorAll('.lib-nav').forEach(b => b.addEventListener('click', () => { lib.tab = b.dataset.tab; renderLib(); }));
+  document.querySelectorAll('.lib-nav[data-tab]').forEach(b => b.addEventListener('click', () => { lib.tab = b.dataset.tab; renderLib(); }));
+  // «Ещё» в боковой панели: редкие разделы свёрнуты; раскрыто, если открыт один из них; точка — если там что-то новое
+  function setLibMore(open) {
+    $('libMore').hidden = !open; $('libMoreT').setAttribute('aria-expanded', open); $('libMoreT').classList.toggle('open', open);
+    store.set('pulse-libmore', open);
+  }
+  $('libMoreT').addEventListener('click', () => setLibMore($('libMore').hidden));
+  setLibMore(store.get('pulse-libmore', false));
+  setInterval(() => {
+    const busy = ['msgBadge', 'roomBadge'].some(id => !$(id).hidden);
+    $('libMoreBadge').hidden = !busy || !$('libMore').hidden;
+    if ($('libMore').hidden && $('libMore').querySelector(`[data-tab="${lib.tab}"]`)) setLibMore(true);
+  }, 1000);
   $('libClose').addEventListener('click', () => openLib(false));
   // размер окна YouTube: маленький (200×200, по умолчанию) → средний → большой, выбор запоминается
   const YT_SIZES = ['small', 'mid', 'big'];
@@ -7050,7 +7089,7 @@ registerProcessor('pulse-feed', Feed);`;
       ['♫', 'Плейлисты', 'твои подборки', 'linear-gradient(135deg,#4ff0ff,#2b6cff)', () => { lib.tab = 'playlists'; renderLib(); }],
       ['👥', 'Друзья', 'кто что слушает', 'linear-gradient(135deg,#19c37d,#0f6b5c)', () => { lib.tab = 'friends'; renderLib(); }],
     ].forEach(([ic, name, sub, bg, fn], i) => {
-      const b = el('button', 'htile'); b.type = 'button'; b.style.background = bg; b.style.setProperty('--i', i);
+      const b = el('button', 'htile'); b.type = 'button'; b.style.setProperty('--tbg', bg); b.style.setProperty('--i', i);
       b.append(el('i', '', ic), el('b', '', name), el('span', '', sub));
       b.addEventListener('click', fn); g.appendChild(b);
     });
