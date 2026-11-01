@@ -1072,11 +1072,26 @@ button.primary:hover { box-shadow: 0 10px 30px rgba(255,79,216,.55); }
 .lib-wave, .rail-wave { background: linear-gradient(120deg, rgba(255,79,216,.32), rgba(138,91,255,.26)); border: 1px solid rgba(255,79,216,.45); box-shadow: 0 0 18px rgba(255,79,216,.18); }
 .lib-wave:hover, .rail-wave:hover { background: linear-gradient(120deg, rgba(255,79,216,.45), rgba(138,91,255,.38)); }
 /* боковая панель: «Ещё» со свёрнутыми разделами; список «Дальше» убран — очередь есть в «Ещё» */
-.lib-more-t em { margin-left: auto; font-style: normal; opacity: .6; transition: transform .2s; }
-.lib-more-t.open em { transform: rotate(180deg); }
+.lib-more-t { position: relative; overflow: hidden; }
+.lib-more-t em { margin-left: auto; font-style: normal; opacity: .6; transition: transform .5s cubic-bezier(.2,1.8,.4,1), opacity .3s; }
+.lib-more-t.open em { transform: rotate(180deg); opacity: 1; }
+.lib-more-t i { transition: transform .4s cubic-bezier(.2,1.6,.4,1); }
+.lib-more-t:hover i { animation: moreDots .9s ease-in-out infinite; }
+.lib-more-t.open i { transform: rotate(90deg) scale(1.15); color: var(--neon-b); }
+.lib-more-t.open { color: #fff; background: linear-gradient(90deg, rgba(79,240,255,.16), rgba(255,79,216,.08)); box-shadow: inset 0 0 0 1px rgba(79,240,255,.28); }
+/* блик пробегает по кнопке при раскрытии */
+.lib-more-t::after { content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.22) 50%, transparent 70%); transform: translateX(-120%); pointer-events: none; }
+.lib-more-t.open::after { animation: moreShine .7s ease-out; }
+@keyframes moreShine { to { transform: translateX(120%); } }
+@keyframes moreDots { 50% { transform: scale(1.25); color: var(--neon-a); } }
 .lib-more-t .nbadge { margin-left: 6px; }
-.lib-more { display: grid; gap: 2px; padding-left: 10px; margin-left: 14px; border-left: 1px solid rgba(255,255,255,.08); }
-.lib-more .lib-nav { padding: 8px 12px; font-size: 13px; }
+.lib-more { display: grid; gap: 2px; padding-left: 10px; margin-left: 14px; border-left: 1px solid rgba(255,255,255,.08);
+  max-height: 0; opacity: 0; overflow: hidden; transition: max-height .5s cubic-bezier(.2,1,.3,1), opacity .3s, border-color .4s; }
+.lib-more.open { max-height: 460px; opacity: 1; border-left-color: rgba(79,240,255,.35); }
+.lib-more .lib-nav { padding: 8px 12px; font-size: 13px; opacity: 0; transform: translateX(-12px); transition: opacity .3s, transform .45s cubic-bezier(.2,1.5,.4,1), background .2s, color .2s; }
+.lib-more.open .lib-nav { opacity: 1; transform: none; transition-delay: calc(var(--i, 0) * 35ms + 60ms); }
+.lib-more .lib-nav:hover { transform: translateX(3px); }
+@media (prefers-reduced-motion: reduce) { .lib-more, .lib-more .lib-nav { transition: none; } .lib-more-t::after { display: none; } }
 .lib-next { display: none !important; }
 /* загадка дня */
 .mood.smart.daily { margin-top: 8px; }
@@ -1224,7 +1239,7 @@ button.primary:hover { box-shadow: 0 10px 30px rgba(255,79,216,.55); }
     <button class="lib-nav" data-tab="friends" type="button"><i>👥</i>Друзья<b class="nbadge" id="frBadge" hidden></b></button>
     <!-- редкие разделы свёрнуты в «Ещё», чтобы панель не тянулась на весь экран -->
     <button class="lib-nav lib-more-t" id="libMoreT" type="button" aria-expanded="false"><i>⋯</i>Ещё<b class="nbadge" id="libMoreBadge" hidden></b><em>▾</em></button>
-    <div class="lib-more" id="libMore" hidden>
+    <div class="lib-more" id="libMore">
       <button class="lib-nav" data-tab="chats" type="button"><i>💬</i>Сообщения<b class="nbadge" id="msgBadge" hidden></b></button>
       <button class="lib-nav" data-tab="room" type="button"><i>🎧</i>Вместе<b class="nbadge live" id="roomBadge" hidden>●</b></button>
       <button class="lib-nav" data-tab="queue" type="button"><i>☰</i>Очередь</button>
@@ -4810,16 +4825,20 @@ registerProcessor('pulse-feed', Feed);`;
   }
   document.querySelectorAll('.lib-nav[data-tab]').forEach(b => b.addEventListener('click', () => { lib.tab = b.dataset.tab; renderLib(); }));
   // «Ещё» в боковой панели: редкие разделы свёрнуты; раскрыто, если открыт один из них; точка — если там что-то новое
+  // раскрытие с анимацией: список плавно выезжает, пункты появляются лесенкой
+  [...$('libMore').children].forEach((b, i) => b.style.setProperty('--i', i));
+  const libMoreOpen = () => $('libMore').classList.contains('open');
   function setLibMore(open) {
-    $('libMore').hidden = !open; $('libMoreT').setAttribute('aria-expanded', open); $('libMoreT').classList.toggle('open', open);
+    $('libMore').classList.toggle('open', open); $('libMoreT').setAttribute('aria-expanded', open); $('libMoreT').classList.toggle('open', open);
+    [...$('libMore').children].forEach(b => { b.tabIndex = open ? 0 : -1; });
     store.set('pulse-libmore', open);
   }
-  $('libMoreT').addEventListener('click', () => setLibMore($('libMore').hidden));
+  $('libMoreT').addEventListener('click', () => setLibMore(!libMoreOpen()));
   setLibMore(store.get('pulse-libmore', false));
   setInterval(() => {
     const busy = ['msgBadge', 'roomBadge'].some(id => !$(id).hidden);
-    $('libMoreBadge').hidden = !busy || !$('libMore').hidden;
-    if ($('libMore').hidden && $('libMore').querySelector(`[data-tab="${lib.tab}"]`)) setLibMore(true);
+    $('libMoreBadge').hidden = !busy || libMoreOpen();
+    if (!libMoreOpen() && $('libMore').querySelector(`[data-tab="${lib.tab}"]`)) setLibMore(true);
   }, 1000);
   $('libClose').addEventListener('click', () => openLib(false));
   // размер окна YouTube: маленький (200×200, по умолчанию) → средний → большой, выбор запоминается
