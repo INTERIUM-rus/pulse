@@ -261,6 +261,7 @@ button.primary { background: linear-gradient(135deg, var(--accent), #8a5bff 55%,
 .lib-body { overflow-y: auto; padding: 4px 6px 160px 0; min-height: 0; scrollbar-width: thin; scrollbar-color: hsla(var(--lh),80%,60%,.5) transparent; }
 .lib-body h2 { display: flex; align-items: baseline; gap: 10px; margin: 26px 0 12px; font: 800 19px var(--display); }
 .lib-body h2 small { font: 600 12px var(--body); color: var(--faint); }
+.lib-body h2 .off-clear { margin-left: auto; padding: 5px 12px; font: 600 12px var(--body); border-radius: 999px; }
 .hero { padding: 26px 0 6px; }
 .hero h1 { margin: 0; font: 900 clamp(34px, 5.2vw, 66px)/1 var(--display); letter-spacing: -.02em;
   background: linear-gradient(90deg, #fff, hsl(var(--lh),100%,78%), hsl(calc(var(--lh) + 80),100%,75%), #fff); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: sheen 9s linear infinite; }
@@ -1825,6 +1826,7 @@ registerProcessor('pulse-feed', Feed);`;
         else if (m.type === 'overlay') onOverlay(m);
         else if (m.type === 'mediakey') onMediaKey(m.key);
         else if (m.type === 'download') onDownload(m);
+        else if (m.type === 'offline') onOffline(m);
         else if (m.type === 'install' && !m.ok) toast('Не получилось установить: ' + m.error);
         else if (m.type === 'selftest-yt') ytSelfTest();
         else if (m.type === 'wallpaper') { wallOn = !!m.on; $('dWall').classList.toggle('on', wallOn); document.body.classList.toggle('wall', wallOn); if (m.error) toast('Не получилось встать под значки рабочего стола'); }
@@ -4476,7 +4478,8 @@ registerProcessor('pulse-feed', Feed);`;
     if (!d.plain && sndFx()) try { route(d); } catch (e) {}
     if (SND.graph) SND.graph.c.resume().catch(() => {});
     d.el.playbackRate = SPEEDS[SND.speed][1];
-    if (!x || d.el.getAttribute('src') !== it.url) d.el.src = it.url; // при переходе трек уже подгружен
+    const url = offUrl(it) || it.url; // сохранённый для офлайна трек играет из своего файла
+    if (!x || d.el.getAttribute('src') !== url) d.el.src = url; // при переходе трек уже подгружен
     if (it.src === 'itunes' && !local.pvHint) { local.pvHint = true; toast('Это отрывок 30 секунд. Целиком — через YouTube (со своим ключом или по ссылке)'); }
     AE.apply(); AE.play();
   }
@@ -4504,10 +4507,11 @@ registerProcessor('pulse-feed', Feed);`;
     if (!nx || !nx.url || nx.noFx || nx.album || nx.live || ['yt', 'q', 'radio'].includes(nx.src)) return;
     const old = deck, nd = old === decks[0] ? decks[1] : decks[0];
     // за полминуты до перехода следующий трек заранее подгружается на вторую деку — сервер может отвечать медленно
-    if (nd.el.getAttribute('src') !== nx.url) {
+    const nurl = offUrl(nx) || nx.url;
+    if (nd.el.getAttribute('src') !== nurl) {
       if (sndFx()) try { route(nd); } catch (e) {}
       nd.el.playbackRate = SPEEDS[SND.speed][1]; deckVol(nd, 0);
-      nd.el.src = nx.url; nd.el.load();
+      nd.el.src = nurl; nd.el.load();
     }
     if (dur - el.currentTime > n) return;
     // подгрузка не удалась (сайт не дал обработку звука) — без перехода, трек сыграет как обычно
@@ -4969,7 +4973,15 @@ registerProcessor('pulse-feed', Feed);`;
     }
     if (lib.tab === 'fav') {
       const tr = lib.fav.filter(f => !f.live && !f.preview);
-      if (!tr.length) { body.append(section('Моё'), el('div', 'empty-note', 'Нажми ♡ у трека, и он появится здесь.')); return; }
+      if (off.list.length) {
+        const mb = Math.round(off.list.reduce((n, o) => n + (o.size || 0), 0) / 1048576);
+        const head = section('⤓ Без интернета', `${off.list.length} треков · ${mb} МБ`);
+        const clr = el('button', 'off-clear', 'Удалить все'); clr.type = 'button';
+        clr.addEventListener('click', () => confirmBox(`Удалить ${off.list.length} сохранённых треков? Без интернета они перестанут играть`, 'Удалить', () => offRemove(off.list.map(o => o.id))));
+        head.appendChild(clr);
+        body.append(head, trackList(off.list.map(o => ({ ...o, cover: offCover(o) }))));
+      }
+      if (!tr.length) { body.append(section('Моё'), el('div', 'empty-note', 'Нажми ♡ у трека, и он появится здесь. А «Слушать без интернета» в меню трека сохранит его, чтобы играл без сети.')); markPlaying(); return; }
       body.append(section('Моё', tr.length + ' треков'), trackList(tr)); markPlaying(); return;
     }
     if (lib.tab === 'history') {
@@ -5220,6 +5232,108 @@ registerProcessor('pulse-feed', Feed);`;
       loadFiles().then(() => { if (lib.tab === 'files') renderLib(); }).catch(() => {});
     }
   }
+  // ===================== без интернета =====================
+  // трек со свободной лицензией сохраняется внутри Pulse (не файлом в «Музыку») и потом играет без сети.
+  // приложение для Windows держит такие треки в своей служебной папке, браузер и телефон — в хранилище страницы
+  const off = { list: store.get('pulse-offline', []), urls: new Map(), busy: new Set(), wait: new Map(), db: null };
+  const offEntry = it => it && off.list.find(o => o.id === it.id);
+  const canOffline = it => canDownload(it);
+  const offSaveList = () => store.set('pulse-offline', off.list);
+  function offDb() {
+    return off.db || (off.db = new Promise((res, rej) => {
+      const r = indexedDB.open('pulse-offline', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('f');
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+    }));
+  }
+  async function offIdb(mode, fn) {
+    const db = await offDb();
+    return new Promise((res, rej) => {
+      const tx = db.transaction('f', mode), r = fn(tx.objectStore('f'));
+      tx.oncomplete = () => res(r && r.result); tx.onerror = () => rej(tx.error);
+    });
+  }
+  // адрес, по которому сохранённый трек играет без сети
+  function offUrl(it) {
+    const o = offEntry(it);
+    if (!o) return null;
+    return o.file ? '/offline/' + o.file : off.urls.get(o.id) || null;
+  }
+  const offCover = o => o.cfile ? '/offline/' + o.cfile : off.urls.get(o.id + '#c') || o.cover;
+  // браузер: файлы лежат в IndexedDB, при запуске получают локальные адреса
+  async function offLoad() {
+    if (native || !off.list.some(o => !o.file)) return;
+    for (const o of off.list.filter(o => !o.file)) {
+      try {
+        const b = await offIdb('readonly', st => st.get(o.id)), c = await offIdb('readonly', st => st.get(o.id + '#c'));
+        if (b) off.urls.set(o.id, URL.createObjectURL(b));
+        if (c) off.urls.set(o.id + '#c', URL.createObjectURL(c));
+      } catch (e) {}
+    }
+    // записи, чьи файлы пропали (хранилище очистили), убираем из списка
+    const before = off.list.length;
+    off.list = off.list.filter(o => o.file || off.urls.has(o.id));
+    if (off.list.length !== before) offSaveList();
+  }
+  function onOffline(m) {
+    const w = off.wait.get(m.id);
+    if (!w) return;
+    off.wait.delete(m.id);
+    m.ok ? w.res(m) : w.rej(new Error(m.error || 'не получилось'));
+  }
+  async function offOne(t) {
+    const entry = { ...slim(t), at: Date.now() };
+    if (native) {
+      const m = await new Promise((res, rej) => { off.wait.set(t.id, { res, rej }); post({ cmd: 'offline-save', id: t.id, url: t.url, cover: t.cover || '' }); });
+      Object.assign(entry, { file: m.file, cfile: m.cover || null, size: m.size || 0 });
+    } else {
+      const r = await fetch(t.url);
+      if (!r.ok) throw new Error(r.status);
+      const b = await r.blob();
+      if (b.size > 300 * 1048576) throw new Error('большой');
+      await offIdb('readwrite', st => st.put(b, t.id));
+      off.urls.set(t.id, URL.createObjectURL(b));
+      if (t.cover) try {
+        const c = await fetch(t.cover).then(x => x.ok ? x.blob() : null);
+        if (c) { await offIdb('readwrite', st => st.put(c, t.id + '#c')); off.urls.set(t.id + '#c', URL.createObjectURL(c)); }
+      } catch (e) {}
+      entry.size = b.size;
+    }
+    off.list.unshift(entry); offSaveList();
+  }
+  async function offAdd(it) {
+    let list = [it];
+    if (it.album) {
+      toast('Открываю альбом…');
+      try { list = await expandArchive(it); } catch (e) { toast('Не получилось: проверь интернет'); return; }
+    }
+    list = list.filter(t => t.url && !offEntry(t) && !off.busy.has(t.id)).slice(0, 100);
+    if (!list.length) { toast('Уже сохранено — играет без интернета'); return; }
+    toast(list.length > 1 ? `⤓ Сохраняю ${list.length} треков для прослушивания без интернета…` : '⤓ Сохраняю для прослушивания без интернета…');
+    let ok = 0, fail = 0;
+    for (const t of list) {
+      off.busy.add(t.id);
+      try { await offOne(t); ok++; } catch (e) { fail++; }
+      off.busy.delete(t.id);
+    }
+    if (!fail) toast(`✔ ${ok > 1 ? ok + ' треков сохранено' : 'Сохранено'}: слушай без интернета в «Моё»`);
+    else if (ok) toast(`Сохранено: ${ok}, не получилось: ${fail}`);
+    else toast(native ? 'Не получилось сохранить: проверь интернет' : 'Не получилось: этот сайт не отдаёт трек браузеру. В приложении для Windows получится');
+    if (lib.tab === 'fav') renderLib();
+  }
+  async function offRemove(ids) {
+    const gone = off.list.filter(o => ids.includes(o.id));
+    if (!gone.length) return;
+    off.list = off.list.filter(o => !ids.includes(o.id)); offSaveList();
+    if (native) post({ cmd: 'offline-del', files: gone.flatMap(o => [o.file, o.cfile]).filter(Boolean) });
+    else for (const o of gone) {
+      [o.id, o.id + '#c'].forEach(k => { const u = off.urls.get(k); if (u) URL.revokeObjectURL(u); off.urls.delete(k); });
+      try { await offIdb('readwrite', st => { st.delete(o.id); st.delete(o.id + '#c'); }); } catch (e) {}
+    }
+    toast(gone.length > 1 ? `Убрано из «Без интернета»: ${gone.length}` : 'Убрано из «Без интернета»');
+    if (lib.tab === 'fav') renderLib();
+  }
+  offLoad();
   function openMenu(it, x, y) {
     showMenu([
       ['▶', 'Играть сейчас', () => playItem(it, [it])],
@@ -5230,6 +5344,7 @@ registerProcessor('pulse-feed', Feed);`;
       [isFav(it) ? '♥' : '♡', isFav(it) ? 'Убрать из «Моё»' : 'Добавить в «Моё»', () => toggleFav(it)],
       ['🌊', 'Волна по этому треку', async () => { toast('🌊 Ищу похожее…'); try { const tr = await waveTracks(it); playItem(it, [it, ...tr.filter(x => x.id !== it.id)]); } catch (e) { toast('Не получилось'); } }],
       ...(canDownload(it) ? [['⬇', it.album ? 'Скачать альбом' : 'Скачать', () => downloadItem(it)]] : []),
+      ...(canOffline(it) ? [offEntry(it) ? ['✓', 'Убрать из «Без интернета»', () => offRemove([it.id])] : ['⤓', it.album ? 'Альбом без интернета' : 'Слушать без интернета', () => offAdd(it)]] : []),
     ], x, y);
   }
   function askText(title, value, okLabel, cb) {
