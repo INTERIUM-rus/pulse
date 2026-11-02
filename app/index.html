@@ -4975,7 +4975,8 @@ registerProcessor('pulse-feed', Feed);`;
       const tr = lib.fav.filter(f => !f.live && !f.preview);
       if (off.list.length) {
         const mb = Math.round(off.list.reduce((n, o) => n + (o.size || 0), 0) / 1048576);
-        const head = section('⤓ Без интернета', `${off.list.length} треков · ${mb} МБ`);
+        const n = off.list.length, w = n % 10 === 1 && n % 100 !== 11 ? 'трек' : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 'трека' : 'треков';
+        const head = section('⤓ Без интернета', `${n} ${w} · ${mb || '<1'} МБ`);
         const clr = el('button', 'off-clear', 'Удалить все'); clr.type = 'button';
         clr.addEventListener('click', () => confirmBox(`Удалить ${off.list.length} сохранённых треков? Без интернета они перестанут играть`, 'Удалить', () => offRemove(off.list.map(o => o.id))));
         head.appendChild(clr);
